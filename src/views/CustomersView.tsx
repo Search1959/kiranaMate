@@ -11,7 +11,10 @@ import {
   History,
   X,
   CheckCircle2,
-  Plus
+  Plus,
+  Edit2,
+  Trash2,
+  Eye
 } from 'lucide-react';
 import { Customer, CustomerTransaction, StoreSettings, LanguageCode } from '../types';
 import { api } from '../lib/api';
@@ -40,8 +43,10 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [customerLedger, setCustomerLedger] = useState<CustomerTransaction[]>([]);
   const [isLoadingLedger, setIsLoadingLedger] = useState(false);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
 
-  // New Customer Form State
+  // New / Edit Customer Form State
   const [newName, setNewName] = useState('');
   const [newMobile, setNewMobile] = useState('');
   const [newAddress, setNewAddress] = useState('');
@@ -50,6 +55,35 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [newCreditLimit, setNewCreditLimit] = useState<number | ''>(5000);
   const [newNotes, setNewNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleOpenEditCustomer = (cust: Customer) => {
+    setEditingCustomer(cust);
+    setNewName(cust.name);
+    setNewMobile(cust.mobile);
+    setNewAddress(cust.address || '');
+    setNewArea(cust.area || 'Subhash Nagar');
+    setNewOpeningBalance(cust.openingBalance || 0);
+    setNewCreditLimit(cust.creditLimit || 5000);
+    setNewNotes(cust.notes || '');
+  };
+
+  const handleDeleteCustomer = async (cust: Customer) => {
+    if (!window.confirm(`Are you sure you want to delete customer "${cust.name}"? This action will remove customer record.`)) {
+      return;
+    }
+    setDeletingCustomerId(cust.id);
+    try {
+      await api.deleteCustomer(cust.id);
+      onRefreshData();
+      if (selectedCustomer?.id === cust.id) {
+        setSelectedCustomer(null);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete customer');
+    } finally {
+      setDeletingCustomerId(null);
+    }
+  };
 
   const areas = Array.from(new Set(customers.map(c => c.area).filter(Boolean)));
 
@@ -77,7 +111,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     }
   };
 
-  const handleCreateCustomer = async (e: React.FormEvent) => {
+  const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newMobile) {
       alert("Please provide customer name and mobile number!");
@@ -86,25 +120,45 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
     setIsSaving(true);
     try {
-      await api.createCustomer({
-        name: newName,
-        mobile: newMobile,
-        address: newAddress || `${newArea}, Main Market`,
-        area: newArea,
-        openingBalance: Number(newOpeningBalance) || 0,
-        creditLimit: Number(newCreditLimit) || 5000,
-        notes: newNotes
-      });
+      if (editingCustomer) {
+        await api.updateCustomer(editingCustomer.id, {
+          name: newName,
+          mobile: newMobile,
+          address: newAddress || `${newArea}, Main Market`,
+          area: newArea,
+          creditLimit: Number(newCreditLimit) || 5000,
+          notes: newNotes
+        });
+      } else {
+        await api.createCustomer({
+          name: newName,
+          mobile: newMobile,
+          address: newAddress || `${newArea}, Main Market`,
+          area: newArea,
+          openingBalance: Number(newOpeningBalance) || 0,
+          creditLimit: Number(newCreditLimit) || 5000,
+          notes: newNotes
+        });
+      }
       onRefreshData();
       setShowAddCustomerModal(false);
-      setNewName('');
-      setNewMobile('');
-      setNewAddress('');
+      setEditingCustomer(null);
+      resetCustomerForm();
     } catch (err: any) {
-      alert(err.message || 'Failed to create customer');
+      alert(err.message || 'Failed to save customer');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const resetCustomerForm = () => {
+    setNewName('');
+    setNewMobile('');
+    setNewAddress('');
+    setNewArea('Subhash Nagar');
+    setNewOpeningBalance(0);
+    setNewCreditLimit(5000);
+    setNewNotes('');
   };
 
   return (
@@ -194,19 +248,30 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 </div>
               </div>
 
-              {/* Card Action Buttons */}
-              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <button
-                  onClick={() => handleSelectCustomer(cust)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-[11px] flex items-center gap-1"
-                >
-                  <History className="w-3.5 h-3.5 text-emerald-600" /> Ledger
-                </button>
+              {/* Card Action Buttons: View/Ledger, Edit, Collect, WhatsApp, Delete */}
+              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSelectCustomer(cust)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2.5 py-1.5 rounded-xl text-[11px] flex items-center gap-1 transition-colors"
+                    title="View Customer Ledger"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-blue-600" /> View
+                  </button>
 
-                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handleOpenEditCustomer(cust)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2.5 py-1.5 rounded-xl text-[11px] flex items-center gap-1 transition-colors"
+                    title="Edit Customer Details"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-amber-600" /> Edit
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => onOpenCollectPayment(cust)}
-                    className="bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold px-3 py-1.5 rounded-xl text-[11px]"
+                    className="bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold px-2.5 py-1.5 rounded-xl text-[11px] shadow-2xs"
                   >
                     Collect
                   </button>
@@ -215,11 +280,20 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                     href={getWhatsAppWebLink(cust.mobile, generateUdhaarReminderText(cust, settings, lang))}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center shadow-xs"
+                    className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center shadow-2xs"
                     title="WhatsApp Reminder"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                   </a>
+
+                  <button
+                    onClick={() => handleDeleteCustomer(cust)}
+                    disabled={deletingCustomerId === cust.id}
+                    className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold flex items-center justify-center transition-colors disabled:opacity-50"
+                    title="Delete Customer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -312,21 +386,28 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
         </div>
       )}
 
-      {/* Add New Customer Modal */}
-      {showAddCustomerModal && (
+      {/* Add / Edit Customer Modal */}
+      {(showAddCustomerModal || editingCustomer) && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
             <div className="bg-emerald-800 text-white p-4 flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-base">
                 <UserPlus className="w-5 h-5 text-amber-300" />
-                <span>Add New Shop Customer</span>
+                <span>{editingCustomer ? 'Edit Customer Record' : 'Add New Shop Customer'}</span>
               </div>
-              <button onClick={() => setShowAddCustomerModal(false)} className="p-1 rounded-full hover:bg-emerald-700 text-emerald-200">
+              <button
+                onClick={() => {
+                  setShowAddCustomerModal(false);
+                  setEditingCustomer(null);
+                  resetCustomerForm();
+                }}
+                className="p-1 rounded-full hover:bg-emerald-700 text-emerald-200"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateCustomer} className="p-5 space-y-3.5 text-xs">
+            <form onSubmit={handleSaveCustomer} className="p-5 space-y-3.5 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Customer Full Name *</label>
                 <input
@@ -363,16 +444,18 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   />
                 </div>
 
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Opening Udhaar (₹)</label>
-                  <input
-                    type="number"
-                    value={newOpeningBalance}
-                    onChange={(e) => setNewOpeningBalance(Number(e.target.value))}
-                    placeholder="0"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-emerald-600 focus:outline-none"
-                  />
-                </div>
+                {!editingCustomer && (
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Opening Udhaar (₹)</label>
+                    <input
+                      type="number"
+                      value={newOpeningBalance}
+                      onChange={(e) => setNewOpeningBalance(Number(e.target.value))}
+                      placeholder="0"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -389,9 +472,9 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-md transition-transform active:scale-98 disabled:opacity-50 mt-2"
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-md transition-transform active:scale-98 disabled:opacity-50 mt-2 cursor-pointer"
               >
-                {isSaving ? 'Saving Customer...' : 'SAVE CUSTOMER TO DIRECTORY'}
+                {isSaving ? 'Saving Customer...' : editingCustomer ? 'UPDATE CUSTOMER DETAILS' : 'SAVE CUSTOMER TO DIRECTORY'}
               </button>
             </form>
           </div>

@@ -240,6 +240,18 @@ async function startServer() {
     }
   });
 
+  app.put('/api/sales/:id', (req, res) => {
+    const updated = db.updateSale(req.storeId, req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Sale not found' });
+    res.json(updated);
+  });
+
+  app.delete('/api/sales/:id', (req, res) => {
+    const success = db.deleteSale(req.storeId, req.params.id);
+    if (!success) return res.status(404).json({ error: 'Sale not found' });
+    res.json({ success: true });
+  });
+
   // Orders
   app.get('/api/orders', (req, res) => {
     const search = req.query.search as string;
@@ -263,6 +275,18 @@ async function startServer() {
     res.json(updated);
   });
 
+  app.put('/api/orders/:id', (req, res) => {
+    const updated = db.updateOrder(req.storeId, req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Order not found' });
+    res.json(updated);
+  });
+
+  app.delete('/api/orders/:id', (req, res) => {
+    const success = db.deleteOrder(req.storeId, req.params.id);
+    if (!success) return res.status(404).json({ error: 'Order not found' });
+    res.json({ success: true });
+  });
+
   // Expenses
   app.get('/api/expenses', (req, res) => {
     res.json(db.getExpenses(req.storeId));
@@ -277,6 +301,18 @@ async function startServer() {
     }
   });
 
+  app.put('/api/expenses/:id', (req, res) => {
+    const updated = db.updateExpense(req.storeId, req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Expense not found' });
+    res.json(updated);
+  });
+
+  app.delete('/api/expenses/:id', (req, res) => {
+    const success = db.deleteExpense(req.storeId, req.params.id);
+    if (!success) return res.status(404).json({ error: 'Expense not found' });
+    res.json({ success: true });
+  });
+
   // Suppliers & Purchases
   app.get('/api/suppliers', (req, res) => {
     res.json(db.getSuppliers(req.storeId));
@@ -287,6 +323,18 @@ async function startServer() {
     res.status(201).json(sup);
   });
 
+  app.put('/api/suppliers/:id', (req, res) => {
+    const updated = db.updateSupplier(req.storeId, req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Supplier not found' });
+    res.json(updated);
+  });
+
+  app.delete('/api/suppliers/:id', (req, res) => {
+    const success = db.deleteSupplier(req.storeId, req.params.id);
+    if (!success) return res.status(404).json({ error: 'Supplier not found' });
+    res.json({ success: true });
+  });
+
   app.get('/api/purchases', (req, res) => {
     res.json(db.getPurchases(req.storeId));
   });
@@ -294,6 +342,18 @@ async function startServer() {
   app.post('/api/purchases', (req, res) => {
     const pur = db.createPurchase(req.storeId, req.body);
     res.status(201).json(pur);
+  });
+
+  app.put('/api/purchases/:id', (req, res) => {
+    const updated = db.updatePurchase(req.storeId, req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Purchase not found' });
+    res.json(updated);
+  });
+
+  app.delete('/api/purchases/:id', (req, res) => {
+    const success = db.deletePurchase(req.storeId, req.params.id);
+    if (!success) return res.status(404).json({ error: 'Purchase not found' });
+    res.json({ success: true });
   });
 
   // AI Camera Scan Purchase Bill (Supports Hindi, Bengali, Gujarati, Marathi, Tamil, English)

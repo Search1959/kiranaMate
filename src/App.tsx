@@ -553,6 +553,7 @@ export default function App() {
               onOpenAddStock={handleOpenAddStock}
               onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
               onOpenBulkImport={() => setIsBulkImportOpen(true)}
+              onRefreshData={() => loadData(currentStoreId)}
             />
           )}
 
@@ -572,6 +573,7 @@ export default function App() {
               sales={sales}
               onOpenNewSale={() => setIsNewSaleOpen(true)}
               onOpenInvoicePrint={handleOpenInvoicePrint}
+              onRefreshData={() => loadData(currentStoreId)}
             />
           )}
 
@@ -581,6 +583,7 @@ export default function App() {
               suppliers={suppliers}
               onOpenAddStock={() => setIsAddStockOpen(true)}
               onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
+              onRefreshData={() => loadData(currentStoreId)}
             />
           )}
 
@@ -588,6 +591,7 @@ export default function App() {
             <ExpensesView
               expenses={expenses}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+              onRefreshData={() => loadData(currentStoreId)}
             />
           )}
 

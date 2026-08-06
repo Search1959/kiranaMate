@@ -104,6 +104,8 @@ export const api = {
   // Sales
   getSales: (search?: string) => apiFetch<Sale[]>(`/api/sales?search=${encodeURIComponent(search || '')}`),
   createSale: (data: Partial<Sale>) => apiFetch<Sale>('/api/sales', { method: 'POST', body: JSON.stringify(data) }),
+  updateSale: (id: string, data: Partial<Sale>) => apiFetch<Sale>(`/api/sales/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSale: (id: string) => apiFetch<{ success: boolean }>(`/api/sales/${id}`, { method: 'DELETE' }),
 
   // Orders
   getOrders: (search?: string, status?: string) => {
@@ -114,17 +116,25 @@ export const api = {
   },
   createOrder: (data: Partial<Order>) => apiFetch<Order>('/api/orders', { method: 'POST', body: JSON.stringify(data) }),
   updateOrderStatus: (id: string, orderStatus: string, paymentStatus?: string) => apiFetch<Order>(`/api/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ orderStatus, paymentStatus }) }),
+  updateOrder: (id: string, data: Partial<Order>) => apiFetch<Order>(`/api/orders/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteOrder: (id: string) => apiFetch<{ success: boolean }>(`/api/orders/${id}`, { method: 'DELETE' }),
 
   // Expenses
   getExpenses: () => apiFetch<Expense[]>('/api/expenses'),
   createExpense: (data: Partial<Expense>) => apiFetch<Expense>('/api/expenses', { method: 'POST', body: JSON.stringify(data) }),
+  updateExpense: (id: string, data: Partial<Expense>) => apiFetch<Expense>(`/api/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteExpense: (id: string) => apiFetch<{ success: boolean }>(`/api/expenses/${id}`, { method: 'DELETE' }),
   scanExpenseBill: (imageBase64: string) => apiFetch<{ success: boolean; data: any }>('/api/ai/scan-expense-bill', { method: 'POST', body: JSON.stringify({ imageBase64 }) }),
 
   // Suppliers & Purchases
   getSuppliers: () => apiFetch<Supplier[]>('/api/suppliers'),
   createSupplier: (data: Partial<Supplier>) => apiFetch<Supplier>('/api/suppliers', { method: 'POST', body: JSON.stringify(data) }),
+  updateSupplier: (id: string, data: Partial<Supplier>) => apiFetch<Supplier>(`/api/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSupplier: (id: string) => apiFetch<{ success: boolean }>(`/api/suppliers/${id}`, { method: 'DELETE' }),
   getPurchases: () => apiFetch<Purchase[]>('/api/purchases'),
   createPurchase: (data: Partial<Purchase>) => apiFetch<Purchase>('/api/purchases', { method: 'POST', body: JSON.stringify(data) }),
+  updatePurchase: (id: string, data: Partial<Purchase>) => apiFetch<Purchase>(`/api/purchases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePurchase: (id: string) => apiFetch<{ success: boolean }>(`/api/purchases/${id}`, { method: 'DELETE' }),
   scanPurchaseBill: (imageBase64: string) => apiFetch<{ success: boolean; data: any }>('/api/ai/scan-bill', { method: 'POST', body: JSON.stringify({ imageBase64 }) }),
   processScannedPurchaseBill: (payload: any) => apiFetch<{ success: boolean; purchase: Purchase; supplier: Supplier; isNewSupplierCreated: boolean; newProductsCount: number; updatedProductsCount: number }>('/api/purchases/process-scanned', { method: 'POST', body: JSON.stringify(payload) }),
 

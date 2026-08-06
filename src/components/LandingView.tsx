@@ -173,17 +173,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   </p>
                 </div>
                 <button
-                  onClick={() => {
-                    if (onSelectSectorDemo) {
-                      onSelectSectorDemo('METALS_STEEL', 'store-demo-steel');
-                    } else {
-                      onStartDemo('owner');
-                    }
-                  }}
+                  onClick={() => onStartDemo('owner')}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                 >
                   <Zap className="w-3.5 h-3.5 text-yellow-300" />
-                  <span>Launch Steel Demo</span>
+                  <span>Launch Kirana Demo</span>
                 </button>
               </div>
 

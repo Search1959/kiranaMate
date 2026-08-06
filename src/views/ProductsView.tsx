@@ -8,9 +8,14 @@ import {
   FileSpreadsheet,
   AlertTriangle,
   ArrowUpRight,
-  Filter
+  Filter,
+  Eye,
+  Trash2,
+  X,
+  Barcode
 } from 'lucide-react';
 import { Product, KiranaCategory } from '../types';
+import { api } from '../lib/api';
 
 interface ProductsViewProps {
   products: Product[];
@@ -18,6 +23,7 @@ interface ProductsViewProps {
   onOpenAddStock: (product: Product) => void;
   onOpenBarcodeScanner: () => void;
   onOpenBulkImport: () => void;
+  onRefreshData?: () => void;
 }
 
 const CATEGORIES: KiranaCategory[] = [
@@ -42,11 +48,29 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   onOpenAddProduct,
   onOpenAddStock,
   onOpenBarcodeScanner,
-  onOpenBulkImport
+  onOpenBulkImport,
+  onRefreshData
 }) => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'LOW' | 'OUT'>('ALL');
+  const [viewProduct, setViewProduct] = useState<Product | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteProduct = async (p: Product) => {
+    if (!window.confirm(`Are you sure you want to delete product "${p.name}"? This action cannot be undone.`)) {
+      return;
+    }
+    setDeletingId(p.id);
+    try {
+      await api.deleteProduct(p.id);
+      if (onRefreshData) onRefreshData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete product');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = !search.trim() || (
@@ -204,26 +228,126 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              {/* Action Buttons: View, Edit, Add Stock, Delete */}
+              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
+                <button
+                  onClick={() => setViewProduct(p)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                  title="View Product Details"
+                >
+                  <Eye className="w-3.5 h-3.5 text-blue-600" /> View
+                </button>
+
                 <button
                   onClick={() => onOpenAddProduct(p)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-[11px] flex items-center gap-1"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                  title="Edit Product"
                 >
-                  <Edit2 className="w-3.5 h-3.5" /> Edit
+                  <Edit2 className="w-3.5 h-3.5 text-amber-600" /> Edit
                 </button>
 
                 <button
                   onClick={() => onOpenAddStock(p)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-[11px] flex items-center gap-1 shadow-xs"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-xl text-[11px] flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
+                  title="Add Stock"
                 >
-                  <ArrowUpRight className="w-3.5 h-3.5" /> + Add Stock
+                  <ArrowUpRight className="w-3.5 h-3.5" /> +Stock
+                </button>
+
+                <button
+                  onClick={() => handleDeleteProduct(p)}
+                  disabled={deletingId === p.id}
+                  className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-2.5 py-1.5 rounded-xl text-[11px] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                  title="Delete Product"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
                 </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* View Product Details Modal */}
+      {viewProduct && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
+                  {viewProduct.category}
+                </span>
+                <h3 className="text-lg font-black text-slate-900 mt-1">{viewProduct.name}</h3>
+                <p className="text-xs text-slate-500">Brand: {viewProduct.brand || 'Generic'}</p>
+              </div>
+              <button
+                onClick={() => setViewProduct(null)}
+                className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Current Stock</span>
+                  <span className="text-base font-black text-slate-900">{viewProduct.currentStock} {viewProduct.unit}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Min Stock Alert</span>
+                  <span className="text-base font-black text-amber-600">{viewProduct.minStock} {viewProduct.unit}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Selling Price</span>
+                  <span className="text-sm font-black text-emerald-700">₹{viewProduct.sellingPrice}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Purchase Price</span>
+                  <span className="text-sm font-black text-slate-700">₹{viewProduct.purchasePrice}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">MRP</span>
+                  <span className="text-sm font-black text-slate-500 line-through">₹{viewProduct.mrp}</span>
+                </div>
+              </div>
+
+              {viewProduct.barcode && (
+                <div className="flex items-center gap-2 bg-slate-100 p-2.5 rounded-xl font-mono text-slate-700 font-bold">
+                  <Barcode className="w-4 h-4 text-slate-500" />
+                  <span>Barcode: {viewProduct.barcode}</span>
+                </div>
+              )}
+
+              {viewProduct.gstPercent !== undefined && (
+                <div className="text-[11px] font-semibold text-slate-600">
+                  GST Rate: <strong className="text-slate-800">{viewProduct.gstPercent}%</strong>
+                </div>
+              )}
+
+              <div className="text-[10px] text-slate-400 pt-1">
+                Last updated: {viewProduct.updatedAt ? new Date(viewProduct.updatedAt).toLocaleString('en-IN') : 'N/A'}
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  const prod = viewProduct;
+                  setViewProduct(null);
+                  onOpenAddProduct(prod);
+                }}
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> Edit Product
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

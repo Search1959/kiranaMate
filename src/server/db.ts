@@ -778,6 +778,24 @@ class Database {
     return newSale;
   }
 
+  public updateSale(storeId: string = 'store-demo', id: string, updates: Partial<Sale>): Sale | null {
+    const store = this.getStore(storeId);
+    const sale = store.sales.find(s => s.id === id);
+    if (!sale) return null;
+    Object.assign(sale, updates);
+    this.saveData();
+    return sale;
+  }
+
+  public deleteSale(storeId: string = 'store-demo', id: string): boolean {
+    const store = this.getStore(storeId);
+    const idx = store.sales.findIndex(s => s.id === id);
+    if (idx === -1) return false;
+    store.sales.splice(idx, 1);
+    this.saveData();
+    return true;
+  }
+
   // --- ORDERS ---
   public getOrders(storeId: string = 'store-demo', search?: string, status?: string): Order[] {
     const store = this.getStore(storeId);
@@ -837,6 +855,24 @@ class Database {
     return order;
   }
 
+  public updateOrder(storeId: string = 'store-demo', id: string, updates: Partial<Order>): Order | null {
+    const store = this.getStore(storeId);
+    const order = store.orders.find(o => o.id === id);
+    if (!order) return null;
+    Object.assign(order, updates, { updatedAt: new Date().toISOString() });
+    this.saveData();
+    return order;
+  }
+
+  public deleteOrder(storeId: string = 'store-demo', id: string): boolean {
+    const store = this.getStore(storeId);
+    const idx = store.orders.findIndex(o => o.id === id);
+    if (idx === -1) return false;
+    store.orders.splice(idx, 1);
+    this.saveData();
+    return true;
+  }
+
   // --- EXPENSES ---
   public getExpenses(storeId: string = 'store-demo'): Expense[] {
     return [...this.getStore(storeId).expenses].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -854,6 +890,24 @@ class Database {
     return newExp;
   }
 
+  public updateExpense(storeId: string = 'store-demo', id: string, updates: Partial<Expense>): Expense | null {
+    const store = this.getStore(storeId);
+    const exp = store.expenses.find(e => e.id === id);
+    if (!exp) return null;
+    Object.assign(exp, updates);
+    this.saveData();
+    return exp;
+  }
+
+  public deleteExpense(storeId: string = 'store-demo', id: string): boolean {
+    const store = this.getStore(storeId);
+    const idx = store.expenses.findIndex(e => e.id === id);
+    if (idx === -1) return false;
+    store.expenses.splice(idx, 1);
+    this.saveData();
+    return true;
+  }
+
   // --- SUPPLIERS & PURCHASES ---
   public getSuppliers(storeId: string = 'store-demo'): Supplier[] {
     return [...this.getStore(storeId).suppliers];
@@ -869,6 +923,42 @@ class Database {
     store.suppliers.push(sup);
     this.saveData();
     return sup;
+  }
+
+  public updateSupplier(storeId: string = 'store-demo', id: string, updates: Partial<Supplier>): Supplier | null {
+    const store = this.getStore(storeId);
+    const sup = store.suppliers.find(s => s.id === id);
+    if (!sup) return null;
+    Object.assign(sup, updates);
+    this.saveData();
+    return sup;
+  }
+
+  public deleteSupplier(storeId: string = 'store-demo', id: string): boolean {
+    const store = this.getStore(storeId);
+    const idx = store.suppliers.findIndex(s => s.id === id);
+    if (idx === -1) return false;
+    store.suppliers.splice(idx, 1);
+    this.saveData();
+    return true;
+  }
+
+  public updatePurchase(storeId: string = 'store-demo', id: string, updates: Partial<Purchase>): Purchase | null {
+    const store = this.getStore(storeId);
+    const pur = store.purchases.find(p => p.id === id);
+    if (!pur) return null;
+    Object.assign(pur, updates);
+    this.saveData();
+    return pur;
+  }
+
+  public deletePurchase(storeId: string = 'store-demo', id: string): boolean {
+    const store = this.getStore(storeId);
+    const idx = store.purchases.findIndex(p => p.id === id);
+    if (idx === -1) return false;
+    store.purchases.splice(idx, 1);
+    this.saveData();
+    return true;
   }
 
   public getPurchases(storeId: string = 'store-demo'): Purchase[] {
