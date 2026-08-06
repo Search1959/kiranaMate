@@ -1,0 +1,87 @@
+{
+  "stores": {
+    "store-demo": {
+      "users": [
+        {
+          "id": "user-admin",
+          "name": "System Administrator",
+          "username": "admin",
+          "role": "admin",
+          "mobile": "9999999999",
+          "storeId": "store-demo",
+          "storeName": "KiranaMate Store",
+          "isDemoUser": false,
+          "permissions": {
+            "canViewReports": true,
+            "canEditProducts": true,
+            "canDeleteRecords": true,
+            "canCollectPayments": true,
+            "canCreateOrders": true,
+            "canManageSettings": true
+          }
+        },
+        {
+          "id": "user-1",
+          "name": "Shop Owner",
+          "username": "owner",
+          "role": "owner",
+          "mobile": "9876543210",
+          "storeId": "store-demo",
+          "storeName": "KiranaMate Store",
+          "isDemoUser": false,
+          "permissions": {
+            "canViewReports": true,
+            "canEditProducts": true,
+            "canDeleteRecords": true,
+            "canCollectPayments": true,
+            "canCreateOrders": true,
+            "canManageSettings": true
+          }
+        },
+        {
+          "id": "user-2",
+          "name": "Shop Staff",
+          "username": "staff",
+          "role": "staff",
+          "mobile": "9811223344",
+          "storeId": "store-demo",
+          "storeName": "KiranaMate Store",
+          "isDemoUser": false,
+          "permissions": {
+            "canViewReports": false,
+            "canEditProducts": true,
+            "canDeleteRecords": false,
+            "canCollectPayments": true,
+            "canCreateOrders": true,
+            "canManageSettings": false
+          }
+        }
+      ],
+      "customers": [],
+      "customerTransactions": [],
+      "products": [],
+      "suppliers": [],
+      "purchases": [],
+      "orders": [],
+      "sales": [],
+      "expenses": [],
+      "inventoryTransactions": [],
+      "notifications": [],
+      "settings": {
+        "storeName": "KiranaMate General Store",
+        "tagline": "Store & Inventory Management",
+        "ownerName": "Shop Owner",
+        "phone": "9876543210",
+        "address": "Main Market",
+        "city": "Jaipur",
+        "pincode": "302001",
+        "currencySymbol": "₹",
+        "invoicePrefix": "INV-2026-",
+        "invoiceFooterNote": "Thank you for shopping with us!",
+        "lowStockThresholdDefault": 10,
+        "defaultLanguage": "en",
+        "sector": "KIRANA_FMCG"
+      }
+    }
+  }
+}

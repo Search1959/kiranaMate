@@ -72,7 +72,7 @@ function getStoreData(storeId: string = 'store-demo'): StoreData {
     users: [
       {
         id: 'u-1',
-        name: 'Ramesh Gupta',
+        name: 'Shop Owner',
         username: 'owner',
         role: 'owner',
         mobile: '9876543210',
@@ -110,16 +110,7 @@ function getStoreData(storeId: string = 'store-demo'): StoreData {
     suppliers: seed.suppliers,
     purchases: (seed as any).purchases || [],
     inventoryTransactions: seed.inventoryTransactions,
-    notifications: [
-      {
-        id: 'n-1',
-        title: 'Stock Alert: Fortune Refined Oil',
-        message: 'Current stock is 5 pouches. Minimum threshold is 10.',
-        type: 'LOW_STOCK',
-        isRead: false,
-        createdAt: new Date().toISOString()
-      }
-    ]
+    notifications: []
   };
 
   localStorage.setItem(key, JSON.stringify(initialData));

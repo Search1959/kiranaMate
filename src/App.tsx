@@ -20,7 +20,7 @@ import { getSectorConfig } from './lib/sectorConfig';
 
 const DEFAULT_USER: User = {
   id: 'user-demo-owner',
-  name: 'Ramesh Gupta (Demo Owner)',
+  name: 'Shop Owner',
   username: 'owner',
   role: 'owner',
   mobile: '9876543210',
@@ -35,23 +35,23 @@ const DEFAULT_USER: User = {
 };
 
 const DEFAULT_STATS: DailyStats = {
-  todaySalesTotal: 12450,
-  cashSales: 5200,
-  upiSales: 4850,
-  creditSales: 2400,
-  todayExpenses: 850,
-  estimatedProfitToday: 2100,
-  totalPendingUdhaar: 48500,
-  dueTodayUdhaar: 6200,
-  overdueUdhaar: 14200,
-  todayCollection: 3500,
-  pendingOrdersCount: 2,
-  newOrdersCount: 1,
-  preparingOrdersCount: 1,
+  todaySalesTotal: 0,
+  cashSales: 0,
+  upiSales: 0,
+  creditSales: 0,
+  todayExpenses: 0,
+  estimatedProfitToday: 0,
+  totalPendingUdhaar: 0,
+  dueTodayUdhaar: 0,
+  overdueUdhaar: 0,
+  todayCollection: 0,
+  pendingOrdersCount: 0,
+  newOrdersCount: 0,
+  preparingOrdersCount: 0,
   outForDeliveryCount: 0,
-  deliveredOrdersToday: 5,
-  lowStockCount: 3,
-  outOfStockCount: 1
+  deliveredOrdersToday: 0,
+  lowStockCount: 0,
+  outOfStockCount: 0
 };
 
 function getFallbackSettings(storeIdStr: string): StoreSettings {
@@ -286,6 +286,24 @@ export default function App() {
   };
 
   useEffect(() => {
+    const savedUserRaw = localStorage.getItem('kiranamate_session_user');
+    const savedStoreId = localStorage.getItem('kiranamate_session_store_id');
+
+    if (savedUserRaw && savedStoreId) {
+      try {
+        const savedUser: User = JSON.parse(savedUserRaw);
+        setCurrentUser(savedUser);
+        api.setUserRole(savedUser.role);
+        api.setStoreId(savedStoreId);
+        setCurrentStoreId(savedStoreId);
+        setViewMode('app');
+        loadData(savedStoreId);
+        return;
+      } catch (e) {
+        console.warn('Invalid stored session, falling back:', e);
+      }
+    }
+
     loadData('store-demo');
   }, []);
 
@@ -315,7 +333,7 @@ export default function App() {
       if (!userObj) {
         userObj = {
           id: role === 'admin' ? 'user-admin' : role === 'staff' ? 'user-2' : 'user-1',
-          name: role === 'admin' ? 'System Administrator' : role === 'staff' ? 'Suresh Kumar (Demo Staff)' : 'Ramesh Gupta (Demo Owner)',
+          name: role === 'admin' ? 'System Administrator' : role === 'staff' ? 'Counter Staff' : 'Shop Owner',
           username,
           role,
           mobile: '9876543210',
@@ -332,6 +350,9 @@ export default function App() {
 
       setCurrentUser(userObj);
       api.setUserRole(userObj.role);
+      localStorage.setItem('kiranamate_session_user', JSON.stringify(userObj));
+      localStorage.setItem('kiranamate_session_store_id', 'store-demo');
+
       await loadData('store-demo');
       setActiveTab('home');
       setViewMode('app');
@@ -348,6 +369,9 @@ export default function App() {
     api.setStoreId(storeId);
     setCurrentStoreId(storeId);
 
+    localStorage.setItem('kiranamate_session_user', JSON.stringify(user));
+    localStorage.setItem('kiranamate_session_store_id', storeId);
+
     await loadData(storeId);
     setViewMode('app');
   };
@@ -355,13 +379,20 @@ export default function App() {
   const handleUserSwitch = (user: User) => {
     setCurrentUser(user);
     api.setUserRole(user.role);
+    localStorage.setItem('kiranamate_session_user', JSON.stringify(user));
   };
 
   const handleAdminSwitchStore = async (targetStoreId: string) => {
+    localStorage.setItem('kiranamate_session_store_id', targetStoreId);
     await loadData(targetStoreId);
   };
 
   const handleGoToLanding = () => {
+    localStorage.removeItem('kiranamate_session_user');
+    localStorage.removeItem('kiranamate_session_store_id');
+    setCurrentUser(null);
+    api.setStoreId('store-demo');
+    setCurrentStoreId('store-demo');
     setViewMode('landing');
   };
 

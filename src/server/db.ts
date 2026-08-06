@@ -142,13 +142,13 @@ class Database {
       },
       {
         id: 'user-1',
-        name: 'Ramesh Gupta (Demo Owner)',
+        name: 'Shop Owner',
         username: 'owner',
         role: 'owner',
         mobile: '9876543210',
         storeId: 'store-demo',
-        storeName: 'Gupta Kirana & General Store',
-        isDemoUser: true,
+        storeName: 'KiranaMate General Store',
+        isDemoUser: false,
         permissions: {
           canViewReports: true,
           canEditProducts: true,
@@ -178,35 +178,7 @@ class Database {
       }
     ];
 
-    const initialNotifications: NotificationAlert[] = [
-      {
-        id: 'notif-1',
-        type: 'LOW_STOCK',
-        title: 'Low Stock Alert',
-        message: 'Amul Taaza Milk 500ml is running low (Only 4 pouches left)!',
-        referenceId: 'p-146',
-        isRead: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'notif-2',
-        type: 'OUT_OF_STOCK',
-        title: 'Out of Stock Alert',
-        message: 'Britannia Whole Wheat Bread 400g is OUT OF STOCK!',
-        referenceId: 'p-149',
-        isRead: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'notif-3',
-        type: 'OVERDUE_PAYMENT',
-        title: 'Udhaar Reminder Due',
-        message: 'Rahul Sharma has pending Udhaar of ₹1,450. Send WhatsApp reminder.',
-        referenceId: 'cust-1',
-        isRead: false,
-        createdAt: new Date().toISOString()
-      }
-    ];
+    const initialNotifications: NotificationAlert[] = [];
 
     this.storeMap['store-demo'] = {
       users: defaultUsers,
