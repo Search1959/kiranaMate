@@ -14,6 +14,7 @@ import {
   InventoryTransaction,
   UserRole
 } from '../types';
+import { clientStore } from './clientStore';
 
 let currentUserRole: UserRole = 'owner';
 let currentStoreId: string = 'store-demo';
@@ -30,6 +31,202 @@ export function getCurrentStoreId(): string {
   return currentStoreId;
 }
 
+async function handleClientFallback<T>(url: string, options?: RequestInit): Promise<T> {
+  const method = (options?.method || 'GET').toUpperCase();
+  const body = options?.body ? JSON.parse(options.body as string) : {};
+  const urlObj = new URL(url, 'http://localhost');
+  const pathname = urlObj.pathname;
+  const searchParams = urlObj.searchParams;
+
+  // 1. Stats & Settings
+  if (pathname === '/api/dashboard/stats') {
+    return clientStore.getDailyStats(currentStoreId) as unknown as T;
+  }
+  if (pathname === '/api/settings') {
+    if (method === 'PUT') return clientStore.updateSettings(currentStoreId, body) as unknown as T;
+    return clientStore.getSettings(currentStoreId) as unknown as T;
+  }
+
+  // 2. Auth
+  if (pathname === '/api/auth/login' || pathname === '/api/auth/register') {
+    return clientStore.login(currentStoreId, body.username) as unknown as T;
+  }
+  if (pathname === '/api/auth/me') {
+    return clientStore.getUsers(currentStoreId) as unknown as T;
+  }
+  if (pathname.startsWith('/api/auth/permissions/')) {
+    const userId = pathname.split('/').pop()!;
+    return clientStore.updateUserPermissions(currentStoreId, userId, body.permissions) as unknown as T;
+  }
+  if (pathname === '/api/admin/stores') {
+    return clientStore.getAdminStores() as unknown as T;
+  }
+
+  // 3. Customers
+  if (pathname === '/api/customers' && method === 'GET') {
+    return clientStore.getCustomers(currentStoreId, searchParams.get('search') || undefined, searchParams.get('area') || undefined) as unknown as T;
+  }
+  if (pathname === '/api/customers' && method === 'POST') {
+    return clientStore.createCustomer(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/customers/') && pathname.endsWith('/payments') && method === 'POST') {
+    const id = pathname.split('/')[3];
+    return clientStore.recordCustomerPayment(currentStoreId, id, body.amount, body.paymentMethod, body.notes, body.recordedBy) as unknown as T;
+  }
+  if (pathname.startsWith('/api/customers/') && method === 'GET') {
+    const id = pathname.split('/')[3];
+    return clientStore.getCustomerById(currentStoreId, id) as unknown as T;
+  }
+  if (pathname.startsWith('/api/customers/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateCustomer(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/customers/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deleteCustomer(currentStoreId, id) as unknown as T;
+  }
+
+  // 4. Products
+  if (pathname === '/api/products/bulk-import' && method === 'POST') {
+    return clientStore.bulkImportProducts(currentStoreId, body.products) as unknown as T;
+  }
+  if (pathname.startsWith('/api/products/barcode/')) {
+    const code = decodeURIComponent(pathname.split('/').pop()!);
+    return clientStore.getProductByBarcode(currentStoreId, code) as unknown as T;
+  }
+  if (pathname.startsWith('/api/products/') && pathname.endsWith('/add-stock') && method === 'POST') {
+    const id = pathname.split('/')[3];
+    return clientStore.addStock(currentStoreId, id, body.qtyToAdd, body.notes) as unknown as T;
+  }
+  if (pathname === '/api/products' && method === 'GET') {
+    return clientStore.getProducts(currentStoreId, searchParams.get('search') || undefined, searchParams.get('category') || undefined, searchParams.get('stockFilter') || undefined) as unknown as T;
+  }
+  if (pathname === '/api/products' && method === 'POST') {
+    return clientStore.createProduct(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/products/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateProduct(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/products/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deleteProduct(currentStoreId, id) as unknown as T;
+  }
+
+  // 5. Sales
+  if (pathname === '/api/sales' && method === 'GET') {
+    return clientStore.getSales(currentStoreId, searchParams.get('search') || undefined) as unknown as T;
+  }
+  if (pathname === '/api/sales' && method === 'POST') {
+    return clientStore.createSale(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/sales/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateSale(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/sales/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deleteSale(currentStoreId, id) as unknown as T;
+  }
+
+  // 6. Orders
+  if (pathname === '/api/orders' && method === 'GET') {
+    return clientStore.getOrders(currentStoreId, searchParams.get('search') || undefined, searchParams.get('status') || undefined) as unknown as T;
+  }
+  if (pathname === '/api/orders' && method === 'POST') {
+    return clientStore.createOrder(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/orders/') && pathname.endsWith('/status') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateOrderStatus(currentStoreId, id, body.orderStatus, body.paymentStatus) as unknown as T;
+  }
+  if (pathname.startsWith('/api/orders/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateOrder(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/orders/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deleteOrder(currentStoreId, id) as unknown as T;
+  }
+
+  // 7. Expenses
+  if (pathname === '/api/expenses' && method === 'GET') {
+    return clientStore.getExpenses(currentStoreId) as unknown as T;
+  }
+  if (pathname === '/api/expenses' && method === 'POST') {
+    return clientStore.createExpense(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/expenses/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateExpense(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/expenses/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deleteExpense(currentStoreId, id) as unknown as T;
+  }
+  if (pathname === '/api/ai/scan-expense-bill') {
+    return clientStore.scanExpenseBill(body.imageBase64) as unknown as T;
+  }
+
+  // 8. Suppliers & Purchases
+  if (pathname === '/api/suppliers' && method === 'GET') {
+    return clientStore.getSuppliers(currentStoreId) as unknown as T;
+  }
+  if (pathname === '/api/suppliers' && method === 'POST') {
+    return clientStore.createSupplier(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/suppliers/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updateSupplier(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/suppliers/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deleteSupplier(currentStoreId, id) as unknown as T;
+  }
+
+  if (pathname === '/api/purchases' && method === 'GET') {
+    return clientStore.getPurchases(currentStoreId) as unknown as T;
+  }
+  if (pathname === '/api/purchases' && method === 'POST') {
+    return clientStore.createPurchase(currentStoreId, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/purchases/') && method === 'PUT') {
+    const id = pathname.split('/')[3];
+    return clientStore.updatePurchase(currentStoreId, id, body) as unknown as T;
+  }
+  if (pathname.startsWith('/api/purchases/') && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return clientStore.deletePurchase(currentStoreId, id) as unknown as T;
+  }
+  if (pathname === '/api/ai/scan-bill') {
+    return clientStore.scanPurchaseBill(body.imageBase64) as unknown as T;
+  }
+  if (pathname === '/api/purchases/process-scanned') {
+    return clientStore.processScannedPurchaseBill(currentStoreId, body) as unknown as T;
+  }
+
+  // 9. Logs & Backup
+  if (pathname === '/api/inventory/transactions') {
+    return clientStore.getInventoryTransactions(currentStoreId) as unknown as T;
+  }
+  if (pathname === '/api/notifications' && method === 'GET') {
+    return clientStore.getNotifications(currentStoreId) as unknown as T;
+  }
+  if (pathname.startsWith('/api/notifications/') && pathname.endsWith('/read')) {
+    const id = pathname.split('/')[3];
+    return clientStore.markNotificationRead(currentStoreId, id) as unknown as T;
+  }
+  if (pathname === '/api/backup/restore') {
+    return clientStore.restoreBackup(currentStoreId, body.jsonContent) as unknown as T;
+  }
+  if (pathname === '/api/backup/reset-demo') {
+    localStorage.removeItem(`kiranamate_store_${currentStoreId}`);
+    return { success: true, message: 'Demo data reset successfully!' } as unknown as T;
+  }
+
+  throw new Error(`Endpoint ${pathname} not found`);
+}
+
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const headers = {
     'Content-Type': 'application/json',
@@ -38,12 +235,19 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     ...(options?.headers || {})
   };
 
-  const res = await fetch(url, { ...options, headers });
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({ error: 'Server error' }));
-    throw new Error(errorBody.error || `HTTP ${res.status}`);
+  try {
+    const res = await fetch(url, { ...options, headers });
+    const contentType = res.headers.get('content-type') || '';
+
+    if (res.ok && contentType.includes('application/json')) {
+      return await res.json();
+    }
+    // If response is not ok or not JSON (e.g., 404 HTML on Netlify static hosting)
+    return await handleClientFallback<T>(url, options);
+  } catch (_err) {
+    // Network error or offline mode on Netlify
+    return await handleClientFallback<T>(url, options);
   }
-  return res.json();
 }
 
 export const api = {
@@ -146,7 +350,7 @@ export const api = {
   markNotificationRead: (id: string) => apiFetch<{ success: boolean }>(`/api/notifications/${id}/read`, { method: 'PUT' }),
 
   // Backup & Restore
-  exportBackup: () => window.open(`/api/backup/export?storeId=${currentStoreId}`, '_blank'),
+  exportBackup: () => clientStore.exportBackup(currentStoreId),
   restoreBackup: (jsonContent: string) => apiFetch<{ success: boolean; message: string }>('/api/backup/restore', { method: 'POST', body: JSON.stringify({ jsonContent }) }),
   resetDemoData: () => apiFetch<{ success: boolean; message: string }>('/api/backup/reset-demo', { method: 'POST' })
 };
