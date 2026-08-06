@@ -130,6 +130,7 @@ export function generateSectorSeedData(sectorId: TradingSector = 'KIRANA_FMCG') 
 
   const orders: Order[] = [];
 
+  const nowIso = new Date().toISOString();
   const sales: Sale[] = [
     {
       id: "sal-1",
@@ -138,7 +139,7 @@ export function generateSectorSeedData(sectorId: TradingSector = 'KIRANA_FMCG') 
       customerMobile: "9829111222",
       items: [
         {
-          productId: "p-101",
+          productId: products[0]?.id || "p-101",
           productName: products[0]?.name || "Sample Item",
           quantity: 2,
           unitPrice: products[0]?.sellingPrice || 100,
@@ -149,10 +150,33 @@ export function generateSectorSeedData(sectorId: TradingSector = 'KIRANA_FMCG') 
       subtotal: (products[0]?.sellingPrice || 100) * 2,
       discount: 0,
       grandTotal: (products[0]?.sellingPrice || 100) * 2,
-      paymentMethod: "UPI",
+      paymentMethod: "CASH",
       paymentStatus: "PAID",
       notes: "Express Counter POS Sale",
-      createdAt: "2026-08-05 10:15:00"
+      createdAt: nowIso
+    },
+    {
+      id: "sal-2",
+      saleNumber: `${config.defaultSettings.invoicePrefix || 'INV-'}0002`,
+      customerName: "Rahul Enterprise",
+      customerMobile: "9876500112",
+      items: [
+        {
+          productId: products[1]?.id || "p-102",
+          productName: products[1]?.name || "Wholesale Item",
+          quantity: 5,
+          unitPrice: products[1]?.sellingPrice || 350,
+          mrp: products[1]?.mrp || 400,
+          totalPrice: (products[1]?.sellingPrice || 350) * 5
+        }
+      ],
+      subtotal: (products[1]?.sellingPrice || 350) * 5,
+      discount: 0,
+      grandTotal: (products[1]?.sellingPrice || 350) * 5,
+      paymentMethod: "UPI",
+      paymentStatus: "PAID",
+      notes: "UPI Counter Sale",
+      createdAt: nowIso
     }
   ];
 

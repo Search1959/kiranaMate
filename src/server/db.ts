@@ -86,18 +86,19 @@ class Database {
 
   private async hydrateFromCloud() {
     try {
-      // Sync store-demo from Cloud Firestore if available
-      const cloudStore = await fetchStoreFromCloud('store-demo');
-      if (cloudStore && cloudStore.products) {
-        this.storeMap['store-demo'] = cloudStore as DatabaseSchema;
-        fs.writeFileSync(DB_FILE, JSON.stringify({ stores: this.storeMap }, null, 2), 'utf-8');
-        console.log('☁️ Database hydrated with live data from Cloud Firestore!');
-      } else {
-        // Push initial seed data to Cloud Firestore so it's globally available
-        if (this.storeMap['store-demo']) {
-          saveStoreToCloud('store-demo', this.storeMap['store-demo']);
+      const storesToSync = Object.keys(this.storeMap);
+      if (!storesToSync.includes('store-demo')) storesToSync.push('store-demo');
+
+      for (const sId of storesToSync) {
+        const cloudStore = await fetchStoreFromCloud(sId);
+        if (cloudStore && cloudStore.products) {
+          this.storeMap[sId] = cloudStore as DatabaseSchema;
+        } else if (this.storeMap[sId]) {
+          saveStoreToCloud(sId, this.storeMap[sId]);
         }
       }
+      fs.writeFileSync(DB_FILE, JSON.stringify({ stores: this.storeMap }, null, 2), 'utf-8');
+      console.log('☁️ Database hydrated with live data from Cloud Firestore!');
     } catch (err) {
       console.error('Failed to hydrate from Cloud Firestore:', err);
     }
@@ -320,6 +321,7 @@ class Database {
     shopName: string;
     ownerName: string;
     mobile: string;
+    sector?: TradingSector;
   }): { user: User; storeId: string } {
     const cleanUsername = data.username.trim().toLowerCase();
 
@@ -330,6 +332,9 @@ class Database {
         throw new Error('Username is already taken. Please choose another username.');
       }
     }
+
+    const sectorKey = data.sector || 'KIRANA_FMCG';
+    const sectorConfig = getSectorConfig(sectorKey);
 
     const newStoreId = `store-${Date.now()}`;
     const newUserId = `user-${Date.now()}`;
@@ -342,6 +347,7 @@ class Database {
       mobile: data.mobile || '9876543210',
       storeId: newStoreId,
       storeName: data.shopName,
+      storeSector: sectorKey,
       isDemoUser: false,
       permissions: {
         canViewReports: true,
@@ -355,17 +361,18 @@ class Database {
 
     const newSettings: StoreSettings = {
       storeName: data.shopName,
-      tagline: 'Quality Daily Kirana & Grocery Provisions',
+      tagline: sectorConfig.defaultSettings?.tagline || sectorConfig.tagline || 'Quality Commercial Trading',
       ownerName: data.ownerName,
       phone: data.mobile || '9876543210',
-      address: 'Shop No. 1, Main Bazaar',
-      city: 'Local Market',
+      address: 'Shop No. 1, Main Bazaar Commercial Complex',
+      city: 'Commercial Market Area',
       pincode: '400001',
       currencySymbol: '₹',
-      invoicePrefix: 'INV-',
-      invoiceFooterNote: `Thank you for shopping at ${data.shopName}! Visit again.`,
+      invoicePrefix: sectorConfig.defaultSettings?.invoicePrefix || 'INV-',
+      invoiceFooterNote: `Thank you for doing business with ${data.shopName}! GST Tax Invoice.`,
       lowStockThresholdDefault: 5,
-      defaultLanguage: 'en'
+      defaultLanguage: 'en',
+      sector: sectorKey
     };
 
     const welcomeNotification: NotificationAlert = {
@@ -1235,7 +1242,10 @@ class Database {
     const store = this.getStore(storeId);
     const todayStr = new Date().toISOString().split('T')[0];
 
-    const todaySalesList = store.sales.filter(s => s.createdAt.startsWith(todayStr));
+    let todaySalesList = store.sales.filter(s => s.createdAt.startsWith(todayStr));
+    if (todaySalesList.length === 0 && store.sales.length > 0) {
+      todaySalesList = store.sales;
+    }
     const todayOrdersList = store.orders.filter(o => o.createdAt.startsWith(todayStr));
 
     let totalSalesVal = 0;

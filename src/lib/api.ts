@@ -12,7 +12,8 @@ import {
   User,
   CustomerTransaction,
   InventoryTransaction,
-  UserRole
+  UserRole,
+  TradingSector
 } from '../types';
 import { clientStore } from './clientStore';
 
@@ -48,8 +49,11 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
   }
 
   // 2. Auth
-  if (pathname === '/api/auth/login' || pathname === '/api/auth/register') {
-    return clientStore.login(currentStoreId, body.username) as unknown as T;
+  if (pathname === '/api/auth/login') {
+    return clientStore.login(currentStoreId, body.username, body.sector) as unknown as T;
+  }
+  if (pathname === '/api/auth/register') {
+    return clientStore.register(body) as unknown as T;
   }
   if (pathname === '/api/auth/me') {
     return clientStore.getUsers(currentStoreId) as unknown as T;
@@ -260,13 +264,13 @@ export const api = {
   updateSettings: (data: Partial<StoreSettings>) => apiFetch<StoreSettings>('/api/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Auth & Multi-Tenancy
-  login: (username: string, password?: string) =>
+  login: (username: string, password?: string, sector?: TradingSector) =>
     apiFetch<{ success: boolean; user: User; storeId: string }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, sector })
     }),
 
-  register: (data: { username: string; password?: string; shopName: string; ownerName: string; mobile: string }) =>
+  register: (data: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector }) =>
     apiFetch<{ success: boolean; user: User; storeId: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)

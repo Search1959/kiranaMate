@@ -117,16 +117,18 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Active Sector Badge */}
-        <div
-          className="ml-1 sm:ml-2 flex items-center bg-gradient-to-r from-slate-900 to-indigo-950 text-white border border-slate-700/80 rounded-lg shadow-xs px-2.5 py-1 shrink-0"
-          title={`Active Sector: ${sectorInfo.name}`}
+        <button
+          onClick={onOpenSectorModal}
+          className="ml-1 sm:ml-2 flex items-center bg-gradient-to-r from-slate-900 to-indigo-950 hover:from-slate-800 hover:to-indigo-900 text-white border border-slate-700/80 hover:border-blue-400 rounded-lg shadow-xs px-2.5 py-1 shrink-0 cursor-pointer transition-all"
+          title={`Click to switch Trading Sector (Current: ${sectorInfo.name})`}
         >
           <Layers className="w-3.5 h-3.5 text-blue-400 mr-1.5 shrink-0" />
           <span className="hidden sm:inline text-xs font-semibold text-slate-300 mr-1">Sector:</span>
-          <span className="text-xs font-extrabold text-blue-200 max-w-[130px] sm:max-w-[180px] truncate">
+          <span className="text-xs font-extrabold text-blue-200 max-w-[130px] sm:max-w-[180px] truncate mr-1">
             {sectorInfo.shortLabel}
           </span>
-        </div>
+          <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-0.5" />
+        </button>
 
         {/* System Admin Store Switcher Dropdown */}
         {isAdmin && adminStoresList.length > 0 && onAdminSwitchStore && (

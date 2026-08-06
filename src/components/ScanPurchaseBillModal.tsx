@@ -359,11 +359,14 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       setSaving(true);
       setErrorMsg(null);
 
+      const totalAmtCalculated = items.reduce((sum, i) => sum + (Number(i.totalPrice) || (Number(i.quantity) * Number(i.purchasePrice))), 0);
       const payload = {
         supplierName: supplierName.trim(),
         supplierMobile: supplierMobile.trim(),
         invoiceNumber: invoiceNumber.trim(),
         invoiceDate,
+        grandTotal: totalAmtCalculated,
+        totalAmount: totalAmtCalculated,
         paidAmount: Number(paidAmount),
         paymentMethod,
         notes: `AI Camera Scanned Bill (${detectedLanguage})`,
@@ -376,7 +379,8 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
           quantity: Number(i.quantity),
           purchasePrice: Number(i.purchasePrice),
           mrp: Number(i.mrp),
-          sellingPrice: Number(i.sellingPrice)
+          sellingPrice: Number(i.sellingPrice),
+          totalPrice: Number(i.totalPrice) || (Number(i.quantity) * Number(i.purchasePrice))
         }))
       };
 

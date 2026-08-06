@@ -12,10 +12,11 @@ import {
   User,
   CustomerTransaction,
   InventoryTransaction,
-  TradingSector
+  TradingSector,
+  PaymentStatus
 } from '../types';
 import { generateSectorSeedData } from '../server/seedData';
-import { TRADING_SECTORS } from './sectorConfig';
+import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
 
 interface StoreData {
   settings: StoreSettings;
@@ -135,7 +136,10 @@ export const clientStore = {
     const data = getStoreData(storeId);
     const todayStr = new Date().toISOString().split('T')[0];
 
-    const todaySales = data.sales.filter(s => s.createdAt.startsWith(todayStr));
+    let todaySales = data.sales.filter(s => s.createdAt.startsWith(todayStr));
+    if (todaySales.length === 0 && data.sales.length > 0) {
+      todaySales = data.sales;
+    }
     const todaySalesTotal = todaySales.reduce((acc, s) => acc + s.grandTotal, 0);
     const todayProfit = todaySales.reduce((acc, s) => {
       const itemsProfit = s.items.reduce((pAcc, item) => {
@@ -1017,6 +1021,11 @@ export const clientStore = {
       });
     }
 
+    const calculatedTotal = purchaseItems.reduce((sum, i) => sum + (Number(i.totalPrice) || 0), 0);
+    const totalAmt = Number(payload.grandTotal) || Number(payload.totalAmount) || calculatedTotal;
+    const paidAmt = payload.paidAmount !== undefined && !isNaN(Number(payload.paidAmount)) ? Number(payload.paidAmount) : totalAmt;
+    const paymentStatus: PaymentStatus = paidAmt >= totalAmt ? 'PAID' : paidAmt > 0 ? 'PARTIAL' : 'PENDING';
+
     const pur: Purchase = {
       id: `pur-${Date.now()}`,
       purchaseNumber: payload.invoiceNumber || payload.billNumber || `PUR-${Date.now().toString().slice(-6)}`,
@@ -1024,10 +1033,11 @@ export const clientStore = {
       supplierName: sup.name,
       invoiceNumber: payload.invoiceNumber || payload.billNumber || `BILL-${Date.now().toString().slice(-6)}`,
       items: purchaseItems,
-      totalAmount: Number(payload.grandTotal) || Number(payload.totalAmount) || 0,
-      paidAmount: Number(payload.paidAmount) || 0,
+      totalAmount: totalAmt,
+      grandTotal: totalAmt,
+      paidAmount: paidAmt,
       paymentMethod: payload.paymentMethod || 'BANK',
-      paymentStatus: payload.paymentStatus || 'PAID',
+      paymentStatus,
       purchaseDate: payload.invoiceDate || payload.billDate || new Date().toISOString().split('T')[0],
       createdAt: new Date().toISOString()
     };
@@ -1064,8 +1074,96 @@ export const clientStore = {
     return { success: true };
   },
 
-  login(storeId: string = 'store-demo', username: string): { success: boolean; user: User; storeId: string } {
-    const data = getStoreData(storeId);
+  register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector }): { success: boolean; user: User; storeId: string } {
+    const cleanUsername = payload.username.trim().toLowerCase();
+    const newStoreId = `store-${Date.now()}`;
+    const sectorKey = payload.sector || 'KIRANA_FMCG';
+    const sectorConfig = getSectorConfig(sectorKey);
+
+    const newSettings: StoreSettings = {
+      storeName: payload.shopName,
+      tagline: sectorConfig.defaultSettings?.tagline || sectorConfig.tagline || 'Quality Commercial Trading',
+      ownerName: payload.ownerName,
+      phone: payload.mobile || '9876543210',
+      address: 'Shop No. 1, Main Market Commercial Complex',
+      city: 'Commercial Area',
+      pincode: '400001',
+      currencySymbol: '₹',
+      invoicePrefix: sectorConfig.defaultSettings?.invoicePrefix || 'INV-',
+      invoiceFooterNote: `Thank you for doing business with ${payload.shopName}! GST Tax Invoice.`,
+      lowStockThresholdDefault: 5,
+      defaultLanguage: 'en',
+      sector: sectorKey
+    };
+
+    const newUser: User = {
+      id: `u-${Date.now()}`,
+      name: payload.ownerName,
+      username: cleanUsername,
+      role: 'owner',
+      mobile: payload.mobile || '9876543210',
+      storeId: newStoreId,
+      storeName: payload.shopName,
+      storeSector: sectorKey,
+      permissions: {
+        canViewReports: true,
+        canEditProducts: true,
+        canDeleteRecords: true,
+        canCollectPayments: true,
+        canCreateOrders: true,
+        canManageSettings: true
+      }
+    };
+
+    const newStoreData: StoreData = {
+      settings: newSettings,
+      users: [newUser],
+      customers: [],
+      customerTransactions: [],
+      products: [],
+      sales: [],
+      orders: [],
+      expenses: [],
+      suppliers: [],
+      purchases: [],
+      inventoryTransactions: [],
+      notifications: [
+        {
+          id: `notif-${Date.now()}`,
+          type: 'NEW_ORDER',
+          title: '🎉 Welcome to KiranaMate!',
+          message: `Your new store '${payload.shopName}' is ready for ${sectorConfig.name}. Add your first product to start!`,
+          isRead: false,
+          createdAt: new Date().toISOString()
+        }
+      ]
+    };
+
+    saveStoreData(newStoreId, newStoreData);
+    return { success: true, user: newUser, storeId: newStoreId };
+  },
+
+  login(storeId: string = 'store-demo', username: string, selectedSector?: TradingSector): { success: boolean; user: User; storeId: string } {
+    let targetStoreId = storeId;
+    if (selectedSector) {
+      const matchedSec = TRADING_SECTORS.find(s => s.id === selectedSector);
+      if (matchedSec && storeId.startsWith('store-demo')) {
+        targetStoreId = matchedSec.demoStoreId;
+      }
+    } else if (username.toLowerCase().includes('steel') || username.toLowerCase().includes('iron')) {
+      targetStoreId = 'store-demo-steel';
+    } else if (username.toLowerCase().includes('agri')) {
+      targetStoreId = 'store-demo-agri';
+    } else if (username.toLowerCase().includes('textile')) {
+      targetStoreId = 'store-demo-textile';
+    }
+
+    const data = getStoreData(targetStoreId);
+    if (selectedSector && data.settings) {
+      data.settings.sector = selectedSector;
+      saveStoreData(targetStoreId, data);
+    }
+
     let u = data.users.find(usr => usr.username.toLowerCase() === username.toLowerCase());
     if (!u) {
       u = {
@@ -1074,6 +1172,9 @@ export const clientStore = {
         username,
         role: 'owner',
         mobile: '9876543210',
+        storeId: targetStoreId,
+        storeName: data.settings?.storeName || 'KiranaMate Store',
+        storeSector: data.settings?.sector || selectedSector || 'KIRANA_FMCG',
         permissions: {
           canViewReports: true,
           canEditProducts: true,
@@ -1084,9 +1185,9 @@ export const clientStore = {
         }
       };
       data.users.push(u);
-      saveStoreData(storeId, data);
+      saveStoreData(targetStoreId, data);
     }
-    return { success: true, user: u, storeId };
+    return { success: true, user: u, storeId: targetStoreId };
   },
 
   exportBackup(storeId: string = 'store-demo') {

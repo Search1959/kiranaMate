@@ -13,10 +13,13 @@ import {
   CheckCircle2,
   Lock,
   Zap,
-  LogIn
+  LogIn,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { User as UserType, UserRole } from '../types';
+import { User as UserType, UserRole, TradingSector } from '../types';
+import { TRADING_SECTORS } from '../lib/sectorConfig';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -39,10 +42,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [regMobile, setRegMobile] = useState('');
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regSector, setRegSector] = useState<TradingSector>('METALS_STEEL');
 
   // Login Form State
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginSector, setLoginSector] = useState<TradingSector>('METALS_STEEL');
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -68,12 +73,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         ownerName: regOwnerName.trim(),
         mobile: regMobile.trim() || '9876543210',
         username: regUsername.trim(),
-        password: regPassword.trim() || '123456'
+        password: regPassword.trim() || '123456',
+        sector: regSector
       });
 
       api.setStoreId(res.storeId);
       api.setUserRole('owner');
-      setSuccessMsg(`Store '${regShopName}' created successfully with clean zero demo data!`);
+      setSuccessMsg(`Store '${regShopName}' created successfully for ${TRADING_SECTORS.find(s => s.id === regSector)?.name || regSector}!`);
 
       setTimeout(() => {
         onAuthSuccess(res.user, res.storeId);
@@ -98,11 +104,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       setLoading(true);
-      const res = await api.login(loginUsername.trim(), loginPassword.trim() || '123456');
+      const res = await api.login(loginUsername.trim(), loginPassword.trim() || '123456', loginSector);
 
       api.setStoreId(res.storeId);
       api.setUserRole(res.user.role);
-      setSuccessMsg(`Welcome back, ${res.user.name}!`);
+      setSuccessMsg(`Welcome back, ${res.user.name}! Landing on ${TRADING_SECTORS.find(s => s.id === loginSector)?.name || loginSector} Dashboard.`);
 
       setTimeout(() => {
         onAuthSuccess(res.user, res.storeId);
@@ -130,6 +136,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClose();
     } catch (err: any) {
       setErrorMsg(err.message || 'Demo login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSectorDemoAccess = async (demoStoreId: string) => {
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      api.setStoreId(demoStoreId);
+      api.setUserRole('owner');
+      const res = await api.login('owner', '123456');
+
+      onAuthSuccess(res.user, demoStoreId);
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Sector demo login failed');
     } finally {
       setLoading(false);
     }
@@ -219,8 +243,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-xs text-blue-300 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>
-                  <strong>Zero Demo Data Promise:</strong> Your new account starts completely clean (0 sales, 0 products) so you can set up your store from scratch.
+                  <strong>Zero Demo Data Promise:</strong> Your store starts completely clean (0 sales, 0 products) tailored to your industry.
                 </span>
+              </div>
+
+              {/* Business Sector / Trading Line Dropdown */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 mb-1">
+                  Business Sector / Trading Line *
+                </label>
+                <div className="relative">
+                  <Layers className="w-4 h-4 absolute left-3 top-3 text-blue-400" />
+                  <select
+                    value={regSector}
+                    onChange={(e) => setRegSector(e.target.value as TradingSector)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-blue-500/60 rounded-xl text-xs text-white font-semibold focus:outline-none focus:border-blue-400"
+                  >
+                    {TRADING_SECTORS.map((s) => (
+                      <option key={s.id} value={s.id} className="bg-slate-900 text-white py-1">
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[10px] text-blue-300 mt-1 flex items-center gap-1 font-medium">
+                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  Pre-configures industry unit metrics (e.g., Tons/Kg for Steel, Meters for Textiles, L/Bbl for Fuel).
+                </p>
               </div>
 
               <div>
@@ -230,7 +279,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Mahavir Kirana & General Store"
+                    placeholder="e.g. Mahavir Iron & Steel Traders"
                     value={regShopName}
                     onChange={(e) => setRegShopName(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
@@ -276,7 +325,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. mahavirkirana"
+                    placeholder="e.g. mahavirsteel"
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
@@ -311,6 +360,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* TAB 2: LOGIN TO EXISTING STORE */}
           {activeTab === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+              {/* Sector Landing Dropdown */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 mb-1">
+                  Select Sector Dashboard *
+                </label>
+                <div className="relative">
+                  <Layers className="w-4 h-4 absolute left-3 top-3 text-blue-400" />
+                  <select
+                    value={loginSector}
+                    onChange={(e) => setLoginSector(e.target.value as TradingSector)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-blue-500/60 rounded-xl text-xs text-white font-semibold focus:outline-none focus:border-blue-400"
+                  >
+                    {TRADING_SECTORS.map((s) => (
+                      <option key={s.id} value={s.id} className="bg-slate-900 text-white py-1">
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  After login you will land directly on this sector's custom dashboard.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Username</label>
                 <div className="relative">
@@ -353,63 +426,49 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* TAB 3: DEMO & SYSTEM ADMIN ACCESS */}
           {activeTab === 'admin' && (
             <div className="space-y-3">
-              <p className="text-xs text-slate-300">
-                1-Click Quick Login options for demonstration & system administration:
+              <p className="text-xs text-slate-300 font-medium">
+                1-Click Quick Access by Trading Sector Dashboard:
               </p>
 
-              {/* System Admin Button */}
-              <button
-                onClick={() => handleQuickDemoAccess('admin')}
-                disabled={loading}
-                className="w-full p-3.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-amber-300">System Administrator</div>
-                    <div className="text-[10px] text-slate-400">Manage all registered shops & view platform analytics</div>
-                  </div>
-                </div>
-                <span className="text-xs font-bold text-amber-400">Launch →</span>
-              </button>
+              {/* Quick Sector Demos */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                {TRADING_SECTORS.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => handleSectorDemoAccess(s.demoStoreId)}
+                    disabled={loading}
+                    className="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/50 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between group"
+                  >
+                    <div className="min-w-0 pr-1">
+                      <div className="font-bold text-[11px] text-white truncate">{s.name}</div>
+                      <div className="text-[9px] text-slate-400 truncate">{s.tagline || s.description}</div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-blue-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                ))}
+              </div>
 
-              {/* Demo Owner Button */}
-              <button
-                onClick={() => handleQuickDemoAccess('owner')}
-                disabled={loading}
-                className="w-full p-3.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
-                    <Store className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-blue-300">Demo Store Owner (Ramesh Gupta)</div>
-                    <div className="text-[10px] text-slate-400">Full owner access with 100+ demo items & sales</div>
-                  </div>
-                </div>
-                <span className="text-xs font-bold text-blue-400">Launch →</span>
-              </button>
+              <div className="border-t border-slate-800 pt-3">
+                <p className="text-[11px] text-slate-400 mb-2 font-medium">Role Based Demo Access:</p>
 
-              {/* Demo Staff Button */}
-              <button
-                onClick={() => handleQuickDemoAccess('staff')}
-                disabled={loading}
-                className="w-full p-3.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-slate-700 text-slate-300 flex items-center justify-center font-bold">
-                    <User className="w-5 h-5" />
+                {/* System Admin Button */}
+                <button
+                  onClick={() => handleQuickDemoAccess('admin')}
+                  disabled={loading}
+                  className="w-full p-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between mb-2"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-amber-300">System Administrator</div>
+                      <div className="text-[10px] text-slate-400">Manage all registered shops & view platform analytics</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-xs text-slate-200">Demo Store Staff (Suresh Kumar)</div>
-                    <div className="text-[10px] text-slate-400">Counter staff billing & collection permissions</div>
-                  </div>
-                </div>
-                <span className="text-xs font-bold text-slate-300">Launch →</span>
-              </button>
+                  <span className="text-xs font-bold text-amber-400">Launch →</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

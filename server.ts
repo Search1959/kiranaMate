@@ -44,7 +44,7 @@ async function startServer() {
 
   // Register New Store Account (Zero Demo Data!)
   app.post('/api/auth/register', (req, res) => {
-    const { username, password, shopName, ownerName, mobile } = req.body;
+    const { username, password, shopName, ownerName, mobile, sector } = req.body;
     if (!username || !shopName || !ownerName) {
       return res.status(400).json({ error: 'Username, Shop Name, and Owner Name are required' });
     }
@@ -55,7 +55,8 @@ async function startServer() {
         password,
         shopName,
         ownerName,
-        mobile: mobile || '9876543210'
+        mobile: mobile || '9876543210',
+        sector
       });
       const token = `token-owner-${Date.now()}`;
       res.status(201).json({
@@ -70,7 +71,7 @@ async function startServer() {
 
   // Login
   app.post('/api/auth/login', (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, sector } = req.body;
     if (!username) {
       return res.status(400).json({ error: 'Username is required' });
     }
@@ -78,6 +79,10 @@ async function startServer() {
     const found = db.getUserByUsername(username);
     if (!found) {
       return res.status(401).json({ error: 'Account not found. Please check username or register a new store.' });
+    }
+
+    if (sector) {
+      db.updateSettings(found.storeId, { sector });
     }
 
     const token = `token-${found.user.role}-${Date.now()}`;

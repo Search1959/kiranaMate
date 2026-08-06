@@ -18,7 +18,16 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
 }) => {
   const [expandedPurchaseId, setExpandedPurchaseId] = useState<string | null>(null);
 
-  const totalPurchaseValue = purchases.reduce((sum, p) => sum + (p.grandTotal || p.totalAmount || 0), 0);
+  const calcPurchaseTotal = (p: Purchase) => {
+    if (p.grandTotal && p.grandTotal > 0) return p.grandTotal;
+    if (p.totalAmount && p.totalAmount > 0) return p.totalAmount;
+    if (p.items && p.items.length > 0) {
+      return p.items.reduce((sum, i) => sum + (i.totalPrice || ((i.quantity || 0) * (i.purchasePrice || i.unitPrice || 0))), 0);
+    }
+    return 0;
+  };
+
+  const totalPurchaseValue = purchases.reduce((sum, p) => sum + calcPurchaseTotal(p), 0);
 
   const toggleExpand = (id: string) => {
     setExpandedPurchaseId(prev => prev === id ? null : id);
@@ -93,7 +102,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
           <div className="divide-y divide-slate-100">
             {purchases.map(p => {
               const isExpanded = expandedPurchaseId === p.id;
-              const totalAmt = p.grandTotal || p.totalAmount || 0;
+              const totalAmt = calcPurchaseTotal(p);
 
               return (
                 <div key={p.id} className="transition-colors hover:bg-slate-50/80">
