@@ -1,0 +1,212 @@
+import React, { useState } from 'react';
+import {
+  Home,
+  ShoppingBag,
+  Package,
+  Users,
+  Grid,
+  Plus,
+  ShoppingCart,
+  Receipt,
+  UserPlus,
+  ArrowUpRight,
+  TrendingDown,
+  FileText,
+  Settings,
+  Database,
+  LogOut,
+  X,
+  PlusCircle,
+  Truck,
+  BookOpen,
+  DollarSign
+} from 'lucide-react';
+import { LanguageCode, DailyStats } from '../types';
+import { translations } from '../lib/translations';
+
+interface MobileBottomNavProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  lang: LanguageCode;
+  stats: DailyStats;
+  onOpenQuickAction: (action: string) => void;
+  onLogout: () => void;
+}
+
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
+  activeTab,
+  onTabChange,
+  lang,
+  stats,
+  onOpenQuickAction,
+  onLogout
+}) => {
+  const t = translations[lang] || translations.en;
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showFabMenu, setShowFabMenu] = useState(false);
+
+  const navItems = [
+    { id: 'home', label: t.home, icon: Home },
+    { id: 'orders', label: t.orders, icon: ShoppingBag, badge: stats.pendingOrdersCount },
+    { id: 'stock', label: t.stock, icon: Package, badge: stats.lowStockCount + stats.outOfStockCount },
+    { id: 'customers', label: t.customers, icon: Users, badge: stats.overdueUdhaar > 0 ? 1 : 0 },
+    { id: 'more', label: t.more, icon: Grid }
+  ];
+
+  const quickActions = [
+    { id: 'new-sale', label: t.newSale + ' (30s POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white' },
+    { id: 'new-order', label: t.newOrder, icon: ShoppingBag, bg: 'bg-blue-600 text-white' },
+    { id: 'collect-payment', label: t.collectPayment, icon: Receipt, bg: 'bg-amber-600 text-white' },
+    { id: 'add-stock', label: t.addStock, icon: ArrowUpRight, bg: 'bg-indigo-600 text-white' },
+    { id: 'add-customer', label: t.addCustomer, icon: UserPlus, bg: 'bg-teal-600 text-white' },
+    { id: 'add-product', label: t.addProduct, icon: PlusCircle, bg: 'bg-purple-600 text-white' },
+    { id: 'add-expense', label: t.addExpense, icon: TrendingDown, bg: 'bg-rose-600 text-white' }
+  ];
+
+  return (
+    <>
+      {/* FAB Quick Action Button (Floating +) */}
+      <div className="md:hidden fixed right-4 bottom-20 z-50">
+        <button
+          onClick={() => setShowFabMenu(!showFabMenu)}
+          className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-95 text-white ${
+            showFabMenu ? 'bg-slate-800 rotate-45' : 'bg-blue-600 hover:bg-blue-700 font-bold ring-4 ring-blue-500/20'
+          }`}
+          title="Quick Action"
+        >
+          <Plus className="w-6 h-6 text-white stroke-[2.5]" />
+        </button>
+      </div>
+
+      {/* FAB Quick Actions Popup Menu */}
+      {showFabMenu && (
+        <div className="md:hidden fixed inset-0 bg-slate-900/75 backdrop-blur-xs z-50 flex flex-col justify-end p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-5 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                <Plus className="w-5 h-5 text-amber-500" /> {t.quickActions}
+              </h3>
+              <button
+                onClick={() => setShowFabMenu(false)}
+                className="p-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {quickActions.map(action => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.id}
+                    onClick={() => {
+                      setShowFabMenu(false);
+                      onOpenQuickAction(action.id);
+                    }}
+                    className={`flex items-center gap-3 p-3 rounded-2xl text-left font-semibold text-xs transition-all active:scale-95 shadow-sm ${action.bg}`}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="leading-tight">{action.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* More Drawer Menu */}
+      {showMoreMenu && (
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 z-50 flex flex-col justify-end" onClick={() => setShowMoreMenu(false)}>
+          <div
+            className="bg-white rounded-t-3xl p-5 shadow-2xl border-t border-slate-200 text-slate-800 animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <span className="font-bold text-slate-800 text-base">{t.more} Menu</span>
+              <button onClick={() => setShowMoreMenu(false)} className="p-1 rounded-full bg-slate-100">
+                <X className="w-5 h-5 text-slate-600" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: 'sales', label: t.sales, icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50' },
+                { id: 'purchases', label: t.purchases, icon: Truck, color: 'text-blue-600 bg-blue-50' },
+                { id: 'expenses', label: t.expenses, icon: TrendingDown, color: 'text-rose-600 bg-rose-50' },
+                { id: 'finance', label: t.finance, icon: DollarSign, color: 'text-emerald-600 bg-emerald-50' },
+                { id: 'suppliers', label: t.suppliers, icon: Users, color: 'text-purple-600 bg-purple-50' },
+                { id: 'stockLedger', label: t.stockLedger, icon: BookOpen, color: 'text-indigo-600 bg-indigo-50' },
+                { id: 'reports', label: t.reports, icon: FileText, color: 'text-amber-600 bg-amber-50' },
+                { id: 'settings', label: t.settings, icon: Settings, color: 'text-slate-600 bg-slate-100' },
+                { id: 'backup', label: t.backup, icon: Database, color: 'text-teal-600 bg-teal-50' },
+              ].map(item => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      onTabChange(item.id);
+                    }}
+                    className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all active:scale-95 text-center"
+                  >
+                    <div className={`p-2.5 rounded-xl ${item.color} mb-1.5`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-700 leading-tight">{item.label}</span>
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => { setShowMoreMenu(false); onLogout(); }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl border border-red-100 bg-red-50 text-red-600 hover:bg-red-100 transition-all active:scale-95 text-center"
+              >
+                <div className="p-2.5 rounded-xl bg-red-100 text-red-600 mb-1.5">
+                  <LogOut className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-semibold text-red-700">{t.logout}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fixed Mobile Bottom Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg px-2 py-1 flex items-center justify-around select-none">
+        {navItems.map(item => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.id === 'more') {
+                  setShowMoreMenu(true);
+                } else {
+                  setShowMoreMenu(false);
+                  onTabChange(item.id);
+                }
+              }}
+              className={`flex-1 py-1 flex flex-col items-center justify-center min-w-0 relative transition-colors ${
+                isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+              }`}
+            >
+              <div className="relative">
+                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[9px] font-bold px-1 py-0.2 min-w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] truncate mt-0.5 max-w-full leading-tight">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </>
+  );
+};

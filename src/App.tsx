@@ -1,0 +1,690 @@
+import React, { useState, useEffect } from 'react';
+import {
+  DailyStats,
+  StoreSettings,
+  Customer,
+  Product,
+  Order,
+  Sale,
+  Purchase,
+  Expense,
+  Supplier,
+  User,
+  LanguageCode,
+  NotificationAlert,
+  InventoryTransaction,
+  TradingSector
+} from './types';
+import { api, getCurrentStoreId } from './lib/api';
+
+// Layout Components
+import { Header } from './components/Header';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import { DesktopSidebar } from './components/DesktopSidebar';
+import { LandingView } from './components/LandingView';
+import { AuthModal } from './components/AuthModal';
+
+// Modals
+import { BarcodeScannerModal } from './components/BarcodeScannerModal';
+import { NewSaleModal } from './components/NewSaleModal';
+import { NewOrderModal } from './components/NewOrderModal';
+import { CollectPaymentModal } from './components/CollectPaymentModal';
+import { AddProductModal } from './components/AddProductModal';
+import { AddStockModal } from './components/AddStockModal';
+import { AddExpenseModal } from './components/AddExpenseModal';
+import { InvoicePrintModal } from './components/InvoicePrintModal';
+import { BulkProductImportModal } from './components/BulkProductImportModal';
+import { ScanPurchaseBillModal } from './components/ScanPurchaseBillModal';
+import { SectorDemoModal } from './components/SectorDemoModal';
+
+// Views
+import { DashboardView } from './views/DashboardView';
+import { CustomersView } from './views/CustomersView';
+import { ProductsView } from './views/ProductsView';
+import { OrdersView } from './views/OrdersView';
+import { SalesView } from './views/SalesView';
+import { PurchasesView } from './views/PurchasesView';
+import { ExpensesView } from './views/ExpensesView';
+import { ReportsView } from './views/ReportsView';
+import { SettingsView } from './views/SettingsView';
+import { SuppliersView } from './views/SuppliersView';
+import { BackupView } from './views/BackupView';
+import { StockLedgerView } from './views/StockLedgerView';
+import { FinanceView } from './views/FinanceView';
+
+export default function App() {
+  // Navigation & Page State
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [currentStoreId, setCurrentStoreId] = useState<string>('store-demo');
+
+  // Auth Modal
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'admin'>('register');
+
+  // Authentication & Users
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [adminStoresList, setAdminStoresList] = useState<{ id: string; storeName: string; ownerName: string; isDemo: boolean }[]>([]);
+
+  // Core Data
+  const [stats, setStats] = useState<DailyStats | null>(null);
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [notifications, setNotifications] = useState<NotificationAlert[]>([]);
+  const [inventoryTransactions, setInventoryTransactions] = useState<InventoryTransaction[]>([]);
+
+  // Navigation & UI State
+  const [activeTab, setActiveTab] = useState<string>('home');
+  const [lang, setLang] = useState<LanguageCode>('en');
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Modals Visibility
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
+  const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
+
+  const [isCollectPaymentOpen, setIsCollectPaymentOpen] = useState(false);
+  const [paymentCustomerTarget, setPaymentCustomerTarget] = useState<Customer | null>(null);
+
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [editingProductTarget, setEditingProductTarget] = useState<Product | null>(null);
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string | undefined>(undefined);
+
+  const [isAddStockOpen, setIsAddStockOpen] = useState(false);
+  const [stockProductTarget, setStockProductTarget] = useState<Product | null>(null);
+
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+
+  const [isInvoicePrintOpen, setIsInvoicePrintOpen] = useState(false);
+  const [invoiceData, setInvoiceData] = useState<Sale | Order | null>(null);
+
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [isScanPurchaseBillOpen, setIsScanPurchaseBillOpen] = useState(false);
+  const [isSectorModalOpen, setIsSectorModalOpen] = useState(false);
+
+  const handleSelectSectorDemo = async (sectorId: TradingSector, demoStoreId: string) => {
+    setIsSectorModalOpen(false);
+    setIsLoading(true);
+    try {
+      api.setStoreId(demoStoreId);
+      setCurrentStoreId(demoStoreId);
+
+      if (!currentUser) {
+        const userObj: User = {
+          id: `user-owner-${demoStoreId}`,
+          name: `Demo Manager`,
+          username: 'owner',
+          role: 'owner',
+          mobile: '9876543210',
+          permissions: {
+            canViewReports: true,
+            canEditProducts: true,
+            canDeleteRecords: true,
+            canCollectPayments: true,
+            canCreateOrders: true,
+            canManageSettings: true
+          }
+        };
+        setCurrentUser(userObj);
+      }
+
+      await loadData(demoStoreId);
+      setActiveTab('home');
+      setViewMode('app');
+    } catch (err) {
+      console.error("Failed to select sector demo:", err);
+    } finally {
+      setIsLoading(false);
+      setIsSectorModalOpen(false);
+    }
+  };
+
+  // Load Data for active store
+  const loadData = async (storeId?: string) => {
+    const targetStore = storeId || getCurrentStoreId();
+    setIsLoading(true);
+    try {
+      api.setStoreId(targetStore);
+      setCurrentStoreId(targetStore);
+
+      const [
+        usersRes,
+        statsData,
+        settingsData,
+        customersData,
+        productsData,
+        ordersData,
+        salesData,
+        purchasesData,
+        expensesData,
+        suppliersData,
+        notifsData,
+        invTxData
+      ] = await Promise.all([
+        api.getUsers(),
+        api.getDailyStats(),
+        api.getSettings(),
+        api.getCustomers(),
+        api.getProducts(),
+        api.getOrders(),
+        api.getSales(),
+        api.getPurchases(),
+        api.getExpenses(),
+        api.getSuppliers(),
+        api.getNotifications(),
+        api.getInventoryTransactions().catch(() => [])
+      ]);
+
+      const usersData = usersRes.users || [];
+      setUsers(usersData);
+      if (!currentUser && usersData.length > 0) {
+        setCurrentUser(usersData[0]);
+        api.setUserRole(usersData[0].role);
+      }
+
+      setStats(statsData);
+      setSettings(settingsData);
+      setCustomers(customersData);
+      setProducts(productsData);
+      setOrders(ordersData);
+      setSales(salesData);
+      setPurchases(purchasesData);
+      setExpenses(expensesData);
+      setSuppliers(suppliersData);
+      setNotifications(notifsData);
+      setInventoryTransactions(invTxData || []);
+
+      // If user is admin, fetch list of all stores
+      if (currentUser?.role === 'admin') {
+        const adminRes = await api.getAdminStores().catch(() => ({ stores: [] }));
+        setAdminStoresList(adminRes.stores || []);
+      }
+    } catch (err) {
+      console.error("Failed to load KiranaMate data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData('store-demo');
+  }, []);
+
+  // Handlers
+  const handleOpenAuthModal = (mode: 'login' | 'register' | 'admin') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleStartDemo = async (role: 'owner' | 'staff' | 'admin') => {
+    setIsLoading(true);
+    try {
+      api.setStoreId('store-demo');
+      setCurrentStoreId('store-demo');
+      const username = role === 'admin' ? 'admin' : role === 'owner' ? 'owner' : 'staff';
+
+      let userObj: User | null = null;
+      try {
+        const loginRes = await api.login(username, '123456');
+        if (loginRes && loginRes.user) {
+          userObj = loginRes.user;
+        }
+      } catch (e) {
+        console.warn('Backend demo login fallback:', e);
+      }
+
+      if (!userObj) {
+        userObj = {
+          id: role === 'admin' ? 'user-admin' : role === 'staff' ? 'user-2' : 'user-1',
+          name: role === 'admin' ? 'System Administrator' : role === 'staff' ? 'Suresh Kumar (Demo Staff)' : 'Ramesh Gupta (Demo Owner)',
+          username,
+          role,
+          mobile: '9876543210',
+          permissions: {
+            canViewReports: true,
+            canEditProducts: true,
+            canDeleteRecords: role !== 'staff',
+            canCollectPayments: true,
+            canCreateOrders: true,
+            canManageSettings: role !== 'staff'
+          }
+        };
+      }
+
+      setCurrentUser(userObj);
+      api.setUserRole(userObj.role);
+      await loadData('store-demo');
+      setActiveTab('home');
+      setViewMode('app');
+    } catch (err) {
+      console.error('Demo boot error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAuthSuccess = async (user: User, storeId: string) => {
+    setCurrentUser(user);
+    api.setUserRole(user.role);
+    api.setStoreId(storeId);
+    setCurrentStoreId(storeId);
+
+    await loadData(storeId);
+    setViewMode('app');
+  };
+
+  const handleUserSwitch = (user: User) => {
+    setCurrentUser(user);
+    api.setUserRole(user.role);
+  };
+
+  const handleAdminSwitchStore = async (targetStoreId: string) => {
+    await loadData(targetStoreId);
+  };
+
+  const handleGoToLanding = () => {
+    setViewMode('landing');
+  };
+
+  const handleBarcodeDetected = (barcode: string) => {
+    setLastScannedBarcode(barcode);
+    const found = products.find(p => p.barcode === barcode);
+    if (found) {
+      setIsNewSaleOpen(true);
+    } else {
+      setEditingProductTarget(null);
+      setIsAddProductOpen(true);
+    }
+  };
+
+  const handleMarkNotificationRead = async (id: string) => {
+    await api.markNotificationRead(id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+  };
+
+  const handleQuickAction = (actionId: string) => {
+    switch (actionId) {
+      case 'new-sale':
+        setIsNewSaleOpen(true);
+        break;
+      case 'new-order':
+        setIsNewOrderOpen(true);
+        break;
+      case 'collect-payment':
+        setPaymentCustomerTarget(null);
+        setIsCollectPaymentOpen(true);
+        break;
+      case 'add-stock':
+        setStockProductTarget(null);
+        setIsAddStockOpen(true);
+        break;
+      case 'add-product':
+        setEditingProductTarget(null);
+        setIsAddProductOpen(true);
+        break;
+      case 'add-customer':
+        setActiveTab('customers');
+        break;
+      case 'add-expense':
+        setIsAddExpenseOpen(true);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleOpenCollectPayment = (customer: Customer) => {
+    setPaymentCustomerTarget(customer);
+    setIsCollectPaymentOpen(true);
+  };
+
+  const handleOpenAddStock = (product?: Product) => {
+    setStockProductTarget(product || null);
+    setIsAddStockOpen(true);
+  };
+
+  const handleOpenInvoicePrint = (data: Sale | Order) => {
+    setInvoiceData(data);
+    setIsInvoicePrintOpen(true);
+  };
+
+  // IF LANDING PAGE VIEW IS ACTIVE
+  if (viewMode === 'landing') {
+    return (
+      <>
+        <LandingView
+          onOpenAuthModal={handleOpenAuthModal}
+          onStartDemo={handleStartDemo}
+          lang={lang}
+          onLanguageChange={setLang}
+          onSelectSectorDemo={handleSelectSectorDemo}
+        />
+
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          initialMode={authModalMode}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      </>
+    );
+  }
+
+  // IF STORE APP VIEW IS ACTIVE
+  if (!currentUser || !settings || !stats) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-slate-400 font-medium">Loading KiranaMate Store Control Panel...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const customersWithUdhaar = customers.filter(c => c.currentBalance > 0);
+  const lowStockProducts = products.filter(p => p.currentStock <= p.minStock);
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
+      {/* Top Mobile/Desktop Header */}
+      <Header
+        settings={settings}
+        lang={lang}
+        onLanguageChange={setLang}
+        currentUser={currentUser}
+        onUserSwitch={handleUserSwitch}
+        users={users}
+        onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+        globalSearchQuery={globalSearch}
+        onSearchChange={setGlobalSearch}
+        notifications={notifications}
+        onMarkNotificationRead={handleMarkNotificationRead}
+        onNavigateToTab={setActiveTab}
+        currentStoreId={currentStoreId}
+        onGoToLanding={handleGoToLanding}
+        adminStoresList={adminStoresList}
+        onAdminSwitchStore={handleAdminSwitchStore}
+        onOpenSectorModal={() => setIsSectorModalOpen(true)}
+        onSelectSectorDemo={handleSelectSectorDemo}
+        activeSectorId={settings?.sector}
+      />
+
+      {/* Main Container Layout */}
+      <div className="flex-1 w-full flex overflow-hidden">
+        {/* Left Desktop Navigation Sidebar */}
+        <DesktopSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          lang={lang}
+          stats={stats}
+          currentUser={currentUser}
+          onOpenQuickAction={handleQuickAction}
+          onLogout={handleGoToLanding}
+          onOpenSectorModal={() => setIsSectorModalOpen(true)}
+          activeSectorId={settings?.sector}
+        />
+
+        {/* View Router Main Screen */}
+        <main className="flex-1 p-3 sm:p-5 overflow-y-auto max-w-full">
+          {activeTab === 'home' && (
+            <DashboardView
+              stats={stats}
+              settings={settings}
+              lang={lang}
+              customersWithUdhaar={customersWithUdhaar}
+              lowStockProducts={lowStockProducts}
+              recentSales={sales}
+              recentOrders={orders}
+              onOpenQuickAction={handleQuickAction}
+              onNavigateToTab={setActiveTab}
+              onOpenCollectPayment={handleOpenCollectPayment}
+              onOpenAddStock={handleOpenAddStock}
+              onOpenInvoicePrint={handleOpenInvoicePrint}
+              totalProductsCount={products.length}
+              onRefreshData={() => loadData(currentStoreId)}
+            />
+          )}
+
+          {activeTab === 'customers' && (
+            <CustomersView
+              customers={customers}
+              settings={settings}
+              lang={lang}
+              onRefreshData={() => loadData(currentStoreId)}
+              onOpenCollectPayment={handleOpenCollectPayment}
+              onOpenNewOrderForCustomer={(cust) => {
+                setPaymentCustomerTarget(cust);
+                setIsNewOrderOpen(true);
+              }}
+            />
+          )}
+
+          {activeTab === 'stock' && (
+            <ProductsView
+              products={products}
+              onOpenAddProduct={(prod) => {
+                setEditingProductTarget(prod || null);
+                setIsAddProductOpen(true);
+              }}
+              onOpenAddStock={handleOpenAddStock}
+              onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+              onOpenBulkImport={() => setIsBulkImportOpen(true)}
+            />
+          )}
+
+          {activeTab === 'orders' && (
+            <OrdersView
+              orders={orders}
+              settings={settings}
+              lang={lang}
+              onRefreshData={() => loadData(currentStoreId)}
+              onOpenNewOrder={() => setIsNewOrderOpen(true)}
+              onOpenInvoicePrint={handleOpenInvoicePrint}
+            />
+          )}
+
+          {activeTab === 'sales' && (
+            <SalesView
+              sales={sales}
+              onOpenNewSale={() => setIsNewSaleOpen(true)}
+              onOpenInvoicePrint={handleOpenInvoicePrint}
+            />
+          )}
+
+          {activeTab === 'purchases' && (
+            <PurchasesView
+              purchases={purchases}
+              suppliers={suppliers}
+              onOpenAddStock={() => setIsAddStockOpen(true)}
+              onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
+            />
+          )}
+
+          {activeTab === 'expenses' && (
+            <ExpensesView
+              expenses={expenses}
+              onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+            />
+          )}
+
+          {activeTab === 'stockLedger' && (
+            <StockLedgerView
+              products={products}
+              sales={sales}
+              purchases={purchases}
+              inventoryTransactions={inventoryTransactions}
+              onRefreshData={() => loadData(currentStoreId)}
+              onOpenAddStock={() => setIsAddStockOpen(true)}
+              onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
+            />
+          )}
+
+          {activeTab === 'finance' && (
+            <FinanceView
+              sales={sales}
+              purchases={purchases}
+              expenses={expenses}
+              customers={customers}
+              suppliers={suppliers}
+              products={products}
+              stats={stats}
+              onRefreshData={() => loadData(currentStoreId)}
+            />
+          )}
+
+          {activeTab === 'reports' && (
+            <ReportsView
+              stats={stats}
+              products={products}
+              sales={sales}
+            />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsView
+              settings={settings}
+              onRefreshData={() => loadData(currentStoreId)}
+            />
+          )}
+
+          {activeTab === 'suppliers' && (
+            <SuppliersView
+              suppliers={suppliers}
+              purchases={purchases}
+              onRefreshData={() => loadData(currentStoreId)}
+              onOpenAddStock={() => setIsAddStockOpen(true)}
+              onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
+            />
+          )}
+
+          {activeTab === 'backup' && (
+            <BackupView
+              onRefreshData={() => loadData(currentStoreId)}
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Fixed Mobile Bottom Navigation */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        lang={lang}
+        stats={stats}
+        onOpenQuickAction={handleQuickAction}
+        onLogout={handleGoToLanding}
+      />
+
+      {/* Modals & Dialogs */}
+      <BarcodeScannerModal
+        isOpen={isBarcodeScannerOpen}
+        onClose={() => setIsBarcodeScannerOpen(false)}
+        onBarcodeDetected={handleBarcodeDetected}
+        products={products}
+      />
+
+      <NewSaleModal
+        isOpen={isNewSaleOpen}
+        onClose={() => setIsNewSaleOpen(false)}
+        products={products}
+        customers={customers}
+        settings={settings}
+        onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+        onSaleSuccess={() => loadData(currentStoreId)}
+        onOpenInvoicePrint={handleOpenInvoicePrint}
+      />
+
+      <NewOrderModal
+        isOpen={isNewOrderOpen}
+        onClose={() => setIsNewOrderOpen(false)}
+        products={products}
+        customers={customers}
+        selectedCustomerForOrder={paymentCustomerTarget}
+        onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+        onOrderSuccess={() => loadData(currentStoreId)}
+        onOpenInvoicePrint={handleOpenInvoicePrint}
+      />
+
+      <CollectPaymentModal
+        isOpen={isCollectPaymentOpen}
+        onClose={() => setIsCollectPaymentOpen(false)}
+        customers={customers}
+        selectedCustomerForPayment={paymentCustomerTarget}
+        settings={settings}
+        onPaymentSuccess={() => loadData(currentStoreId)}
+      />
+
+      <AddProductModal
+        isOpen={isAddProductOpen}
+        onClose={() => setIsAddProductOpen(false)}
+        productToEdit={editingProductTarget}
+        suppliers={suppliers}
+        onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+        scannedBarcode={lastScannedBarcode}
+        onProductSaved={() => loadData(currentStoreId)}
+        activeSector={settings?.sector}
+      />
+
+      <AddStockModal
+        isOpen={isAddStockOpen}
+        onClose={() => setIsAddStockOpen(false)}
+        products={products}
+        suppliers={suppliers}
+        selectedProductForStock={stockProductTarget}
+        onStockAdded={() => loadData(currentStoreId)}
+      />
+
+      <AddExpenseModal
+        isOpen={isAddExpenseOpen}
+        onClose={() => setIsAddExpenseOpen(false)}
+        onExpenseSaved={() => loadData(currentStoreId)}
+        recordedBy={currentUser.name}
+      />
+
+      <InvoicePrintModal
+        isOpen={isInvoicePrintOpen}
+        onClose={() => setIsInvoicePrintOpen(false)}
+        data={invoiceData}
+        settings={settings}
+      />
+
+      <BulkProductImportModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        onImportComplete={() => loadData(currentStoreId)}
+      />
+
+      <ScanPurchaseBillModal
+        isOpen={isScanPurchaseBillOpen}
+        onClose={() => setIsScanPurchaseBillOpen(false)}
+        suppliers={suppliers}
+        products={products}
+        onBillProcessed={() => loadData(currentStoreId)}
+      />
+
+      {/* Multi-Sector Trading Demo Selector Modal */}
+      <SectorDemoModal
+        isOpen={isSectorModalOpen}
+        onClose={() => setIsSectorModalOpen(false)}
+        currentSector={settings?.sector}
+        onSelectSectorDemo={handleSelectSectorDemo}
+      />
+
+      {/* Auth Modal Triggered from Header or Landing */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authModalMode}
+        onAuthSuccess={handleAuthSuccess}
+      />
+    </div>
+  );
+}

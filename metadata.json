@@ -1,0 +1,6 @@
+{
+  "name": "KiranaMate – Kirana Store Management & Daily Business Tracker",
+  "description": "Mobile-first Kirana store management app for Indian shopkeepers to manage sales, orders, stock, Udhaar, customers, expenses, and WhatsApp billing.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

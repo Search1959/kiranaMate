@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "collections": [
+    {
+      "name": "stores",
+      "description": "Kirana store accounts and settings",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Store ID" },
+        { "name": "shopName", "type": "string", "description": "Shop Name" },
+        { "name": "ownerName", "type": "string", "description": "Owner Name" },
+        { "name": "mobile", "type": "string", "description": "Mobile Number" }
+      ]
+    },
+    {
+      "name": "products",
+      "description": "Products inventory for each store",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Product ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" },
+        { "name": "name", "type": "string", "description": "Product Name" },
+        { "name": "barcode", "type": "string", "description": "Barcode" },
+        { "name": "currentStock", "type": "number", "description": "Current Stock Quantity" }
+      ]
+    },
+    {
+      "name": "customers",
+      "description": "Customers and Udhaar ledger",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Customer ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" },
+        { "name": "name", "type": "string", "description": "Customer Name" },
+        { "name": "outstandingBalance", "type": "number", "description": "Udhaar Balance" }
+      ]
+    },
+    {
+      "name": "sales",
+      "description": "Sales records",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Sale ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" }
+      ]
+    },
+    {
+      "name": "orders",
+      "description": "Customer Delivery Orders",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Order ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" }
+      ]
+    },
+    {
+      "name": "purchases",
+      "description": "Purchase Invoices",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Purchase ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" }
+      ]
+    },
+    {
+      "name": "suppliers",
+      "description": "Wholesale Suppliers",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Supplier ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" }
+      ]
+    },
+    {
+      "name": "expenses",
+      "description": "Store Expenses",
+      "fields": [
+        { "name": "id", "type": "string", "description": "Expense ID" },
+        { "name": "storeId", "type": "string", "description": "Store ID" }
+      ]
+    }
+  ]
+}

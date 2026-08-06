@@ -1,0 +1,193 @@
+import React, { useState } from 'react';
+import { Settings, Store, Save, RefreshCw, CheckCircle2, Layers } from 'lucide-react';
+import { StoreSettings, TradingSector } from '../types';
+import { api } from '../lib/api';
+import { TRADING_SECTORS } from '../lib/sectorConfig';
+
+interface SettingsViewProps {
+  settings: StoreSettings;
+  onRefreshData: () => void;
+}
+
+export const SettingsView: React.FC<SettingsViewProps> = ({
+  settings,
+  onRefreshData
+}) => {
+  const [storeName, setStoreName] = useState(settings.storeName);
+  const [ownerName, setOwnerName] = useState(settings.ownerName);
+  const [phone, setPhone] = useState(settings.phone);
+  const [address, setAddress] = useState(settings.address);
+  const [city, setCity] = useState(settings.city);
+  const [gstin, setGstin] = useState(settings.gstin || '');
+  const [tagline, setTagline] = useState(settings.tagline);
+  const [sector, setSector] = useState<TradingSector>(settings.sector || 'KIRANA_FMCG');
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSavedSuccess(false);
+
+    try {
+      await api.updateSettings({
+        storeName,
+        ownerName,
+        phone,
+        address,
+        city,
+        gstin,
+        tagline,
+        sector
+      });
+      onRefreshData();
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleResetData = async () => {
+    if (confirm("Are you sure you want to reset demo data back to initial seed state? Any new sales/customers created will be refreshed.")) {
+      try {
+        await api.resetDemoData();
+        onRefreshData();
+        alert("Database successfully reset!");
+      } catch (err: any) {
+        alert(err.message || "Failed to reset");
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-4 pb-12 sm:pb-6">
+      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <Settings className="w-5 h-5 text-emerald-600" /> Store Profile & Bill Settings
+        </h2>
+        <p className="text-xs text-slate-500">Configure Kirana store details printed on WhatsApp bills and receipts</p>
+      </div>
+
+      <form onSubmit={handleSaveSettings} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 text-xs">
+        {savedSuccess && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-2xl flex items-center gap-2 font-bold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Store details updated successfully!
+          </div>
+        )}
+
+        {/* Primary Trading Sector Selection */}
+        <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2">
+          <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <span>Primary Trading Sector & Industry Type</span>
+          </label>
+          <p className="text-[11px] text-slate-500">
+            Sets default measurement units, product categories, and AI bill extraction hints for your business.
+          </p>
+          <select
+            value={sector}
+            onChange={(e) => setSector(e.target.value as TradingSector)}
+            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+          >
+            {TRADING_SECTORS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.tagline})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Business / Store Name *</label>
+            <input
+              type="text"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Owner Name *</label>
+            <input
+              type="text"
+              value={ownerName}
+              onChange={(e) => setOwnerName(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">WhatsApp / Phone Number *</label>
+            <input
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">GSTIN Number (Optional)</label>
+            <input
+              type="text"
+              value={gstin}
+              onChange={(e) => setGstin(e.target.value)}
+              placeholder="e.g. 27AAAAA0000A1Z5"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block mb-1">Shop Tagline</label>
+          <input
+            type="text"
+            value={tagline}
+            onChange={(e) => setTagline(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block mb-1">Store Address & City</label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-transform active:scale-98"
+        >
+          <Save className="w-4 h-4" /> {isSaving ? 'Saving...' : 'SAVE STORE CONFIGURATION'}
+        </button>
+      </form>
+
+      {/* Reset Seed Data */}
+      <div className="bg-slate-50 border border-slate-200 p-5 rounded-3xl space-y-2 text-xs">
+        <h3 className="font-bold text-slate-800">Database Demo Reset</h3>
+        <p className="text-slate-500">Reset sample database back to initial seed state (50 customers, 100+ items, sample sales).</p>
+        <button
+          onClick={handleResetData}
+          className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-1.5"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Reset Demo Seed Data
+        </button>
+      </div>
+    </div>
+  );
+};

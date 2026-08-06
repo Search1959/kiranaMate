@@ -1,0 +1,425 @@
+import { LanguageCode } from '../types';
+
+export interface TranslationDictionary {
+  appName: string;
+  tagline: string;
+  greeting: string;
+  todaysSales: string;
+  pendingUdhaar: string;
+  pendingOrders: string;
+  lowStockItems: string;
+  estimatedProfit: string;
+  quickActions: string;
+  newSale: string;
+  newOrder: string;
+  addCustomer: string;
+  addStock: string;
+  collectPayment: string;
+  addProduct: string;
+  addExpense: string;
+  searchPlaceholder: string;
+  home: string;
+  orders: string;
+  stock: string;
+  customers: string;
+  more: string;
+  sales: string;
+  purchases: string;
+  expenses: string;
+  suppliers: string;
+  reports: string;
+  stockLedger: string;
+  finance: string;
+  settings: string;
+  backup: string;
+  logout: string;
+  scanBarcode: string;
+  totalOutstanding: string;
+  overduePayments: string;
+  dueToday: string;
+  sendWhatsAppReminder: string;
+  copyMessage: string;
+  recordPayment: string;
+  cash: string;
+  upi: string;
+  creditUdhaar: string;
+  bank: string;
+  paid: string;
+  pending: string;
+  outOfStock: string;
+  category: string;
+  sellingPrice: string;
+  mrp: string;
+  purchasePrice: string;
+  stockQty: string;
+  add: string;
+  save: string;
+  cancel: string;
+  printInvoice: string;
+  shareWhatsApp: string;
+  total: string;
+  discount: string;
+  subtotal: string;
+  customerName: string;
+  mobileNumber: string;
+  area: string;
+  address: string;
+  notes: string;
+  viewLedger: string;
+  language: string;
+  ownerRole: string;
+  staffRole: string;
+}
+
+export const translations: Record<LanguageCode, TranslationDictionary> = {
+  en: {
+    appName: "KiranaMate",
+    tagline: "Your Kirana Store. In Your Pocket.",
+    greeting: "Namaste",
+    todaysSales: "Today's Sales",
+    pendingUdhaar: "Pending Udhaar",
+    pendingOrders: "Pending Orders",
+    lowStockItems: "Low Stock Items",
+    estimatedProfit: "Estimated Profit Today",
+    quickActions: "Quick Actions",
+    newSale: "New Sale",
+    newOrder: "New Order",
+    addCustomer: "Add Customer",
+    addStock: "Add Stock",
+    collectPayment: "Collect Payment",
+    addProduct: "Add Product",
+    addExpense: "Add Expense",
+    searchPlaceholder: "Search product, customer, barcode or order...",
+    home: "Home",
+    orders: "Orders",
+    stock: "Stock",
+    customers: "Customers",
+    more: "More",
+    sales: "Sales",
+    purchases: "Purchases",
+    expenses: "Expenses",
+    suppliers: "Suppliers",
+    reports: "Reports",
+    stockLedger: "Stock Ledger",
+    finance: "Finance & Profit",
+    settings: "Settings",
+    backup: "Backup & Restore",
+    logout: "Logout",
+    scanBarcode: "Scan Barcode",
+    totalOutstanding: "Total Outstanding",
+    overduePayments: "Overdue Udhaar",
+    dueToday: "Due Today",
+    sendWhatsAppReminder: "WhatsApp Reminder",
+    copyMessage: "Copy Text",
+    recordPayment: "Record Payment",
+    cash: "Cash",
+    upi: "UPI",
+    creditUdhaar: "Udhaar (Credit)",
+    bank: "Bank Transfer",
+    paid: "Paid",
+    pending: "Pending",
+    outOfStock: "Out of Stock",
+    category: "Category",
+    sellingPrice: "Selling Price",
+    mrp: "MRP",
+    purchasePrice: "Purchase Price",
+    stockQty: "Current Stock",
+    add: "Add",
+    save: "Save",
+    cancel: "Cancel",
+    printInvoice: "Print Invoice",
+    shareWhatsApp: "Share WhatsApp",
+    total: "Total",
+    discount: "Discount",
+    subtotal: "Subtotal",
+    customerName: "Customer Name",
+    mobileNumber: "Mobile Number",
+    area: "Area / Colony",
+    address: "Address",
+    notes: "Notes",
+    viewLedger: "View Ledger",
+    language: "Language",
+    ownerRole: "Owner",
+    staffRole: "Staff"
+  },
+  hi: {
+    appName: "किरानामेट",
+    tagline: "आपकी किराना दुकान। आपकी जेब में।",
+    greeting: "नमस्ते",
+    todaysSales: "आज की बिक्री",
+    pendingUdhaar: "बाकी उधार",
+    pendingOrders: "लंबित ऑर्डर्स",
+    lowStockItems: "कम स्टॉक सामान",
+    estimatedProfit: "आज का अनुमानित लाभ",
+    quickActions: "त्वरित कार्य",
+    newSale: "नई बिक्री",
+    newOrder: "नया ऑर्डर",
+    addCustomer: "ग्राहक जोड़ें",
+    addStock: "स्टॉक बढ़ाएं",
+    collectPayment: "उधार जमा करें",
+    addProduct: "नया सामान जोड़ें",
+    addExpense: "खर्चा दर्ज करें",
+    searchPlaceholder: "सामान, ग्राहक, बारकोड या ऑर्डर खोजें...",
+    home: "होम",
+    orders: "ऑर्डर्स",
+    stock: "स्टॉक",
+    customers: "ग्राहक",
+    more: "अन्य",
+    sales: "बिक्री",
+    purchases: "खरीद",
+    expenses: "दुकान के खर्चे",
+    suppliers: "सप्लायर्स",
+    reports: "रिपोर्ट्स",
+    stockLedger: "स्टॉक लेजर",
+    finance: "फाइनेंस और मुनाफा",
+    settings: "सेटिंग्स",
+    backup: "बैकअप और रिस्टोर",
+    logout: "लॉगआउट",
+    scanBarcode: "बारकोड स्कैन करें",
+    totalOutstanding: "कुल बकाया उधार",
+    overduePayments: "अतिदेय उधार",
+    dueToday: "आज देय",
+    sendWhatsAppReminder: "व्हाट्सएप रिमाइंडर",
+    copyMessage: "मैसेज कॉपी करें",
+    recordPayment: "भुगतान दर्ज करें",
+    cash: "नकद",
+    upi: "यूपीआई (UPI)",
+    creditUdhaar: "उधार",
+    bank: "बैंक ट्रांसफ़र",
+    paid: "भुगतान हो गया",
+    pending: "बाकी है",
+    outOfStock: "स्टॉक खत्म",
+    category: "कैटेगरी",
+    sellingPrice: "बिक्री मूल्य",
+    mrp: "एमआरपी (MRP)",
+    purchasePrice: "खरीद मूल्य",
+    stockQty: "वर्तमान स्टॉक",
+    add: "जोड़ें",
+    save: "सुरक्षित करें",
+    cancel: "रद्द करें",
+    printInvoice: "बिल प्रिंट करें",
+    shareWhatsApp: "व्हाट्सएप भेजें",
+    total: "कुल योग",
+    discount: "छूट",
+    subtotal: "उप-योग",
+    customerName: "ग्राहक का नाम",
+    mobileNumber: "मोबाइल नंबर",
+    area: "इलाका / मोहल्ला",
+    address: "पता",
+    notes: "नोट्स",
+    viewLedger: "खाता देखें",
+    language: "भाषा",
+    ownerRole: "दुकान मालिक",
+    staffRole: "स्टाफ"
+  },
+  mr: {
+    appName: "किराणामेट",
+    tagline: "तुमचे किराणा दुकान। तुमच्या खिशात।",
+    greeting: "नमस्ते",
+    todaysSales: "आजची विक्री",
+    pendingUdhaar: "बाकी उधार",
+    pendingOrders: "लंबित ऑर्डर्स",
+    lowStockItems: "कमी साठा",
+    estimatedProfit: "आजचा अंदाजित नफा",
+    quickActions: "क्विक ॲक्शन्स",
+    newSale: "नवीन विक्री",
+    newOrder: "नवीन ऑर्डर",
+    addCustomer: "ग्राहक जोडा",
+    addStock: "साठा वाढवा",
+    collectPayment: "जमा वसूल करा",
+    addProduct: "नवीन वस्तू जोडा",
+    addExpense: "खर्च नोंदवा",
+    searchPlaceholder: "वस्तू, ग्राहक, बारकोड किंवा ऑर्डर शोधा...",
+    home: "मुख्य",
+    orders: "ऑर्डर्स",
+    stock: "साठा",
+    customers: "ग्राहक",
+    more: "अधिक",
+    sales: "विक्री",
+    purchases: "खरेदी",
+    expenses: "दुकान खर्च",
+    suppliers: "पुरवठादार",
+    reports: "अहवाल",
+    stockLedger: "स्टॉक लेजर",
+    finance: "वित्त आणि नफा",
+    settings: "सेटिंग्ज",
+    backup: "बैकअप",
+    logout: "बाहेर पडा",
+    scanBarcode: "बारकोड स्कॅन करा",
+    totalOutstanding: "एकूण उर्वरित उधार",
+    overduePayments: "थकित बाकी",
+    dueToday: "आज देय",
+    sendWhatsAppReminder: "व्हाट्सॲप स्मरणपत्र",
+    copyMessage: "कॉपी करा",
+    recordPayment: "जमा नोंदवा",
+    cash: "रोख",
+    upi: "युपीआय (UPI)",
+    creditUdhaar: "उधार",
+    bank: "बँक",
+    paid: "भरले",
+    pending: "बाकी",
+    outOfStock: "साठा संपला",
+    category: "वर्ग",
+    sellingPrice: "विक्री दर",
+    mrp: "एमआरपी",
+    purchasePrice: "खरेदी दर",
+    stockQty: "सध्याचा साठा",
+    add: "जोडा",
+    save: "जतन करा",
+    cancel: "रद्द करा",
+    printInvoice: "बिल प्रिंट करा",
+    shareWhatsApp: "व्हाट्सॲप पाठवा",
+    total: "एकूण",
+    discount: "सवलत",
+    subtotal: "उपएकूण",
+    customerName: "ग्राहकाचे नाव",
+    mobileNumber: "मोबाईल नंबर",
+    area: "भाग",
+    address: "पत्ता",
+    notes: "टीप",
+    viewLedger: "खाते पहा",
+    language: "भाषा",
+    ownerRole: "मालक",
+    staffRole: "कर्मचारी"
+  },
+  gu: {
+    appName: "કિરાણામેટ",
+    tagline: "તમારી કિરાણા દુકાન. તમારા ખિસ્સામાં.",
+    greeting: "નમસ્તે",
+    todaysSales: "આજનું વેચાણ",
+    pendingUdhaar: "બાકી ઉધાર",
+    pendingOrders: "પેન્ડિંગ ઓર્ડર",
+    lowStockItems: "ઓછો સ્ટોક",
+    estimatedProfit: "આજનો અંદાજિત નફો",
+    quickActions: "ઝડપી ક્રિયાઓ",
+    newSale: "નવું વેચાણ",
+    newOrder: "નવો ઓર્ડર",
+    addCustomer: "ગ્રાહક ઉમેરો",
+    addStock: "સ્ટોક ઉમેરો",
+    collectPayment: "ઉધાર જમા કરો",
+    addProduct: "નવી વસ્તુ ઉમેરો",
+    addExpense: "ખર્ચ નોંધો",
+    searchPlaceholder: "વસ્તુ, ગ્રાહક, બારકોડ અથવા ઓર્ડર શોધો...",
+    home: "હોમ",
+    orders: "ઓર્ડર",
+    stock: "સ્ટોક",
+    customers: "ગ્રાહકો",
+    more: "વધુ",
+    sales: "વેચાણ",
+    purchases: "ખરીદી",
+    expenses: "ખર્ચ",
+    suppliers: "સપ્લાયર્સ",
+    reports: "રિપોર્ટ્સ",
+    stockLedger: "સ્ટોક લેજર",
+    finance: "નાણાકીય અને નફો",
+    settings: "સેટિંગ્સ",
+    backup: "બેકઅપ",
+    logout: "લોગઆઉટ",
+    scanBarcode: "બારકોડ સ્કેન કરો",
+    totalOutstanding: "કુલ બાકી ઉધાર",
+    overduePayments: "બાકી રકમ",
+    dueToday: "આજે આપવાના",
+    sendWhatsAppReminder: "વોટ્સએપ રીમાઇન્ડર",
+    copyMessage: "મેસેજ કોપી કરો",
+    recordPayment: "ચુકવણી નોંધો",
+    cash: "રોકડ",
+    upi: "યુપીઆઈ (UPI)",
+    creditUdhaar: "ઉધાર",
+    bank: "બેંક",
+    paid: "ચૂકવેલ",
+    pending: "બાકી",
+    outOfStock: "સ્ટોક ખતમ",
+    category: "કેટેગરી",
+    sellingPrice: "વેચાણ કિંમત",
+    mrp: "એમઆરપી",
+    purchasePrice: "ખરીદ કિંમત",
+    stockQty: "હાલનો સ્ટોક",
+    add: "ઉમેરો",
+    save: "સાચવો",
+    cancel: "રદ કરો",
+    printInvoice: "બિલ પ્રિન્ટ કરો",
+    shareWhatsApp: "વોટ્સએપ મોકલો",
+    total: "કુલ",
+    discount: "ડિસ્કાઉન્ટ",
+    subtotal: "સબટોટલ",
+    customerName: "ગ્રાહકનું નામ",
+    mobileNumber: "મોબાઇલ નંબર",
+    area: "વિસ્તાર",
+    address: "સરનામું",
+    notes: "નોંધ",
+    viewLedger: "ખાતું જુઓ",
+    language: "ભાષા",
+    ownerRole: "માલિક",
+    staffRole: "સ્ટાફ"
+  },
+  ta: {
+    appName: "கிரானா மேட்",
+    tagline: "உங்கள் மளிகை கடை. உங்கள் பாக்கெட்டில்.",
+    greeting: "வணக்கம்",
+    todaysSales: "இன்றைய விற்பனை",
+    pendingUdhaar: "நிலுவை கடன்",
+    pendingOrders: "நிலுவை ஆர்டர்கள்",
+    lowStockItems: "குறைந்த இருப்பு",
+    estimatedProfit: "இன்றைய லாபம்",
+    quickActions: "விரைவு செயல்கள்",
+    newSale: "புதிய விற்பனை",
+    newOrder: "புதிய ஆர்டர்",
+    addCustomer: "வாடிக்கையாளர் சேர்",
+    addStock: "இருப்பு சேர்",
+    collectPayment: "பணம் பெறுக",
+    addProduct: "பொருள் சேர்",
+    addExpense: "செலவு பதிவு",
+    searchPlaceholder: "பொருள், வாடிக்கையாளர் அல்லது பார்கோடு தேடுக...",
+    home: "முகப்பு",
+    orders: "ஆர்டர்கள்",
+    stock: "இருப்பு",
+    customers: "வாடிக்கையாளர்",
+    more: "மேலும்",
+    sales: "விற்பனை",
+    purchases: "கொள்முதல்",
+    expenses: "செலவுகள்",
+    suppliers: "சப்ளையர்கள்",
+    reports: "அறிக்கைகள்",
+    stockLedger: "இருப்பு லெட்ஜர்",
+    finance: "நிதி மற்றும் லாபம்",
+    settings: "அமைப்புகள்",
+    backup: "காப்புப்பிரதி",
+    logout: "வெளியேறு",
+    scanBarcode: "பார்கோடு ஸ்கேன்",
+    totalOutstanding: "மொத்த நிலுவை",
+    overduePayments: "காலதாமத கடன்",
+    dueToday: "இன்று செலுத்த வேண்டியவை",
+    sendWhatsAppReminder: "வாட்ஸ்அப் நினைவூட்டல்",
+    copyMessage: "நகலெடு",
+    recordPayment: "பணம் செலுத்துதல்",
+    cash: "ரொக்கம்",
+    upi: "யுபிஐ (UPI)",
+    creditUdhaar: "கடன்",
+    bank: "வங்கி",
+    paid: "செலுத்தப்பட்டது",
+    pending: "நிலுவையில்",
+    outOfStock: "இருப்பு இல்லை",
+    category: "பிரிவு",
+    sellingPrice: "விற்பனை விலை",
+    mrp: "எம்ஆர்பி",
+    purchasePrice: "வாங்கிய விலை",
+    stockQty: "தற்போதைய இருப்பு",
+    add: "சேர்",
+    save: "சேமி",
+    cancel: "ரத்து செய்",
+    printInvoice: "ரசீது அச்சிடுக",
+    shareWhatsApp: "வாட்ஸ்அப் பகிர்க",
+    total: "மொத்தம்",
+    discount: "தள்ளுபடி",
+    subtotal: "உள் மொத்தம்",
+    customerName: "வாடிக்கையாளர் பெயர்",
+    mobileNumber: "மொபைல் எண்",
+    area: "பகுதி",
+    address: "முகவரி",
+    notes: "குறிப்புகள்",
+    viewLedger: "கணக்கை காண்க",
+    language: "மொழி",
+    ownerRole: "உரிமையாளர்",
+    staffRole: "ஊழியர்"
+  }
+};
