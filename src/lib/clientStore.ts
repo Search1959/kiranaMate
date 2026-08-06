@@ -11,9 +11,11 @@ import {
   NotificationAlert,
   User,
   CustomerTransaction,
-  InventoryTransaction
+  InventoryTransaction,
+  TradingSector
 } from '../types';
 import { generateSectorSeedData } from '../server/seedData';
+import { TRADING_SECTORS } from './sectorConfig';
 
 interface StoreData {
   settings: StoreSettings;
@@ -33,17 +35,37 @@ interface StoreData {
 const LOCAL_STORAGE_PREFIX = 'kiranamate_store_';
 
 function getStoreData(storeId: string = 'store-demo'): StoreData {
+  let sectorKey: TradingSector = 'KIRANA_FMCG';
+  if (storeId === 'store-demo-steel' || storeId.includes('steel')) sectorKey = 'METALS_STEEL';
+  else if (storeId === 'store-demo-agri' || storeId.includes('agri')) sectorKey = 'AGRICULTURE';
+  else if (storeId === 'store-demo-textile' || storeId.includes('textile')) sectorKey = 'TEXTILES';
+  else if (storeId === 'store-demo-chemical' || storeId.includes('chemical')) sectorKey = 'CHEMICALS';
+  else if (storeId === 'store-demo-energy' || storeId.includes('energy')) sectorKey = 'ENERGY';
+  else if (storeId === 'store-demo-jewellery' || storeId.includes('jewel')) sectorKey = 'JEWELLERY';
+  else if (storeId === 'store-demo-stationery' || storeId.includes('stationery')) sectorKey = 'STATIONERY';
+  else if (storeId === 'store-demo-hardware' || storeId.includes('hardware')) sectorKey = 'BUILDING_HARDWARE';
+  else if (storeId === 'store-demo-kirana' || storeId.includes('kirana')) sectorKey = 'KIRANA_FMCG';
+  else {
+    const sectorDef = TRADING_SECTORS.find(s => s.demoStoreId === storeId || s.id === storeId);
+    if (sectorDef) sectorKey = sectorDef.id;
+  }
+
   const key = `${LOCAL_STORAGE_PREFIX}${storeId}`;
   const raw = localStorage.getItem(key);
   if (raw) {
     try {
-      return JSON.parse(raw);
+      const parsed: StoreData = JSON.parse(raw);
+      if (storeId.startsWith('store-demo') && parsed.settings && parsed.settings.sector !== sectorKey) {
+        localStorage.removeItem(key);
+      } else {
+        return parsed;
+      }
     } catch {
       // fallback to seed
     }
   }
 
-  const seed = generateSectorSeedData('KIRANA_FMCG');
+  const seed = generateSectorSeedData(sectorKey);
   const initialData: StoreData = {
     settings: seed.settings,
     users: [
@@ -182,18 +204,18 @@ export const clientStore = {
   },
 
   getAdminStores() {
-    const seed = generateSectorSeedData('KIRANA_FMCG');
     return {
-      stores: [
-        {
-          id: 'store-demo',
+      stores: TRADING_SECTORS.map(sec => {
+        const seed = generateSectorSeedData(sec.id);
+        return {
+          id: sec.demoStoreId,
           storeName: seed.settings.storeName,
-          ownerName: seed.settings.ownerName,
+          ownerName: 'Demo Manager',
           isDemo: true,
           productCount: seed.products.length,
           salesCount: seed.sales.length
-        }
-      ]
+        };
+      })
     };
   },
 
