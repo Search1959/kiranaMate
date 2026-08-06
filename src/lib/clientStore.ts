@@ -35,6 +35,31 @@ interface StoreData {
 
 const LOCAL_STORAGE_PREFIX = 'kiranamate_store_';
 
+function findUserAcrossAllStores(username: string): { user: User; storeId: string; storeData: StoreData } | null {
+  const clean = username.trim().toLowerCase();
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(LOCAL_STORAGE_PREFIX)) {
+      const sid = key.replace(LOCAL_STORAGE_PREFIX, '');
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const storeData: StoreData = JSON.parse(raw);
+          if (storeData.users && Array.isArray(storeData.users)) {
+            const u = storeData.users.find(usr => usr.username.toLowerCase() === clean);
+            if (u) {
+              return { user: u, storeId: sid, storeData };
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return null;
+}
+
 function getStoreData(storeId: string = 'store-demo'): StoreData {
   let sectorKey: TradingSector = 'KIRANA_FMCG';
   if (storeId === 'store-demo-steel' || storeId.includes('steel')) sectorKey = 'METALS_STEEL';
@@ -198,20 +223,49 @@ export const clientStore = {
     return { success: true, user: u };
   },
 
-  getAdminStores() {
-    return {
-      stores: TRADING_SECTORS.map(sec => {
+  getAdminStores(): { stores: { id: string; storeName: string; ownerName: string; isDemo: boolean; productCount: number; salesCount: number }[] } {
+    const list: { id: string; storeName: string; ownerName: string; isDemo: boolean; productCount: number; salesCount: number }[] = [];
+    
+    // 1. Add all registered custom stores from localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(LOCAL_STORAGE_PREFIX)) {
+        const sid = key.replace(LOCAL_STORAGE_PREFIX, '');
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const data: StoreData = JSON.parse(raw);
+            list.push({
+              id: sid,
+              storeName: data.settings?.storeName || 'Store',
+              ownerName: data.settings?.ownerName || 'Owner',
+              isDemo: sid.startsWith('store-demo'),
+              productCount: data.products ? data.products.length : 0,
+              salesCount: data.sales ? data.sales.length : 0
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 2. If no stores in list yet, include default demo sectors
+    if (list.length === 0) {
+      TRADING_SECTORS.forEach(sec => {
         const seed = generateSectorSeedData(sec.id);
-        return {
+        list.push({
           id: sec.demoStoreId,
           storeName: seed.settings.storeName,
           ownerName: 'Demo Manager',
           isDemo: true,
           productCount: seed.products.length,
           salesCount: seed.sales.length
-        };
-      })
-    };
+        });
+      });
+    }
+
+    return { stores: list };
   },
 
   // Customers
@@ -1069,6 +1123,13 @@ export const clientStore = {
 
   register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector }): { success: boolean; user: User; storeId: string } {
     const cleanUsername = payload.username.trim().toLowerCase();
+
+    // Check if user already exists
+    const existing = findUserAcrossAllStores(cleanUsername);
+    if (existing) {
+      throw new Error(`Username/Email '${payload.username}' is already registered. Please login or use a different username.`);
+    }
+
     const newStoreId = `store-${Date.now()}`;
     const sectorKey = payload.sector || 'KIRANA_FMCG';
     const sectorConfig = getSectorConfig(sectorKey);
@@ -1137,50 +1198,54 @@ export const clientStore = {
   },
 
   login(storeId: string = 'store-demo', username: string, selectedSector?: TradingSector): { success: boolean; user: User; storeId: string } {
-    let targetStoreId = storeId;
-    if (selectedSector) {
-      const matchedSec = TRADING_SECTORS.find(s => s.id === selectedSector);
-      if (matchedSec && storeId.startsWith('store-demo')) {
-        targetStoreId = matchedSec.demoStoreId;
+    const cleanUsername = username.trim().toLowerCase();
+
+    // 1. Search if account exists in any registered store
+    const found = findUserAcrossAllStores(cleanUsername);
+    if (found) {
+      if (selectedSector && found.storeData.settings) {
+        found.storeData.settings.sector = selectedSector;
+        saveStoreData(found.storeId, found.storeData);
       }
-    } else if (username.toLowerCase().includes('steel') || username.toLowerCase().includes('iron')) {
-      targetStoreId = 'store-demo-steel';
-    } else if (username.toLowerCase().includes('agri')) {
-      targetStoreId = 'store-demo-agri';
-    } else if (username.toLowerCase().includes('textile')) {
-      targetStoreId = 'store-demo-textile';
+      return { success: true, user: found.user, storeId: found.storeId };
     }
 
-    const data = getStoreData(targetStoreId);
-    if (selectedSector && data.settings) {
-      data.settings.sector = selectedSector;
-      saveStoreData(targetStoreId, data);
+    // 2. Handle standard demo accounts
+    if (['admin', 'owner', 'staff'].includes(cleanUsername)) {
+      let targetStoreId = storeId.startsWith('store-demo') ? storeId : 'store-demo';
+      if (selectedSector) {
+        const matchedSec = TRADING_SECTORS.find(s => s.id === selectedSector);
+        if (matchedSec) targetStoreId = matchedSec.demoStoreId;
+      }
+      const demoData = getStoreData(targetStoreId);
+      let u = demoData.users.find(usr => usr.username.toLowerCase() === cleanUsername);
+      if (!u) {
+        u = {
+          id: `u-${cleanUsername}`,
+          name: cleanUsername === 'admin' ? 'System Administrator' : cleanUsername === 'staff' ? 'Shop Staff' : 'Shop Owner',
+          username: cleanUsername,
+          role: cleanUsername === 'admin' ? 'admin' : cleanUsername === 'staff' ? 'staff' : 'owner',
+          mobile: '9876543210',
+          storeId: targetStoreId,
+          storeName: demoData.settings?.storeName || 'Demo Store',
+          storeSector: demoData.settings?.sector || 'KIRANA_FMCG',
+          permissions: {
+            canViewReports: true,
+            canEditProducts: true,
+            canDeleteRecords: true,
+            canCollectPayments: true,
+            canCreateOrders: true,
+            canManageSettings: true
+          }
+        };
+        demoData.users.push(u);
+        saveStoreData(targetStoreId, demoData);
+      }
+      return { success: true, user: u, storeId: targetStoreId };
     }
 
-    let u = data.users.find(usr => usr.username.toLowerCase() === username.toLowerCase());
-    if (!u) {
-      u = {
-        id: `u-${Date.now()}`,
-        name: username,
-        username,
-        role: 'owner',
-        mobile: '9876543210',
-        storeId: targetStoreId,
-        storeName: data.settings?.storeName || 'KiranaMate Store',
-        storeSector: data.settings?.sector || selectedSector || 'KIRANA_FMCG',
-        permissions: {
-          canViewReports: true,
-          canEditProducts: true,
-          canDeleteRecords: true,
-          canCollectPayments: true,
-          canCreateOrders: true,
-          canManageSettings: true
-        }
-      };
-      data.users.push(u);
-      saveStoreData(targetStoreId, data);
-    }
-    return { success: true, user: u, storeId: targetStoreId };
+    // 3. For any non-demo username not found, throw Error
+    throw new Error(`Account '${username}' not found. Please check your username/email or register a new store.`);
   },
 
   exportBackup(storeId: string = 'store-demo') {

@@ -246,10 +246,21 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     if (res.ok && contentType.includes('application/json')) {
       return await res.json();
     }
+
+    if (contentType.includes('application/json')) {
+      const errData = await res.json().catch(() => null);
+      if (errData && errData.error) {
+        throw new Error(errData.error);
+      }
+    }
+
     // If response is not ok or not JSON (e.g., 404 HTML on Netlify static hosting)
     return await handleClientFallback<T>(url, options);
-  } catch (_err) {
-    // Network error or offline mode on Netlify
+  } catch (err: any) {
+    if (err && err.message && !err.message.includes('Failed to fetch')) {
+      throw err;
+    }
+    // Network error or offline mode
     return await handleClientFallback<T>(url, options);
   }
 }
