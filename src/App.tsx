@@ -16,6 +16,72 @@ import {
   TradingSector
 } from './types';
 import { api, getCurrentStoreId } from './lib/api';
+import { getSectorConfig } from './lib/sectorConfig';
+
+const DEFAULT_USER: User = {
+  id: 'user-demo-owner',
+  name: 'Ramesh Gupta (Demo Owner)',
+  username: 'owner',
+  role: 'owner',
+  mobile: '9876543210',
+  permissions: {
+    canViewReports: true,
+    canEditProducts: true,
+    canDeleteRecords: true,
+    canCollectPayments: true,
+    canCreateOrders: true,
+    canManageSettings: true
+  }
+};
+
+const DEFAULT_STATS: DailyStats = {
+  todaySalesTotal: 12450,
+  cashSales: 5200,
+  upiSales: 4850,
+  creditSales: 2400,
+  todayExpenses: 850,
+  estimatedProfitToday: 2100,
+  totalPendingUdhaar: 48500,
+  dueTodayUdhaar: 6200,
+  overdueUdhaar: 14200,
+  todayCollection: 3500,
+  pendingOrdersCount: 2,
+  newOrdersCount: 1,
+  preparingOrdersCount: 1,
+  outForDeliveryCount: 0,
+  deliveredOrdersToday: 5,
+  lowStockCount: 3,
+  outOfStockCount: 1
+};
+
+function getFallbackSettings(storeIdStr: string): StoreSettings {
+  let sectorKey: TradingSector = 'KIRANA_FMCG';
+  if (storeIdStr.includes('steel')) sectorKey = 'METALS_STEEL';
+  else if (storeIdStr.includes('energy')) sectorKey = 'ENERGY';
+  else if (storeIdStr.includes('agri')) sectorKey = 'AGRICULTURE';
+  else if (storeIdStr.includes('chemical')) sectorKey = 'CHEMICALS';
+  else if (storeIdStr.includes('textile')) sectorKey = 'TEXTILES';
+  else if (storeIdStr.includes('jewellery')) sectorKey = 'JEWELLERY';
+  else if (storeIdStr.includes('stationery')) sectorKey = 'STATIONERY';
+  else if (storeIdStr.includes('hardware')) sectorKey = 'BUILDING_HARDWARE';
+
+  const cfg = getSectorConfig(sectorKey);
+  return {
+    storeName: cfg.defaultSettings.storeName || `${cfg.shortLabel} Store`,
+    tagline: cfg.tagline,
+    ownerName: 'Demo Manager',
+    phone: '9876543210',
+    address: 'Industrial Estate, Main Road',
+    city: 'Jaipur',
+    pincode: '302001',
+    currencySymbol: '₹',
+    invoicePrefix: cfg.defaultSettings.invoicePrefix || 'TRD-2026-',
+    invoiceFooterNote: 'Thank you for your business!',
+    lowStockThresholdDefault: 10,
+    defaultLanguage: 'en',
+    sector: sectorKey
+  };
+}
 
 // Layout Components
 import { Header } from './components/Header';
@@ -154,6 +220,8 @@ export default function App() {
       api.setStoreId(targetStore);
       setCurrentStoreId(targetStore);
 
+      const fallbackSettings = getFallbackSettings(targetStore);
+
       const [
         usersRes,
         statsData,
@@ -168,37 +236,38 @@ export default function App() {
         notifsData,
         invTxData
       ] = await Promise.all([
-        api.getUsers(),
-        api.getDailyStats(),
-        api.getSettings(),
-        api.getCustomers(),
-        api.getProducts(),
-        api.getOrders(),
-        api.getSales(),
-        api.getPurchases(),
-        api.getExpenses(),
-        api.getSuppliers(),
-        api.getNotifications(),
+        api.getUsers().catch(() => ({ users: [DEFAULT_USER] })),
+        api.getDailyStats().catch(() => DEFAULT_STATS),
+        api.getSettings().catch(() => fallbackSettings),
+        api.getCustomers().catch(() => []),
+        api.getProducts().catch(() => []),
+        api.getOrders().catch(() => []),
+        api.getSales().catch(() => []),
+        api.getPurchases().catch(() => []),
+        api.getExpenses().catch(() => []),
+        api.getSuppliers().catch(() => []),
+        api.getNotifications().catch(() => []),
         api.getInventoryTransactions().catch(() => [])
       ]);
 
-      const usersData = usersRes.users || [];
+      const usersData = usersRes?.users?.length ? usersRes.users : [DEFAULT_USER];
       setUsers(usersData);
-      if (!currentUser && usersData.length > 0) {
-        setCurrentUser(usersData[0]);
+
+      setCurrentUser(prev => prev || usersData[0] || DEFAULT_USER);
+      if (usersData[0]) {
         api.setUserRole(usersData[0].role);
       }
 
-      setStats(statsData);
-      setSettings(settingsData);
-      setCustomers(customersData);
-      setProducts(productsData);
-      setOrders(ordersData);
-      setSales(salesData);
-      setPurchases(purchasesData);
-      setExpenses(expensesData);
-      setSuppliers(suppliersData);
-      setNotifications(notifsData);
+      setStats(statsData || DEFAULT_STATS);
+      setSettings(settingsData || fallbackSettings);
+      setCustomers(customersData || []);
+      setProducts(productsData || []);
+      setOrders(ordersData || []);
+      setSales(salesData || []);
+      setPurchases(purchasesData || []);
+      setExpenses(expensesData || []);
+      setSuppliers(suppliersData || []);
+      setNotifications(notifsData || []);
       setInventoryTransactions(invTxData || []);
 
       // If user is admin, fetch list of all stores
@@ -208,6 +277,9 @@ export default function App() {
       }
     } catch (err) {
       console.error("Failed to load KiranaMate data:", err);
+      setCurrentUser(prev => prev || DEFAULT_USER);
+      setSettings(prev => prev || getFallbackSettings(targetStore));
+      setStats(prev => prev || DEFAULT_STATS);
     } finally {
       setIsLoading(false);
     }
@@ -378,7 +450,11 @@ export default function App() {
   }
 
   // IF STORE APP VIEW IS ACTIVE
-  if (!currentUser || !settings || !stats) {
+  const activeSettings = settings || getFallbackSettings(currentStoreId);
+  const activeStats = stats || DEFAULT_STATS;
+  const activeUser = currentUser || DEFAULT_USER;
+
+  if (isLoading && (!settings && !stats)) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
         <div className="text-center space-y-3">
@@ -389,19 +465,19 @@ export default function App() {
     );
   }
 
-  const customersWithUdhaar = customers.filter(c => c.currentBalance > 0);
+  const customersWithUdhaar = customers.filter(c => (c.currentBalance || 0) > 0);
   const lowStockProducts = products.filter(p => p.currentStock <= p.minStock);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
       {/* Top Mobile/Desktop Header */}
       <Header
-        settings={settings}
+        settings={activeSettings}
         lang={lang}
         onLanguageChange={setLang}
-        currentUser={currentUser}
+        currentUser={activeUser}
         onUserSwitch={handleUserSwitch}
-        users={users}
+        users={users.length ? users : [activeUser]}
         onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
         globalSearchQuery={globalSearch}
         onSearchChange={setGlobalSearch}
@@ -414,7 +490,7 @@ export default function App() {
         onAdminSwitchStore={handleAdminSwitchStore}
         onOpenSectorModal={() => setIsSectorModalOpen(true)}
         onSelectSectorDemo={handleSelectSectorDemo}
-        activeSectorId={settings?.sector}
+        activeSectorId={activeSettings.sector}
       />
 
       {/* Main Container Layout */}
@@ -424,20 +500,20 @@ export default function App() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           lang={lang}
-          stats={stats}
-          currentUser={currentUser}
+          stats={activeStats}
+          currentUser={activeUser}
           onOpenQuickAction={handleQuickAction}
           onLogout={handleGoToLanding}
           onOpenSectorModal={() => setIsSectorModalOpen(true)}
-          activeSectorId={settings?.sector}
+          activeSectorId={activeSettings.sector}
         />
 
         {/* View Router Main Screen */}
         <main className="flex-1 p-3 sm:p-5 overflow-y-auto max-w-full">
           {activeTab === 'home' && (
             <DashboardView
-              stats={stats}
-              settings={settings}
+              stats={activeStats}
+              settings={activeSettings}
               lang={lang}
               customersWithUdhaar={customersWithUdhaar}
               lowStockProducts={lowStockProducts}
@@ -456,7 +532,7 @@ export default function App() {
           {activeTab === 'customers' && (
             <CustomersView
               customers={customers}
-              settings={settings}
+              settings={activeSettings}
               lang={lang}
               onRefreshData={() => loadData(currentStoreId)}
               onOpenCollectPayment={handleOpenCollectPayment}
@@ -483,7 +559,7 @@ export default function App() {
           {activeTab === 'orders' && (
             <OrdersView
               orders={orders}
-              settings={settings}
+              settings={activeSettings}
               lang={lang}
               onRefreshData={() => loadData(currentStoreId)}
               onOpenNewOrder={() => setIsNewOrderOpen(true)}
@@ -535,14 +611,14 @@ export default function App() {
               customers={customers}
               suppliers={suppliers}
               products={products}
-              stats={stats}
+              stats={activeStats}
               onRefreshData={() => loadData(currentStoreId)}
             />
           )}
 
           {activeTab === 'reports' && (
             <ReportsView
-              stats={stats}
+              stats={activeStats}
               products={products}
               sales={sales}
             />
@@ -550,7 +626,7 @@ export default function App() {
 
           {activeTab === 'settings' && (
             <SettingsView
-              settings={settings}
+              settings={activeSettings}
               onRefreshData={() => loadData(currentStoreId)}
             />
           )}
@@ -578,7 +654,7 @@ export default function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         lang={lang}
-        stats={stats}
+        stats={activeStats}
         onOpenQuickAction={handleQuickAction}
         onLogout={handleGoToLanding}
       />
