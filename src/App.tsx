@@ -412,8 +412,8 @@ export default function App() {
     }
   };
 
-  const handleOpenCollectPayment = (customer: Customer) => {
-    setPaymentCustomerTarget(customer);
+  const handleOpenCollectPayment = (customer?: Customer) => {
+    setPaymentCustomerTarget(customer || null);
     setIsCollectPaymentOpen(true);
   };
 
@@ -491,6 +491,9 @@ export default function App() {
         onOpenSectorModal={() => setIsSectorModalOpen(true)}
         onSelectSectorDemo={handleSelectSectorDemo}
         activeSectorId={activeSettings.sector}
+        onOpenNewSale={() => setIsNewSaleOpen(true)}
+        onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
+        onOpenCollectPayment={() => handleOpenCollectPayment()}
       />
 
       {/* Main Container Layout */}

@@ -13,7 +13,11 @@ import {
   Home,
   ShieldCheck,
   Building2,
-  ChevronDown
+  ChevronDown,
+  ShoppingCart,
+  Zap,
+  Receipt,
+  FileText
 } from 'lucide-react';
 import { Layers, Sparkles } from 'lucide-react';
 import { StoreSettings, LanguageCode, User, NotificationAlert, TradingSector } from '../types';
@@ -40,6 +44,9 @@ interface HeaderProps {
   onOpenSectorModal?: () => void;
   onSelectSectorDemo?: (sectorId: TradingSector, demoStoreId: string) => void;
   activeSectorId?: TradingSector;
+  onOpenNewSale?: () => void;
+  onOpenScanBill?: () => void;
+  onOpenCollectPayment?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -61,13 +68,17 @@ export const Header: React.FC<HeaderProps> = ({
   onAdminSwitchStore,
   onOpenSectorModal,
   onSelectSectorDemo,
-  activeSectorId
+  activeSectorId,
+  onOpenNewSale,
+  onOpenScanBill,
+  onOpenCollectPayment
 }) => {
   const t = translations[lang] || translations.en;
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showStoreMenu, setShowStoreMenu] = useState(false);
+  const [showPosMenu, setShowPosMenu] = useState(false);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const isDemo = currentStoreId === 'store-demo' || currentStoreId.startsWith('store-demo-');
@@ -176,6 +187,118 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Header Actions */}
       <div className="flex items-center gap-2">
+        {/* Quick POS Billing Header Button */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              if (onOpenNewSale) {
+                onOpenNewSale();
+              } else {
+                setShowPosMenu(!showPosMenu);
+              }
+              setShowLangMenu(false);
+              setShowNotifMenu(false);
+              setShowUserMenu(false);
+            }}
+            className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white shadow-xs hover:shadow-md font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ring-2 ring-emerald-400/30"
+            title="Open POS Billing Counter"
+          >
+            <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-pulse" />
+            <span className="tracking-wide">POS Billing</span>
+            <ChevronDown
+              className="w-3 h-3 text-emerald-100 hidden sm:inline"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPosMenu(!showPosMenu);
+              }}
+            />
+          </button>
+
+          {/* Quick POS Daily Operations Mobile/Desktop Menu */}
+          {showPosMenu && (
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 py-1.5 z-50 text-xs overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3.5 py-2 bg-slate-900 text-white font-bold text-[11px] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <ShoppingCart className="w-3.5 h-3.5" /> Daily POS Menu
+                </span>
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] px-1.5 py-0.5 rounded uppercase font-extrabold">
+                  Fast
+                </span>
+              </div>
+
+              <div className="p-1 space-y-0.5">
+                <button
+                  onClick={() => {
+                    setShowPosMenu(false);
+                    if (onOpenNewSale) onOpenNewSale();
+                  }}
+                  className="w-full text-left px-3 py-2.5 hover:bg-emerald-50 rounded-lg flex items-center gap-2.5 font-bold text-emerald-900 transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <Zap className="w-4 h-4 fill-amber-300 text-amber-300" />
+                  </div>
+                  <div>
+                    <div className="text-xs">⚡ 30s Fast POS Billing</div>
+                    <div className="text-[10px] text-slate-500 font-normal">Barcode scan, tap products & print bill</div>
+                  </div>
+                </button>
+
+                {onOpenScanBill && (
+                  <button
+                    onClick={() => {
+                      setShowPosMenu(false);
+                      onOpenScanBill();
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-indigo-50 rounded-lg flex items-center gap-2.5 font-semibold text-slate-800 transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-md bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs">📷 Scan Purchase Bill</div>
+                      <div className="text-[10px] text-slate-500 font-normal">Auto OCR supplier invoice upload</div>
+                    </div>
+                  </button>
+                )}
+
+                {onOpenCollectPayment && (
+                  <button
+                    onClick={() => {
+                      setShowPosMenu(false);
+                      onOpenCollectPayment();
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-amber-50 rounded-lg flex items-center gap-2.5 font-semibold text-slate-800 transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-md bg-amber-600 text-white flex items-center justify-center shrink-0">
+                      <Receipt className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs">💳 Collect Udhaar / Payment</div>
+                      <div className="text-[10px] text-slate-500 font-normal">Customer credit ledger & UPI settlement</div>
+                    </div>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setShowPosMenu(false);
+                    onNavigateToTab('stock');
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-blue-50 rounded-lg flex items-center gap-2.5 font-semibold text-slate-800 transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs">📦 Instant Stock Check</div>
+                    <div className="text-[10px] text-slate-500 font-normal">Search current inventory & price list</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Return to Public Landing Home */}
         <button
           onClick={onGoToLanding}
