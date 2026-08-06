@@ -45,6 +45,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null);
+  const [confirmDeleteCustomer, setConfirmDeleteCustomer] = useState<Customer | null>(null);
 
   // New / Edit Customer Form State
   const [newName, setNewName] = useState('');
@@ -67,11 +68,16 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     setNewNotes(cust.notes || '');
   };
 
-  const handleDeleteCustomer = async (cust: Customer) => {
-    if (!window.confirm(`Are you sure you want to delete customer "${cust.name}"? This action will remove customer record.`)) {
-      return;
-    }
+  const handleDeleteCustomer = (cust: Customer) => {
+    setConfirmDeleteCustomer(cust);
+  };
+
+  const executeDeleteCustomer = async () => {
+    if (!confirmDeleteCustomer) return;
+    const cust = confirmDeleteCustomer;
     setDeletingCustomerId(cust.id);
+    setConfirmDeleteCustomer(null);
+
     try {
       await api.deleteCustomer(cust.id);
       onRefreshData();
@@ -477,6 +483,43 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 {isSaving ? 'Saving Customer...' : editingCustomer ? 'UPDATE CUSTOMER DETAILS' : 'SAVE CUSTOMER TO DIRECTORY'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE CUSTOMER MODAL */}
+      {confirmDeleteCustomer && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900">Delete Customer?</h3>
+                <p className="text-xs text-slate-500">{confirmDeleteCustomer.name}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              Are you sure you want to delete customer <strong>"{confirmDeleteCustomer.name}"</strong>? This action will remove the customer record from your store.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setConfirmDeleteCustomer(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDeleteCustomer}
+                disabled={deletingCustomerId === confirmDeleteCustomer.id}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer disabled:opacity-50"
+              >
+                {deletingCustomerId === confirmDeleteCustomer.id ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

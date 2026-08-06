@@ -411,7 +411,8 @@ export const clientStore = {
 
   deleteProduct(storeId: string = 'store-demo', id: string): { success: boolean } {
     const data = getStoreData(storeId);
-    const idx = data.products.findIndex(p => p.id === id);
+    const targetId = String(id).trim();
+    const idx = data.products.findIndex(p => String(p.id).trim() === targetId);
     if (idx !== -1) {
       data.products.splice(idx, 1);
       saveStoreData(storeId, data);
@@ -817,7 +818,8 @@ export const clientStore = {
 
   deletePurchase(storeId: string = 'store-demo', id: string): { success: boolean } {
     const data = getStoreData(storeId);
-    const idx = data.purchases.findIndex(p => p.id === id);
+    const targetId = String(id).trim();
+    const idx = data.purchases.findIndex(p => String(p.id).trim() === targetId);
     if (idx !== -1) {
       data.purchases.splice(idx, 1);
       saveStoreData(storeId, data);

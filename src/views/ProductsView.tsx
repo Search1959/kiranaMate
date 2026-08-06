@@ -12,7 +12,8 @@ import {
   Eye,
   Trash2,
   X,
-  Barcode
+  Barcode,
+  AlertCircle
 } from 'lucide-react';
 import { Product, KiranaCategory } from '../types';
 import { api } from '../lib/api';
@@ -55,37 +56,69 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'LOW' | 'OUT'>('ALL');
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
+  const [confirmDeleteProduct, setConfirmDeleteProduct] = useState<Product | null>(null);
+  const [confirmZeroStockProduct, setConfirmZeroStockProduct] = useState<Product | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [localDeletedIds, setLocalDeletedIds] = useState<string[]>([]);
 
-  const handleDeleteProduct = async (p: Product) => {
-    if (!window.confirm(`Are you sure you want to delete product "${p.name}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteProduct = (p: Product) => {
+    setConfirmDeleteProduct(p);
+  };
+
+  const executeDeleteProduct = async () => {
+    if (!confirmDeleteProduct) return;
+    const p = confirmDeleteProduct;
     setDeletingId(p.id);
+    setLocalDeletedIds(prev => [...prev, p.id]);
+    setConfirmDeleteProduct(null);
+
     try {
       await api.deleteProduct(p.id);
       if (onRefreshData) onRefreshData();
     } catch (err: any) {
+      setLocalDeletedIds(prev => prev.filter(id => id !== p.id));
       alert(err.message || 'Failed to delete product');
     } finally {
       setDeletingId(null);
     }
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = !search.trim() || (
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.brand.toLowerCase().includes(search.toLowerCase()) ||
-      p.barcode.includes(search)
-    );
-    const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
-    const matchesStock =
-      stockFilter === 'ALL' ? true :
-      stockFilter === 'LOW' ? p.currentStock > 0 && p.currentStock <= p.minStock :
-      p.currentStock === 0;
+  const handleClearStockToZero = (p: Product) => {
+    setConfirmZeroStockProduct(p);
+  };
 
-    return matchesSearch && matchesCat && matchesStock;
-  });
+  const executeZeroStock = async () => {
+    if (!confirmZeroStockProduct) return;
+    const p = confirmZeroStockProduct;
+    setConfirmZeroStockProduct(null);
+
+    try {
+      await api.updateProduct(p.id, { currentStock: 0 });
+      if (onRefreshData) onRefreshData();
+      if (viewProduct && viewProduct.id === p.id) {
+        setViewProduct({ ...viewProduct, currentStock: 0 });
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to reset stock');
+    }
+  };
+
+  const filteredProducts = products
+    .filter(p => !localDeletedIds.includes(p.id))
+    .filter(p => {
+      const matchesSearch = !search.trim() || (
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.brand.toLowerCase().includes(search.toLowerCase()) ||
+        p.barcode.includes(search)
+      );
+      const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
+      const matchesStock =
+        stockFilter === 'ALL' ? true :
+        stockFilter === 'LOW' ? p.currentStock > 0 && p.currentStock <= p.minStock :
+        p.currentStock === 0;
+
+      return matchesSearch && matchesCat && matchesStock;
+    });
 
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
@@ -333,16 +366,109 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+            <div className="pt-2 flex items-center justify-between border-t border-slate-100 flex-wrap gap-2">
               <button
-                onClick={() => {
-                  const prod = viewProduct;
-                  setViewProduct(null);
-                  onOpenAddProduct(prod);
-                }}
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+                onClick={() => handleClearStockToZero(viewProduct)}
+                className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold rounded-xl text-xs"
               >
-                <Edit2 className="w-3.5 h-3.5" /> Edit Product
+                Zero Out Stock
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const prod = viewProduct;
+                    setViewProduct(null);
+                    handleDeleteProduct(prod);
+                  }}
+                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-xl text-xs flex items-center gap-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                </button>
+
+                <button
+                  onClick={() => {
+                    const prod = viewProduct;
+                    setViewProduct(null);
+                    onOpenAddProduct(prod);
+                  }}
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+                >
+                  <Edit2 className="w-3.5 h-3.5" /> Edit Product
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE PRODUCT MODAL */}
+      {confirmDeleteProduct && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900">Delete Product?</h3>
+                <p className="text-xs text-slate-500">{confirmDeleteProduct.name}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              Are you sure you want to delete product <strong>"{confirmDeleteProduct.name}"</strong>? This action cannot be undone and will remove the product from your store inventory.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setConfirmDeleteProduct(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDeleteProduct}
+                disabled={deletingId === confirmDeleteProduct.id}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer disabled:opacity-50"
+              >
+                {deletingId === confirmDeleteProduct.id ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM ZERO STOCK MODAL */}
+      {confirmZeroStockProduct && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-amber-600">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900">Zero Out Stock?</h3>
+                <p className="text-xs text-slate-500">{confirmZeroStockProduct.name}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              Reset stock quantity of <strong>"{confirmZeroStockProduct.name}"</strong> to 0?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setConfirmZeroStockProduct(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeZeroStock}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer"
+              >
+                Zero Out
               </button>
             </div>
           </div>

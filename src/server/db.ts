@@ -643,7 +643,8 @@ class Database {
 
   public deleteProduct(storeId: string = 'store-demo', id: string): boolean {
     const store = this.getStore(storeId);
-    const idx = store.products.findIndex(p => p.id === id);
+    const targetId = String(id).trim();
+    const idx = store.products.findIndex(p => String(p.id).trim() === targetId);
     if (idx === -1) return false;
     store.products.splice(idx, 1);
     this.saveData();
@@ -961,7 +962,8 @@ class Database {
 
   public deletePurchase(storeId: string = 'store-demo', id: string): boolean {
     const store = this.getStore(storeId);
-    const idx = store.purchases.findIndex(p => p.id === id);
+    const targetId = String(id).trim();
+    const idx = store.purchases.findIndex(p => String(p.id).trim() === targetId);
     if (idx === -1) return false;
     store.purchases.splice(idx, 1);
     this.saveData();
