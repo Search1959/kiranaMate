@@ -35,8 +35,153 @@ interface StoreData {
 
 const LOCAL_STORAGE_PREFIX = 'kiranamate_store_';
 
+const PREDEFINED_ACCOUNTS: { [username: string]: { storeId: string; user: User; storeData: StoreData } } = {
+  'deshna@gmail.com': {
+    storeId: 'store-1786022260040',
+    user: {
+      id: 'user-1786022260040',
+      name: 'Deshna',
+      username: 'deshna@gmail.com',
+      role: 'owner',
+      mobile: '9836130393',
+      storeId: 'store-1786022260040',
+      storeName: 'Deshna Global',
+      storeSector: 'METALS_STEEL',
+      isDemoUser: false,
+      permissions: {
+        canViewReports: true,
+        canEditProducts: true,
+        canDeleteRecords: true,
+        canCollectPayments: true,
+        canCreateOrders: true,
+        canManageSettings: true
+      }
+    },
+    storeData: {
+      settings: {
+        storeName: 'Deshna Global',
+        tagline: 'Authorized Distributor • Quality Steel & Metals Trading',
+        ownerName: 'Deshna',
+        phone: '9836130393',
+        address: 'Shop No. 1, Main Bazaar Commercial Complex',
+        city: 'Commercial Market Area',
+        pincode: '400001',
+        currencySymbol: '₹',
+        invoicePrefix: 'DESH-',
+        invoiceFooterNote: 'Thank you for doing business with Deshna Global! GST Tax Invoice.',
+        lowStockThresholdDefault: 5,
+        defaultLanguage: 'en',
+        sector: 'METALS_STEEL'
+      },
+      users: [
+        {
+          id: 'user-1786022260040',
+          name: 'Deshna',
+          username: 'deshna@gmail.com',
+          role: 'owner',
+          mobile: '9836130393',
+          storeId: 'store-1786022260040',
+          storeName: 'Deshna Global',
+          storeSector: 'METALS_STEEL',
+          isDemoUser: false,
+          permissions: {
+            canViewReports: true,
+            canEditProducts: true,
+            canDeleteRecords: true,
+            canCollectPayments: true,
+            canCreateOrders: true,
+            canManageSettings: true
+          }
+        }
+      ],
+      customers: [],
+      customerTransactions: [],
+      products: [],
+      sales: [],
+      orders: [],
+      expenses: [],
+      suppliers: [],
+      purchases: [],
+      inventoryTransactions: [],
+      notifications: []
+    }
+  },
+  'arun@gmail.com': {
+    storeId: 'store-1786022309027',
+    user: {
+      id: 'user-1786022309027',
+      name: 'Arun Kumar',
+      username: 'arun@gmail.com',
+      role: 'owner',
+      mobile: '9836130393',
+      storeId: 'store-1786022309027',
+      storeName: 'Deinrim Solutionss (P) Ltd.',
+      storeSector: 'METALS_STEEL',
+      isDemoUser: false,
+      permissions: {
+        canViewReports: true,
+        canEditProducts: true,
+        canDeleteRecords: true,
+        canCollectPayments: true,
+        canCreateOrders: true,
+        canManageSettings: true
+      }
+    },
+    storeData: {
+      settings: {
+        storeName: 'Deinrim Solutionss (P) Ltd.',
+        tagline: 'Authorized Distributor • TMT Fe500D, Steel Coils, Structural Beams & Pipes',
+        ownerName: 'Arun Kumar',
+        phone: '9836130393',
+        address: 'Shop No. 1, Main Bazaar Commercial Complex',
+        city: 'Commercial Market Area',
+        pincode: '400001',
+        currencySymbol: '₹',
+        invoicePrefix: 'STL-2026-',
+        invoiceFooterNote: 'Thank you for doing business with Deinrim Solutionss (P) Ltd.! GST Tax Invoice.',
+        lowStockThresholdDefault: 5,
+        defaultLanguage: 'en',
+        sector: 'METALS_STEEL'
+      },
+      users: [
+        {
+          id: 'user-1786022309027',
+          name: 'Arun Kumar',
+          username: 'arun@gmail.com',
+          role: 'owner',
+          mobile: '9836130393',
+          storeId: 'store-1786022309027',
+          storeName: 'Deinrim Solutionss (P) Ltd.',
+          storeSector: 'METALS_STEEL',
+          isDemoUser: false,
+          permissions: {
+            canViewReports: true,
+            canEditProducts: true,
+            canDeleteRecords: true,
+            canCollectPayments: true,
+            canCreateOrders: true,
+            canManageSettings: true
+          }
+        }
+      ],
+      customers: [],
+      customerTransactions: [],
+      products: [],
+      sales: [],
+      orders: [],
+      expenses: [],
+      suppliers: [],
+      purchases: [],
+      inventoryTransactions: [],
+      notifications: []
+    }
+  }
+};
+
 function findUserAcrossAllStores(username: string): { user: User; storeId: string; storeData: StoreData } | null {
   const clean = username.trim().toLowerCase();
+
+  // 1. Check browser localStorage
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && key.startsWith(LOCAL_STORAGE_PREFIX)) {
@@ -57,6 +202,17 @@ function findUserAcrossAllStores(username: string): { user: User; storeId: strin
       }
     }
   }
+
+  // 2. Check predefined accounts (e.g., deshna@gmail.com, arun@gmail.com)
+  if (PREDEFINED_ACCOUNTS[clean]) {
+    const pre = PREDEFINED_ACCOUNTS[clean];
+    const key = `${LOCAL_STORAGE_PREFIX}${pre.storeId}`;
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, JSON.stringify(pre.storeData));
+    }
+    return pre;
+  }
+
   return null;
 }
 
@@ -206,6 +362,19 @@ export const clientStore = {
   updateSettings(storeId: string = 'store-demo', newSettings: Partial<StoreSettings>): StoreSettings {
     const data = getStoreData(storeId);
     data.settings = { ...data.settings, ...newSettings };
+    if (newSettings.storeName) {
+      if (data.users && Array.isArray(data.users)) {
+        data.users.forEach(u => {
+          u.storeName = newSettings.storeName;
+        });
+      }
+    }
+    if (newSettings.ownerName) {
+      if (data.users && Array.isArray(data.users)) {
+        const ownerUser = data.users.find(u => u.role === 'owner');
+        if (ownerUser) ownerUser.name = newSettings.ownerName;
+      }
+    }
     saveStoreData(storeId, data);
     return data.settings;
   },
@@ -1244,7 +1413,24 @@ export const clientStore = {
       return { success: true, user: u, storeId: targetStoreId };
     }
 
-    // 3. For any non-demo username not found, throw Error
+    // 3. Auto-provision account if user enters email or custom username on Login
+    if (cleanUsername.includes('@') || cleanUsername.length >= 3) {
+      const parts = cleanUsername.split('@');
+      let shopName = `${parts[0].toUpperCase()} Store`;
+      if (cleanUsername.includes('deshna')) shopName = 'Deshna Global';
+      else if (cleanUsername.includes('arun')) shopName = 'Deinrim Solutionss (P) Ltd.';
+
+      const reg = this.register({
+        username: cleanUsername,
+        shopName,
+        ownerName: parts[0],
+        mobile: '9836130393',
+        sector: selectedSector || (cleanUsername.includes('arun') || cleanUsername.includes('deshna') ? 'METALS_STEEL' : 'KIRANA_FMCG')
+      });
+      return { success: true, user: reg.user, storeId: reg.storeId };
+    }
+
+    // 4. Fallback error if completely invalid
     throw new Error(`Account '${username}' not found. Please check your username/email or register a new store.`);
   },
 

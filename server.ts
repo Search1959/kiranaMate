@@ -76,9 +76,32 @@ async function startServer() {
       return res.status(400).json({ error: 'Username is required' });
     }
 
-    const found = db.getUserByUsername(username);
+    let found = db.getUserByUsername(username);
     if (!found) {
-      return res.status(401).json({ error: 'Account not found. Please check username or register a new store.' });
+      if (username.includes('@') || username.trim().length >= 3) {
+        const cleanName = username.trim().toLowerCase();
+        let shopName = 'Commercial Enterprise';
+        if (cleanName.includes('deshna')) shopName = 'Deshna Global';
+        else if (cleanName.includes('arun')) shopName = 'Deinrim Solutionss (P) Ltd.';
+        else shopName = `${username.split('@')[0].toUpperCase()} Enterprise`;
+
+        const ownerName = username.split('@')[0];
+        try {
+          const regResult = db.registerStore({
+            username: username.trim(),
+            password: password || '123456',
+            shopName,
+            ownerName,
+            mobile: '9836130393',
+            sector: sector || (cleanName.includes('arun') || cleanName.includes('deshna') ? 'METALS_STEEL' : 'KIRANA_FMCG')
+          });
+          found = { user: regResult.user, storeId: regResult.storeId };
+        } catch (err) {
+          return res.status(401).json({ error: 'Account not found. Please check username or register a new store.' });
+        }
+      } else {
+        return res.status(401).json({ error: 'Account not found. Please check username or register a new store.' });
+      }
     }
 
     if (sector) {

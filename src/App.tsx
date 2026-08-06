@@ -253,13 +253,30 @@ export default function App() {
       const usersData = usersRes?.users?.length ? usersRes.users : [DEFAULT_USER];
       setUsers(usersData);
 
-      setCurrentUser(prev => prev || usersData[0] || DEFAULT_USER);
+      const activeSettings = settingsData || fallbackSettings;
+      setSettings(activeSettings);
+
+      setCurrentUser(prev => {
+        const primaryUser = usersData[0] || DEFAULT_USER;
+        const activeStoreName = activeSettings.storeName || primaryUser.storeName;
+        if (!prev) {
+          const newUserObj = { ...primaryUser, storeName: activeStoreName };
+          localStorage.setItem('kiranamate_session_user', JSON.stringify(newUserObj));
+          return newUserObj;
+        }
+        const matchedUser = usersData.find(u => u.id === prev.id || u.username.toLowerCase() === prev.username.toLowerCase()) || primaryUser;
+        const updatedUserObj = {
+          ...matchedUser,
+          storeName: activeStoreName
+        };
+        localStorage.setItem('kiranamate_session_user', JSON.stringify(updatedUserObj));
+        return updatedUserObj;
+      });
       if (usersData[0]) {
         api.setUserRole(usersData[0].role);
       }
 
       setStats(statsData || DEFAULT_STATS);
-      setSettings(settingsData || fallbackSettings);
       setCustomers(customersData || []);
       setProducts(productsData || []);
       setOrders(ordersData || []);
