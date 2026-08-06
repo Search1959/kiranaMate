@@ -7,6 +7,7 @@ interface PurchasesViewProps {
   suppliers: Supplier[];
   onOpenAddStock: () => void;
   onOpenScanBill: () => void;
+  onRefreshData?: () => void;
 }
 
 export const PurchasesView: React.FC<PurchasesViewProps> = ({

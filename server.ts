@@ -372,77 +372,92 @@ async function startServer() {
         cleanBase64 = parts[1];
       }
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                mimeType,
-                data: cleanBase64
-              }
-            },
-            {
-              text: `You are an expert Indian Kirana & Wholesale Bill OCR system. Analyze this purchase bill / supplier invoice image.
-The bill text may be printed or handwritten in Hindi, Bengali, Gujarati, Marathi, Tamil, Telugu, Kannada, or English.
+      const promptText = `You are an expert Indian Wholesale, Retail, Hardware & Kirana Bill OCR system. Analyze this purchase bill / supplier invoice image.
+The bill text may be printed or handwritten in Hindi, Bengali, Gujarati, Marathi, Tamil, Telugu, Kannada, English, or any Indian script.
 
 RULES:
-1. TRANSLATE all Supplier/Vendor/Client Names and Product Names into clean English (e.g., translate "चना दाल" or "ছোলার ডাল" to "Chana Dal", "Aashirvaad आटा" to "Aashirvaad Atta").
-2. Extract Supplier Name (e.g., "M/s Laxmi Wholesale Traders"). If not found, provide a realistic English business name from the header.
+1. TRANSLATE all Supplier/Vendor/Client Names and Product Names into clean, precise English (e.g., "चना दाल" or "ছোলার ডাল" to "Chana Dal", "TMT Rod 8mm" to "TMT Rod 8mm").
+2. Extract Supplier/Vendor Name (e.g., "ABC Iron & Steel Traders", "M/s Laxmi Wholesale Traders"). If not found, provide a realistic English business name from header.
 3. Extract Supplier Phone/Mobile if visible.
 4. Extract Invoice/Bill Number and Date (YYYY-MM-DD).
-5. Extract EVERY line item listed:
-   - name: English item name
-   - category: Select best from ['Rice & Grains', 'Atta & Flours', 'Dals & Pulses', 'Edible Oils & Ghee', 'Spices & Masalas', 'Dairy & Bakery', 'Biscuits & Cookies', 'Personal Care', 'Cleaning & Household', 'Beverages', 'Snacks', 'General Kirana']
+5. Extract EVERY line item listed without skipping any row (even if there are 30+ items):
+   - name: Precise English item name / description
+   - productName: Same clean English item name as name
+   - category: Select best from ['Rice & Grains', 'Atta & Flours', 'Dals & Pulses', 'Edible Oils & Ghee', 'Spices & Masalas', 'Dairy & Bakery', 'Biscuits & Cookies', 'Personal Care', 'Cleaning & Household', 'Beverages', 'Snacks', 'Building Materials & Hardware', 'General Kirana']
    - brand: Brand name or 'Generic'
-   - unit: Select best from ['kg', 'g', 'liter', 'ml', 'pkt', 'pc', 'box', 'bottle', 'pouch', 'bag', 'tin', 'jar']
-   - quantity: Quantity purchased as a number
-   - purchasePrice: Cost price per unit in INR
+   - unit: Select best from ['kg', 'g', 'liter', 'ml', 'pkt', 'pc', 'box', 'bottle', 'pouch', 'bag', 'tin', 'jar', 'meter', 'ft', 'set']
+   - quantity: Purchased quantity as a number
+   - purchasePrice: Cost price per unit / rate in INR
    - mrp: MRP per unit in INR (estimate purchasePrice * 1.25 if omitted)
    - sellingPrice: Shop selling price per unit in INR (estimate purchasePrice * 1.15 if omitted)
-6. Extract total bill amount, paid amount, and payment status.`
-            }
-          ]
-        },
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              supplierName: { type: Type.STRING, description: 'Supplier / Wholesale vendor name in English' },
-              supplierMobile: { type: Type.STRING, description: 'Supplier phone or mobile' },
-              invoiceNumber: { type: Type.STRING, description: 'Bill or invoice number' },
-              invoiceDate: { type: Type.STRING, description: 'Invoice date YYYY-MM-DD' },
-              items: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING, description: 'Item name translated to English' },
-                    category: { type: Type.STRING, description: 'Kirana item category' },
-                    brand: { type: Type.STRING, description: 'Brand or Generic' },
-                    unit: { type: Type.STRING, description: 'Unit of measure e.g. kg, pkt' },
-                    quantity: { type: Type.NUMBER, description: 'Purchased quantity' },
-                    purchasePrice: { type: Type.NUMBER, description: 'Purchase price per unit in INR' },
-                    mrp: { type: Type.NUMBER, description: 'MRP per unit in INR' },
-                    sellingPrice: { type: Type.NUMBER, description: 'Selling price per unit in INR' }
-                  },
-                  required: ['name', 'quantity', 'purchasePrice']
-                }
+   - totalPrice: Total line item price in INR (quantity * purchasePrice)
+6. Extract total bill amount, paid amount, and payment status.`;
+
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          supplierName: { type: Type.STRING, description: 'Supplier / Wholesale vendor name in English' },
+          supplierMobile: { type: Type.STRING, description: 'Supplier phone or mobile' },
+          invoiceNumber: { type: Type.STRING, description: 'Bill or invoice number' },
+          invoiceDate: { type: Type.STRING, description: 'Invoice date YYYY-MM-DD' },
+          items: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING, description: 'Item name translated to English' },
+                productName: { type: Type.STRING, description: 'Same item name for compatibility' },
+                category: { type: Type.STRING, description: 'Item category' },
+                brand: { type: Type.STRING, description: 'Brand or Generic' },
+                unit: { type: Type.STRING, description: 'Unit of measure e.g. kg, pkt, pc' },
+                quantity: { type: Type.NUMBER, description: 'Purchased quantity' },
+                purchasePrice: { type: Type.NUMBER, description: 'Purchase price / rate per unit in INR' },
+                mrp: { type: Type.NUMBER, description: 'MRP per unit in INR' },
+                sellingPrice: { type: Type.NUMBER, description: 'Selling price per unit in INR' },
+                totalPrice: { type: Type.NUMBER, description: 'Total line price in INR' }
               },
-              totalAmount: { type: Type.NUMBER, description: 'Total bill amount in INR' },
-              paidAmount: { type: Type.NUMBER, description: 'Amount paid towards this bill' },
-              detectedLanguage: { type: Type.STRING, description: 'Language detected on the physical bill' }
-            },
-            required: ['supplierName', 'items', 'totalAmount']
-          }
-        }
-      });
+              required: ['name', 'quantity', 'purchasePrice']
+            }
+          },
+          totalAmount: { type: Type.NUMBER, description: 'Total bill amount in INR' },
+          paidAmount: { type: Type.NUMBER, description: 'Amount paid towards this bill' },
+          detectedLanguage: { type: Type.STRING, description: 'Language detected on the physical bill' }
+        },
+        required: ['supplierName', 'items', 'totalAmount']
+      };
+
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: {
+            parts: [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }]
+          },
+          config: { responseMimeType: 'application/json', responseSchema }
+        });
+      } catch (firstErr) {
+        console.warn('gemini-3.6-flash failed, falling back to gemini-2.5-flash:', firstErr);
+        response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: {
+            parts: [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }]
+          },
+          config: { responseMimeType: 'application/json', responseSchema }
+        });
+      }
 
       const text = response.text;
-      let data = {};
+      let data: any = {};
       if (text) {
         data = JSON.parse(text);
+        // Ensure every item has both name and productName
+        if (data.items && Array.isArray(data.items)) {
+          data.items = data.items.map((it: any) => ({
+            ...it,
+            name: it.name || it.productName || 'Item',
+            productName: it.productName || it.name || 'Item'
+          }));
+        }
       }
       return res.json({ success: true, data });
     } catch (err: any) {

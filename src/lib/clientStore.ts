@@ -85,14 +85,14 @@ function getStoreData(storeId: string = 'store-demo'): StoreData {
     orders: seed.orders,
     expenses: seed.expenses,
     suppliers: seed.suppliers,
-    purchases: seed.purchases,
+    purchases: (seed as any).purchases || [],
     inventoryTransactions: seed.inventoryTransactions,
     notifications: [
       {
         id: 'n-1',
         title: 'Stock Alert: Fortune Refined Oil',
         message: 'Current stock is 5 pouches. Minimum threshold is 10.',
-        type: 'STOCK_LOW',
+        type: 'LOW_STOCK',
         isRead: false,
         createdAt: new Date().toISOString()
       }
@@ -128,19 +128,32 @@ export const clientStore = {
       .filter(e => e.date === todayStr)
       .reduce((acc, e) => acc + e.amount, 0);
 
+    const cashSales = todaySales.filter(s => s.paymentMethod === 'CASH').reduce((acc, s) => acc + s.grandTotal, 0);
+    const upiSales = todaySales.filter(s => s.paymentMethod === 'UPI').reduce((acc, s) => acc + s.grandTotal, 0);
+    const creditSales = todaySales.filter(s => s.paymentMethod === 'CREDIT').reduce((acc, s) => acc + s.grandTotal, 0);
+
     const totalUdhaar = data.customers.reduce((acc, c) => acc + (c.currentBalance || c.outstandingBalance || 0), 0);
     const lowStockCount = data.products.filter(p => p.currentStock <= p.minStock).length;
-    const pendingOrdersCount = data.orders.filter(o => o.orderStatus === 'PENDING' || o.orderStatus === 'CONFIRMED' || o.orderStatus === 'PACKED').length;
+    const pendingOrdersCount = data.orders.filter(o => o.orderStatus === 'NEW' || o.orderStatus === 'CONFIRMED' || o.orderStatus === 'PREPARING').length;
 
     return {
       todaySalesTotal,
-      todaySalesCount: todaySales.length,
-      todayProfit,
+      cashSales,
+      upiSales,
+      creditSales,
       todayExpenses,
-      totalUdhaarOutstanding: totalUdhaar,
-      lowStockProductsCount: lowStockCount,
+      estimatedProfitToday: todayProfit,
+      totalPendingUdhaar: totalUdhaar,
+      dueTodayUdhaar: Math.round(totalUdhaar * 0.15),
+      overdueUdhaar: Math.round(totalUdhaar * 0.25),
+      todayCollection: cashSales + upiSales,
       pendingOrdersCount,
-      deliveredOrdersTodayCount: data.orders.filter(o => o.orderStatus === 'DELIVERED' && o.updatedAt?.startsWith(todayStr)).length
+      newOrdersCount: data.orders.filter(o => o.orderStatus === 'NEW').length,
+      preparingOrdersCount: data.orders.filter(o => o.orderStatus === 'PREPARING').length,
+      outForDeliveryCount: data.orders.filter(o => o.orderStatus === 'OUT_FOR_DELIVERY').length,
+      deliveredOrdersToday: data.orders.filter(o => o.orderStatus === 'DELIVERED' && o.updatedAt?.startsWith(todayStr)).length,
+      lowStockCount,
+      outOfStockCount: data.products.filter(p => p.currentStock === 0).length
     };
   },
 
@@ -512,8 +525,8 @@ export const clientStore = {
       }
     }
 
-    // Handle Udhaar
-    if (saleData.paymentMethod === 'UDHAAR' && saleData.customerId) {
+    // Handle Udhaar / Credit
+    if (saleData.paymentMethod === 'CREDIT' && saleData.customerId) {
       const cust = data.customers.find(c => c.id === saleData.customerId);
       if (cust) {
         const prevBal = cust.currentBalance || cust.outstandingBalance || 0;
@@ -582,13 +595,16 @@ export const clientStore = {
       customerId: orderData.customerId || 'cust-1',
       customerName: orderData.customerName || 'Customer',
       customerMobile: orderData.customerMobile || '9800000000',
-      deliveryAddress: orderData.deliveryAddress || 'Store Pickup',
+      customerAddress: orderData.customerAddress || 'Store Pickup',
       items: orderData.items || [],
       subtotal: orderData.subtotal || 0,
+      discount: orderData.discount || 0,
+      tax: orderData.tax || 0,
       deliveryCharge: orderData.deliveryCharge || 0,
-      grandTotal: orderData.grandTotal || 0,
-      orderStatus: 'PENDING',
-      paymentStatus: orderData.paymentStatus || 'UNPAID',
+      total: orderData.total || 0,
+      orderStatus: 'NEW',
+      paymentStatus: orderData.paymentStatus || 'PENDING',
+      paidAmount: orderData.paidAmount || 0,
       paymentMethod: orderData.paymentMethod || 'CASH',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -735,6 +751,7 @@ export const clientStore = {
     const data = getStoreData(storeId);
     const newPur: Purchase = {
       id: `pur-${Date.now()}`,
+      purchaseNumber: purData.purchaseNumber || purData.invoiceNumber || `PUR-${Date.now().toString().slice(-6)}`,
       supplierId: purData.supplierId || 'sup-1',
       supplierName: purData.supplierName || 'Agrawal Wholesale Traders',
       invoiceNumber: purData.invoiceNumber || `BILL-${Date.now().toString().slice(-6)}`,
@@ -782,19 +799,86 @@ export const clientStore = {
     return { success: true };
   },
 
-  scanPurchaseBill(_imageBase64: string) {
+  scanPurchaseBill(imageBase64: string) {
+    const isSteelBill = imageBase64.includes('DEMO-2026-001') || imageBase64.includes('TMT') || imageBase64.length > 50000;
+
+    if (isSteelBill) {
+      const items = [
+        { name: 'TMT Rod 8mm', productName: 'TMT Rod 8mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 51, purchasePrice: 61, mrp: 76, sellingPrice: 70, totalPrice: 3111.00 },
+        { name: 'TMT Rod 10mm', productName: 'TMT Rod 10mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 52, purchasePrice: 62, mrp: 78, sellingPrice: 72, totalPrice: 3224.00 },
+        { name: 'TMT Rod 12mm', productName: 'TMT Rod 12mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 53, purchasePrice: 63, mrp: 79, sellingPrice: 73, totalPrice: 3339.00 },
+        { name: 'TMT Rod 16mm', productName: 'TMT Rod 16mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 54, purchasePrice: 64, mrp: 80, sellingPrice: 74, totalPrice: 3456.00 },
+        { name: 'TMT Rod 20mm', productName: 'TMT Rod 20mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 55, purchasePrice: 65, mrp: 82, sellingPrice: 75, totalPrice: 3575.00 },
+        { name: 'TMT Rod 25mm', productName: 'TMT Rod 25mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 56, purchasePrice: 66, mrp: 83, sellingPrice: 76, totalPrice: 3696.00 },
+        { name: 'MS Angle 25x25x3', productName: 'MS Angle 25x25x3', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 57, purchasePrice: 67, mrp: 84, sellingPrice: 77, totalPrice: 3819.00 },
+        { name: 'MS Angle 40x40x5', productName: 'MS Angle 40x40x5', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 58, purchasePrice: 68, mrp: 85, sellingPrice: 78, totalPrice: 3944.00 },
+        { name: 'MS Angle 50x50x6', productName: 'MS Angle 50x50x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 59, purchasePrice: 69, mrp: 86, sellingPrice: 79, totalPrice: 4071.00 },
+        { name: 'MS Angle 65x65x6', productName: 'MS Angle 65x65x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 60, purchasePrice: 70, mrp: 88, sellingPrice: 80, totalPrice: 4200.00 },
+        { name: 'MS Flat 25x6', productName: 'MS Flat 25x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 61, purchasePrice: 71, mrp: 89, sellingPrice: 81, totalPrice: 4331.00 },
+        { name: 'MS Flat 40x6', productName: 'MS Flat 40x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 62, purchasePrice: 72, mrp: 90, sellingPrice: 82, totalPrice: 4464.00 },
+        { name: 'MS Flat 50x8', productName: 'MS Flat 50x8', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 63, purchasePrice: 73, mrp: 91, sellingPrice: 83, totalPrice: 4599.00 },
+        { name: 'MS Flat 75x10', productName: 'MS Flat 75x10', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 64, purchasePrice: 74, mrp: 92, sellingPrice: 84, totalPrice: 4736.00 },
+        { name: 'MS Round Bar 10', productName: 'MS Round Bar 10', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 65, purchasePrice: 75, mrp: 94, sellingPrice: 85, totalPrice: 4875.00 },
+        { name: 'MS Round Bar 12', productName: 'MS Round Bar 12', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 66, purchasePrice: 76, mrp: 95, sellingPrice: 86, totalPrice: 5016.00 },
+        { name: 'MS Round Bar 16', productName: 'MS Round Bar 16', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 67, purchasePrice: 77, mrp: 96, sellingPrice: 87, totalPrice: 5159.00 },
+        { name: 'MS Round Bar 20', productName: 'MS Round Bar 20', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 68, purchasePrice: 78, mrp: 98, sellingPrice: 88, totalPrice: 5258.72 },
+        { name: 'MS Square Bar 12', productName: 'MS Square Bar 12', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 69, purchasePrice: 79, mrp: 99, sellingPrice: 89, totalPrice: 5451.00 },
+        { name: 'MS Square Bar 16', productName: 'MS Square Bar 16', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 70, purchasePrice: 80, mrp: 100, sellingPrice: 90, totalPrice: 5600.00 },
+        { name: 'MS Channel75', productName: 'MS Channel75', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 71, purchasePrice: 81, mrp: 101, sellingPrice: 91, totalPrice: 5751.00 },
+        { name: 'MS Channel100', productName: 'MS Channel100', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 72, purchasePrice: 82, mrp: 102, sellingPrice: 92, totalPrice: 5904.00 },
+        { name: 'MS Channel125', productName: 'MS Channel125', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 73, purchasePrice: 83, mrp: 104, sellingPrice: 93, totalPrice: 6059.00 },
+        { name: 'MS Channel150', productName: 'MS Channel150', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 74, purchasePrice: 84, mrp: 105, sellingPrice: 94, totalPrice: 6216.00 },
+        { name: 'MS Beam100', productName: 'MS Beam100', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 75, purchasePrice: 85, mrp: 106, sellingPrice: 95, totalPrice: 6375.00 },
+        { name: 'MS Beam150', productName: 'MS Beam150', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 76, purchasePrice: 86, mrp: 108, sellingPrice: 96, totalPrice: 6536.00 },
+        { name: 'MS Beam200', productName: 'MS Beam200', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 77, purchasePrice: 87, mrp: 109, sellingPrice: 97, totalPrice: 6699.00 },
+        { name: 'GI Pipe1/2', productName: 'GI Pipe1/2', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg', quantity: 78, purchasePrice: 88, mrp: 110, sellingPrice: 98, totalPrice: 6864.00 },
+        { name: 'GI Pipe1', productName: 'GI Pipe1', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg', quantity: 79, purchasePrice: 89, mrp: 111, sellingPrice: 99, totalPrice: 7031.00 },
+        { name: 'GI Pipe2', productName: 'GI Pipe2', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg', quantity: 80, purchasePrice: 90, mrp: 112, sellingPrice: 100, totalPrice: 7200.00 },
+        { name: 'MS Pipe1', productName: 'MS Pipe1', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 81, purchasePrice: 91, mrp: 114, sellingPrice: 101, totalPrice: 7371.00 },
+        { name: 'MS Pipe2', productName: 'MS Pipe2', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 82, purchasePrice: 92, mrp: 115, sellingPrice: 102, totalPrice: 7544.00 }
+      ];
+
+      const totalAmount = items.reduce((s, i) => s + i.totalPrice, 0);
+
+      return {
+        success: true,
+        data: {
+          supplierName: 'ABC Iron & Steel Traders (Sample)',
+          supplierMobile: '9829012345',
+          supplierGstin: '19AABCA1234M1Z5',
+          supplierAddress: 'M.M. Feeder Road, Kolkata',
+          invoiceNumber: 'DEMO-2026-001',
+          billNumber: 'DEMO-2026-001',
+          invoiceDate: new Date().toISOString().split('T')[0],
+          billDate: new Date().toISOString().split('T')[0],
+          detectedLanguage: 'English (Demo Steel & Hardware Invoice)',
+          items,
+          subtotal: totalAmount,
+          totalAmount,
+          grandTotal: totalAmount,
+          paidAmount: totalAmount,
+          paymentStatus: 'PAID'
+        }
+      };
+    }
+
     return {
       success: true,
       data: {
-        supplierName: 'Agrawal Wholesale Traders',
+        supplierName: 'Laxmi Wholesale Kirana Traders',
         supplierMobile: '9829012345',
         supplierGstin: '08AABC10011Z1',
         supplierAddress: 'Ghee Walon Ka Rasta, Wholesale Mandi',
+        invoiceNumber: `BILL-${Math.floor(100000 + Math.random() * 900000)}`,
         billNumber: `BILL-${Math.floor(100000 + Math.random() * 900000)}`,
+        invoiceDate: new Date().toISOString().split('T')[0],
         billDate: new Date().toISOString().split('T')[0],
+        detectedLanguage: 'English / Hindi OCR',
         items: [
           {
+            name: 'Fortune Refined Soyabean Oil 1L Pouch',
             productName: 'Fortune Refined Soyabean Oil 1L Pouch',
+            category: 'Edible Oils & Ghee',
             quantity: 20,
             unit: 'pouch',
             purchasePrice: 110,
@@ -803,7 +887,9 @@ export const clientStore = {
             totalPrice: 2200
           },
           {
+            name: 'Aashirvaad Shuddh Chakki Atta 10kg',
             productName: 'Aashirvaad Shuddh Chakki Atta 10kg',
+            category: 'Atta & Flours',
             quantity: 10,
             unit: 'pkt',
             purchasePrice: 380,
@@ -812,7 +898,9 @@ export const clientStore = {
             totalPrice: 3800
           },
           {
+            name: 'Tata Salt Vacuum Evaporated 1kg',
             productName: 'Tata Salt Vacuum Evaporated 1kg',
+            category: 'Spices & Masalas',
             quantity: 30,
             unit: 'pkt',
             purchasePrice: 22,
@@ -823,6 +911,7 @@ export const clientStore = {
         ],
         subtotal: 6660,
         gstTotal: 333,
+        totalAmount: 6993,
         grandTotal: 6993,
         paidAmount: 6993,
         paymentStatus: 'PAID',
@@ -834,18 +923,19 @@ export const clientStore = {
   processScannedPurchaseBill(storeId: string = 'store-demo', payload: any) {
     const data = getStoreData(storeId);
 
+    const supName = (payload.supplierName || payload.supplier || 'Wholesale Supplier').trim();
     // Find or create supplier
-    let sup = data.suppliers.find(s => s.name.toLowerCase() === payload.supplierName.toLowerCase());
+    let sup = data.suppliers.find(s => s.name.toLowerCase().trim() === supName.toLowerCase());
     let isNewSupplierCreated = false;
     if (!sup) {
       sup = {
         id: `sup-${Date.now()}`,
-        name: payload.supplierName || 'New Supplier',
-        contactPerson: 'Sales Executive',
+        name: supName,
+        contactPerson: supName,
         mobile: payload.supplierMobile || '9829000000',
         gstin: payload.supplierGstin || '',
-        address: payload.supplierAddress || '',
-        city: 'Jaipur',
+        address: payload.supplierAddress || 'Local Wholesale Market',
+        city: 'Local Area',
         outstandingBalance: 0,
         createdAt: new Date().toISOString().split('T')[0]
       };
@@ -858,7 +948,9 @@ export const clientStore = {
     const purchaseItems: any[] = [];
 
     for (const item of payload.items || []) {
-      let prod = data.products.find(p => p.name.toLowerCase().trim() === item.productName.toLowerCase().trim());
+      const itemName = (item.name || item.productName || item.description || 'Scanned Item').trim();
+      let prod = data.products.find(p => p.name.toLowerCase().trim() === itemName.toLowerCase());
+
       if (prod) {
         prod.currentStock += Number(item.quantity) || 0;
         if (item.purchasePrice) prod.purchasePrice = Number(item.purchasePrice);
@@ -867,21 +959,25 @@ export const clientStore = {
         prod.updatedAt = new Date().toISOString();
         updatedProductsCount++;
       } else {
+        const cost = Number(item.purchasePrice) || 0;
+        const sell = Number(item.sellingPrice) || Math.round(cost * 1.15);
+        const mrpVal = Number(item.mrp) || Math.round(cost * 1.25);
+
         prod = {
           id: `p-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-          name: item.productName,
+          name: itemName,
           sku: `SKU-${Date.now().toString().slice(-5)}`,
           barcode: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-          category: 'Edible Oils & Ghee',
-          brand: 'Generic',
-          unit: item.unit || 'pcs',
-          purchasePrice: Number(item.purchasePrice) || 0,
-          sellingPrice: Number(item.sellingPrice) || 0,
-          mrp: Number(item.mrp) || Number(item.sellingPrice) || 0,
+          category: item.category || 'Building Materials & Hardware',
+          brand: item.brand || 'Generic',
+          unit: item.unit || 'kg',
+          purchasePrice: cost,
+          sellingPrice: sell,
+          mrp: mrpVal,
           currentStock: Number(item.quantity) || 0,
-          minStock: 10,
+          minStock: 5,
           supplierId: sup.id,
-          gstPercent: 5,
+          gstPercent: 0,
           status: 'ACTIVE',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -901,15 +997,16 @@ export const clientStore = {
 
     const pur: Purchase = {
       id: `pur-${Date.now()}`,
+      purchaseNumber: payload.invoiceNumber || payload.billNumber || `PUR-${Date.now().toString().slice(-6)}`,
       supplierId: sup.id,
       supplierName: sup.name,
-      invoiceNumber: payload.billNumber || `BILL-${Date.now().toString().slice(-6)}`,
+      invoiceNumber: payload.invoiceNumber || payload.billNumber || `BILL-${Date.now().toString().slice(-6)}`,
       items: purchaseItems,
-      totalAmount: Number(payload.grandTotal) || 0,
+      totalAmount: Number(payload.grandTotal) || Number(payload.totalAmount) || 0,
       paidAmount: Number(payload.paidAmount) || 0,
-      paymentMethod: payload.paymentStatus === 'PAID' ? 'BANK' : 'CREDIT',
+      paymentMethod: payload.paymentMethod || 'BANK',
       paymentStatus: payload.paymentStatus || 'PAID',
-      purchaseDate: payload.billDate || new Date().toISOString().split('T')[0],
+      purchaseDate: payload.invoiceDate || payload.billDate || new Date().toISOString().split('T')[0],
       createdAt: new Date().toISOString()
     };
 

@@ -24,6 +24,7 @@ import { Expense } from '../types';
 interface ExpensesViewProps {
   expenses: Expense[];
   onOpenAddExpense: () => void;
+  onRefreshData?: () => void;
 }
 
 export const ExpensesView: React.FC<ExpensesViewProps> = ({

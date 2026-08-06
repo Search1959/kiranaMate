@@ -62,6 +62,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
 
   // Preview Image
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showImagePreview, setShowImagePreview] = useState<boolean>(true);
   const [scanningMessage, setScanningMessage] = useState('Initializing Gemini AI OCR...');
 
   // Parsed Form Data
@@ -144,7 +145,56 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleSampleSelect = (type: 'hindi' | 'bengali' | 'english') => {
+  const handleSampleSelect = (type: 'hindi' | 'bengali' | 'english' | 'steel') => {
+    if (type === 'steel') {
+      const mockData = {
+        supplierName: 'ABC Iron & Steel Traders (Sample)',
+        supplierMobile: '9829012345',
+        invoiceNumber: 'DEMO-2026-001',
+        invoiceDate: new Date().toISOString().split('T')[0],
+        detectedLanguage: 'English (Steel & Hardware Wholesale Invoice)',
+        items: [
+          { name: 'TMT Rod 8mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg' as ProductUnit, quantity: 51, purchasePrice: 61, mrp: 76, sellingPrice: 70 },
+          { name: 'TMT Rod 10mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg' as ProductUnit, quantity: 52, purchasePrice: 62, mrp: 78, sellingPrice: 72 },
+          { name: 'TMT Rod 12mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg' as ProductUnit, quantity: 53, purchasePrice: 63, mrp: 79, sellingPrice: 73 },
+          { name: 'TMT Rod 16mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg' as ProductUnit, quantity: 54, purchasePrice: 64, mrp: 80, sellingPrice: 74 },
+          { name: 'TMT Rod 20mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg' as ProductUnit, quantity: 55, purchasePrice: 65, mrp: 82, sellingPrice: 75 },
+          { name: 'TMT Rod 25mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg' as ProductUnit, quantity: 56, purchasePrice: 66, mrp: 83, sellingPrice: 76 },
+          { name: 'MS Angle 25x25x3', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 57, purchasePrice: 67, mrp: 84, sellingPrice: 77 },
+          { name: 'MS Angle 40x40x5', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 58, purchasePrice: 68, mrp: 85, sellingPrice: 78 },
+          { name: 'MS Angle 50x50x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 59, purchasePrice: 69, mrp: 86, sellingPrice: 79 },
+          { name: 'MS Angle 65x65x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 60, purchasePrice: 70, mrp: 88, sellingPrice: 80 },
+          { name: 'MS Flat 25x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 61, purchasePrice: 71, mrp: 89, sellingPrice: 81 },
+          { name: 'MS Flat 40x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 62, purchasePrice: 72, mrp: 90, sellingPrice: 82 },
+          { name: 'MS Flat 50x8', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 63, purchasePrice: 73, mrp: 91, sellingPrice: 83 },
+          { name: 'MS Flat 75x10', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 64, purchasePrice: 74, mrp: 92, sellingPrice: 84 },
+          { name: 'MS Round Bar 10', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 65, purchasePrice: 75, mrp: 94, sellingPrice: 85 },
+          { name: 'MS Round Bar 12', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 66, purchasePrice: 76, mrp: 95, sellingPrice: 86 },
+          { name: 'MS Round Bar 16', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 67, purchasePrice: 77, mrp: 96, sellingPrice: 87 },
+          { name: 'MS Round Bar 20', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 68, purchasePrice: 78, mrp: 98, sellingPrice: 88 },
+          { name: 'MS Square Bar 12', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 69, purchasePrice: 79, mrp: 99, sellingPrice: 89 },
+          { name: 'MS Square Bar 16', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 70, purchasePrice: 80, mrp: 100, sellingPrice: 90 },
+          { name: 'MS Channel75', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 71, purchasePrice: 81, mrp: 101, sellingPrice: 91 },
+          { name: 'MS Channel100', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 72, purchasePrice: 82, mrp: 102, sellingPrice: 92 },
+          { name: 'MS Channel125', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 73, purchasePrice: 83, mrp: 104, sellingPrice: 93 },
+          { name: 'MS Channel150', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 74, purchasePrice: 84, mrp: 105, sellingPrice: 94 },
+          { name: 'MS Beam100', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 75, purchasePrice: 85, mrp: 106, sellingPrice: 95 },
+          { name: 'MS Beam150', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 76, purchasePrice: 86, mrp: 108, sellingPrice: 96 },
+          { name: 'MS Beam200', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 77, purchasePrice: 87, mrp: 109, sellingPrice: 97 },
+          { name: 'GI Pipe1/2', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg' as ProductUnit, quantity: 78, purchasePrice: 88, mrp: 110, sellingPrice: 98 },
+          { name: 'GI Pipe1', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg' as ProductUnit, quantity: 79, purchasePrice: 89, mrp: 111, sellingPrice: 99 },
+          { name: 'GI Pipe2', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg' as ProductUnit, quantity: 80, purchasePrice: 90, mrp: 112, sellingPrice: 100 },
+          { name: 'MS Pipe1', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 81, purchasePrice: 91, mrp: 114, sellingPrice: 101 },
+          { name: 'MS Pipe2', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg' as ProductUnit, quantity: 82, purchasePrice: 92, mrp: 115, sellingPrice: 102 }
+        ],
+        totalAmount: 201343,
+        paidAmount: 201343
+      };
+      setImagePreview(sampleHindiBillUrl);
+      populateExtractedData(mockData);
+      return;
+    }
+
     let mockData = {
       supplierName: 'Laxmi Wholesale Kirana Stores',
       supplierMobile: '9823011223',
@@ -217,9 +267,10 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
     setDetectedLanguage(data.detectedLanguage || 'English / Multi-lingual');
 
     const mappedItems: ScannedItem[] = (data.items || []).map((it: any, idx: number) => {
+      const extractedName = (it.name || it.productName || it.description || 'Unnamed Item').trim();
       // Check if product exists in shop inventory
       const existing = products.find(
-        p => p.name.toLowerCase().trim() === (it.name || '').toLowerCase().trim()
+        p => p.name.toLowerCase().trim() === extractedName.toLowerCase()
       );
 
       const qty = Number(it.quantity) || 1;
@@ -228,15 +279,15 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       return {
         id: `scanned-it-${idx}`,
         productId: existing?.id,
-        name: it.name || 'Unnamed Item',
-        category: it.category || existing?.category || 'General Kirana',
+        name: extractedName,
+        category: it.category || existing?.category || 'Building Materials & Hardware',
         brand: it.brand || existing?.brand || 'Generic',
-        unit: (it.unit as ProductUnit) || existing?.unit || 'pkt',
+        unit: (it.unit as ProductUnit) || existing?.unit || 'kg',
         quantity: qty,
         purchasePrice: price,
         mrp: Number(it.mrp) || Math.round(price * 1.25),
         sellingPrice: Number(it.sellingPrice) || Math.round(price * 1.15),
-        totalPrice: qty * price,
+        totalPrice: Number(it.totalPrice) || (qty * price),
         isExistingProduct: !!existing
       };
     });
@@ -461,6 +512,15 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   <button
+                    onClick={() => handleSampleSelect('steel')}
+                    className="p-2.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl text-left transition-colors cursor-pointer"
+                  >
+                    <div className="text-[10px] font-extrabold text-indigo-800 uppercase">🏗️ Steel & Hardware</div>
+                    <div className="font-semibold text-xs text-slate-800 truncate mt-0.5">ABC Iron & Steel Traders</div>
+                    <div className="text-[10px] text-slate-500">32 Items • ₹201,343</div>
+                  </button>
+
+                  <button
                     onClick={() => handleSampleSelect('hindi')}
                     className="p-2.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl text-left transition-colors cursor-pointer"
                   >
@@ -535,6 +595,38 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                   <span>Scan Another Bill</span>
                 </button>
               </div>
+
+              {/* Uploaded Purchase Bill Image Preview Card */}
+              {imagePreview && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md text-white">
+                  <div className="p-3 bg-slate-950 flex items-center justify-between border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-bold text-slate-200">Uploaded / Scanned Bill Image Preview</span>
+                      <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-full">
+                        Original Document
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => setShowImagePreview(!showImagePreview)}
+                      className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer flex items-center gap-1"
+                    >
+                      <span>{showImagePreview ? 'Hide Bill Image' : 'Show Bill Image'}</span>
+                    </button>
+                  </div>
+
+                  {showImagePreview && (
+                    <div className="p-3 bg-slate-900/80 flex flex-col items-center justify-center max-h-[350px] overflow-auto">
+                      <img
+                        src={imagePreview}
+                        alt="Uploaded Purchase Bill Preview"
+                        className="max-h-[320px] w-auto object-contain rounded border border-slate-700 shadow-xl"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Supplier & Invoice Header Fields */}
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -661,7 +753,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                                   onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
                                   className="w-full bg-slate-50 border border-slate-200 rounded-md px-1.5 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
-                                  {['kg', 'g', 'liter', 'ml', 'pkt', 'pc', 'box', 'bottle', 'pouch', 'bag', 'tin'].map(u => (
+                                  {['kg', 'g', 'liter', 'ml', 'pkt', 'pc', 'pcs', 'box', 'bottle', 'pouch', 'bag', 'tin', 'meter', 'ft', 'set'].map(u => (
                                     <option key={u} value={u}>{u}</option>
                                   ))}
                                 </select>

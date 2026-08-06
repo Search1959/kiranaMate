@@ -6,6 +6,7 @@ interface SalesViewProps {
   sales: Sale[];
   onOpenNewSale: () => void;
   onOpenInvoicePrint: (sale: Sale) => void;
+  onRefreshData?: () => void;
 }
 
 export const SalesView: React.FC<SalesViewProps> = ({
