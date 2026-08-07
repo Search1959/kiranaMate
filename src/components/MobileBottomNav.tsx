@@ -132,6 +132,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
             <div className="grid grid-cols-3 gap-3">
               {[
+                { id: 'service_dashboard', label: '🛠 Service ERP', icon: Home, color: 'text-blue-600 bg-blue-50' },
+                { id: 'service_pos', label: '🧾 Service POS', icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50' },
+                { id: 'service_jobs', label: '🛠 Job Cards', icon: Settings, color: 'text-indigo-600 bg-indigo-50' },
                 { id: 'sales', label: t.sales, icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50' },
                 { id: 'purchases', label: t.purchases, icon: Truck, color: 'text-blue-600 bg-blue-50' },
                 { id: 'expenses', label: t.expenses, icon: TrendingDown, color: 'text-rose-600 bg-rose-50' },

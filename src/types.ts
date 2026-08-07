@@ -396,3 +396,264 @@ export interface DailyStats {
 }
 
 export type LanguageCode = 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'bn';
+
+// ==========================================
+// SERVICE ERP MODULE TYPES
+// ==========================================
+
+export type ServiceSectorGroup =
+  | 'Healthcare'
+  | 'Beauty & Wellness'
+  | 'Legal & Professional'
+  | 'Education & Training'
+  | 'Repair & Maintenance'
+  | 'Automobile'
+  | 'Home Services'
+  | 'IT & Technology'
+  | 'Creative Services'
+  | 'Hospitality & Travel'
+  | 'Property & Construction'
+  | 'Laundry & Cleaning'
+  | 'Security Services'
+  | 'Agriculture Services'
+  | 'Logistics & Courier'
+  | 'Financial Services'
+  | 'Government & NGO'
+  | 'Religious Services'
+  | 'Entertainment & Sports'
+  | 'General Service';
+
+export type ServiceSector =
+  | 'HEALTHCARE_CLINIC'
+  | 'DOCTOR_CLINIC'
+  | 'DIAGNOSTIC_CENTRE'
+  | 'DENTAL_CLINIC'
+  | 'HOSPITAL'
+  | 'SALON'
+  | 'SPA_WELLNESS'
+  | 'GYM'
+  | 'YOGA_CENTRE'
+  | 'LAWYER'
+  | 'CA_ACCOUNTANT'
+  | 'CONSULTANT'
+  | 'TUITION'
+  | 'COACHING_CENTRE'
+  | 'REPAIR_SHOP'
+  | 'AC_SERVICE'
+  | 'RO_WATER_PURIFIER'
+  | 'AUTOMOBILE_GARAGE'
+  | 'CAR_WASH'
+  | 'ELECTRICIAN'
+  | 'PLUMBING'
+  | 'PEST_CONTROL'
+  | 'SOFTWARE_IT'
+  | 'DIGITAL_MARKETING_AGENCY'
+  | 'ADVERTISING_CREATIVE'
+  | 'COMPUTER_AMC'
+  | 'PHOTOGRAPHY'
+  | 'PRINTING_PRESS'
+  | 'EVENT_MANAGEMENT'
+  | 'HOTEL_GUESTHOUSE'
+  | 'TRAVEL_AGENCY'
+  | 'REAL_ESTATE'
+  | 'CONSTRUCTION'
+  | 'LAUNDRY'
+  | 'SECURITY_AGENCY'
+  | 'AGRICULTURE'
+  | 'COURIER_LOGISTICS'
+  | 'FINANCE_LOANS'
+  | 'GOVT_CSC'
+  | 'RELIGIOUS_TRUST'
+  | 'ENTERTAINMENT_SPORTS'
+  | 'GENERAL_SERVICE';
+
+export interface ServiceItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  durationMinutes: number;
+  gstPercent: number;
+  sector: ServiceSector;
+  description?: string;
+  isPopular?: boolean;
+}
+
+export type AppointmentStatus = 'Scheduled' | 'In-Progress' | 'Completed' | 'Cancelled' | 'No-Show';
+
+export interface Appointment {
+  id: string;
+  customerId: string;
+  customerName: string;
+  mobile: string;
+  serviceId: string;
+  serviceName: string;
+  serviceSector: ServiceSector;
+  staffId?: string;
+  staffName?: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
+  status: AppointmentStatus;
+  notes?: string;
+  totalAmount: number;
+  paidAmount: number;
+  createdAt: string;
+}
+
+export type JobCardStatus = 'Pending' | 'In-Progress' | 'Completed' | 'Delivered' | 'Cancelled';
+export type JobPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+
+export interface JobCardPart {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface JobCard {
+  id: string;
+  jobNo: string;
+  customerId: string;
+  customerName: string;
+  mobile: string;
+  serviceSector: ServiceSector;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  status: JobCardStatus;
+  priority: JobPriority;
+  issueDescription: string;
+  deviceOrVehicleInfo?: string; // e.g., "iPhone 13 Pro" or "Honda City MH-12-AB-1234"
+  partsUsed: JobCardPart[];
+  labourCharges: number;
+  materialCharges: number;
+  totalAmount: number;
+  paidAmount: number;
+  balanceAmount: number;
+  estimatedCompletionDate: string;
+  actualCompletionDate?: string;
+  remarks?: string;
+  createdAt: string;
+}
+
+export interface ServiceStaff {
+  id: string;
+  name: string;
+  role: string;
+  mobile: string;
+  specialty: string;
+  rating: number; // e.g. 4.8
+  totalJobsCompleted: number;
+  commissionPercent: number;
+  dailyTarget: number;
+  status: 'Active' | 'On-Leave' | 'Busy';
+}
+
+export interface ServicePackage {
+  id: string;
+  name: string;
+  sector: ServiceSector;
+  price: number;
+  durationDays: number;
+  includedServices: string[];
+  discountPercent: number;
+  description: string;
+  isAmc?: boolean;
+}
+
+export interface ServiceCustomer {
+  id: string;
+  name: string;
+  mobile: string;
+  email?: string;
+  address?: string;
+  sector: ServiceSector;
+  totalSpent: number;
+  activeJobsCount: number;
+  activeAppointmentsCount: number;
+  amcStatus?: 'Active' | 'Expired' | 'None';
+  amcExpiryDate?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ServiceInvoiceItem {
+  id: string;
+  serviceId?: string;
+  name: string;
+  type: 'SERVICE' | 'MATERIAL' | 'LABOUR' | 'PACKAGE';
+  price: number;
+  quantity: number;
+  total: number;
+}
+
+export interface ServiceInvoice {
+  id: string;
+  invoiceNo: string;
+  customerId: string;
+  customerName: string;
+  mobile: string;
+  date: string;
+  items: ServiceInvoiceItem[];
+  labourCharges: number;
+  materialCharges: number;
+  discount: number;
+  gstAmount: number;
+  grandTotal: number;
+  paidAmount: number;
+  balanceAmount: number;
+  paymentMethod: PaymentMethod;
+  status: 'PAID' | 'PARTIAL' | 'UNPAID';
+  jobCardId?: string;
+  appointmentId?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ServiceQuotation {
+  id: string;
+  quoteNo: string;
+  customerId: string;
+  customerName: string;
+  mobile: string;
+  date: string;
+  validUntil: string;
+  items: ServiceInvoiceItem[];
+  labourCharges: number;
+  materialCharges: number;
+  discount: number;
+  gstAmount: number;
+  grandTotal: number;
+  status: 'Draft' | 'Sent' | 'Approved' | 'ConvertedToJob' | 'ConvertedToInvoice';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ServicePayment {
+  id: string;
+  receiptNo: string;
+  customerId: string;
+  customerName: string;
+  amount: number;
+  date: string;
+  method: PaymentMethod;
+  referenceNo?: string;
+  invoiceId?: string;
+  jobCardId?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ServiceStats {
+  todayAppointmentsCount: number;
+  todayJobsCount: number;
+  pendingJobsCount: number;
+  completedJobsCount: number;
+  todayRevenue: number;
+  outstandingPayments: number;
+  todayCustomersCount: number;
+  monthlyIncome: number;
+  activeStaffCount: number;
+  averageRating: number;
+}
+

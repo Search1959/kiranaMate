@@ -102,6 +102,7 @@ import { InvoicePrintModal } from './components/InvoicePrintModal';
 import { BulkProductImportModal } from './components/BulkProductImportModal';
 import { ScanPurchaseBillModal } from './components/ScanPurchaseBillModal';
 import { SectorDemoModal } from './components/SectorDemoModal';
+import { ServiceSectorModal } from './components/ServiceSectorModal';
 import { AiAssistantWidget } from './components/AiAssistantWidget';
 
 // Views
@@ -120,10 +121,29 @@ import { StockLedgerView } from './views/StockLedgerView';
 import { FinanceView } from './views/FinanceView';
 import { SystemAdminView } from './views/SystemAdminView';
 
+// Service ERP Module Views
+import { ServiceLoginView } from './views/services/ServiceLoginView';
+import { ServiceDashboardView } from './views/services/ServiceDashboardView';
+import { ServicePosView } from './views/services/ServicePosView';
+import { ServiceAppointmentsView } from './views/services/ServiceAppointmentsView';
+import { ServiceJobCardsView } from './views/services/ServiceJobCardsView';
+import { ServiceCustomersView } from './views/services/ServiceCustomersView';
+import { ServiceStaffView } from './views/services/ServiceStaffView';
+import { ServicePackagesView } from './views/services/ServicePackagesView';
+import { ServicePaymentsView } from './views/services/ServicePaymentsView';
+import { ServiceInvoicesView } from './views/services/ServiceInvoicesView';
+import { ServiceQuotationsView } from './views/services/ServiceQuotationsView';
+import { ServiceReportsView } from './views/services/ServiceReportsView';
+import { ServiceSettingsView } from './views/services/ServiceSettingsView';
+import { serviceStore } from './lib/serviceStore';
+import { ServiceSector } from './types';
+
 export default function App() {
   // Navigation & Page State
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'service_login' | 'app'>('landing');
   const [currentStoreId, setCurrentStoreId] = useState<string>('store-demo');
+  const [isServiceSectorModalOpen, setIsServiceSectorModalOpen] = useState(false);
+  const [selectedServiceSector, setSelectedServiceSector] = useState<ServiceSector>('DOCTOR_CLINIC');
 
   // Auth Modal
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -505,6 +525,20 @@ export default function App() {
     setIsInvoicePrintOpen(true);
   };
 
+  const handleSelectServiceSector = (sectorId: ServiceSector) => {
+    setSelectedServiceSector(sectorId);
+    serviceStore.setActiveSector(sectorId);
+    setIsServiceSectorModalOpen(false);
+    setViewMode('service_login');
+  };
+
+  const handleServiceLoginSuccess = (user: User, sector: ServiceSector) => {
+    setCurrentUser(user);
+    serviceStore.setActiveSector(sector);
+    setViewMode('app');
+    setActiveTab('service_dashboard');
+  };
+
   // IF LANDING PAGE VIEW IS ACTIVE
   if (viewMode === 'landing') {
     return (
@@ -516,6 +550,7 @@ export default function App() {
           onLanguageChange={setLang}
           onSelectSectorDemo={handleSelectSectorDemo}
           onOpenSectorModal={() => setIsSectorModalOpen(true)}
+          onOpenServiceSectorModal={() => setIsServiceSectorModalOpen(true)}
         />
 
         {/* Multi-Sector Trading Demo Selector Modal */}
@@ -526,11 +561,41 @@ export default function App() {
           onSelectSectorDemo={handleSelectSectorDemo}
         />
 
+        {/* Service ERP Directory Modal */}
+        <ServiceSectorModal
+          isOpen={isServiceSectorModalOpen}
+          onClose={() => setIsServiceSectorModalOpen(false)}
+          onSelectSector={handleSelectServiceSector}
+        />
+
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           initialMode={authModalMode}
           onAuthSuccess={handleAuthSuccess}
+        />
+      </>
+    );
+  }
+
+  // IF SERVICE ERP LOGIN VIEW IS ACTIVE
+  if (viewMode === 'service_login') {
+    return (
+      <>
+        <ServiceLoginView
+          sector={selectedServiceSector}
+          onBackToDirectory={() => {
+            setIsServiceSectorModalOpen(true);
+            setViewMode('landing');
+          }}
+          onLoginSuccess={handleServiceLoginSuccess}
+        />
+
+        {/* Service ERP Directory Modal */}
+        <ServiceSectorModal
+          isOpen={isServiceSectorModalOpen}
+          onClose={() => setIsServiceSectorModalOpen(false)}
+          onSelectSector={handleSelectServiceSector}
         />
       </>
     );
@@ -581,6 +646,8 @@ export default function App() {
         onOpenNewSale={() => setIsNewSaleOpen(true)}
         onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
         onOpenCollectPayment={() => handleOpenCollectPayment()}
+        activeTab={activeTab}
+        onOpenServiceSectorModal={() => setIsServiceSectorModalOpen(true)}
       />
 
       {/* Main Container Layout */}
@@ -596,6 +663,7 @@ export default function App() {
           onLogout={handleGoToLanding}
           onOpenSectorModal={() => setIsSectorModalOpen(true)}
           activeSectorId={activeSettings.sector}
+          onOpenServiceSectorModal={() => setIsServiceSectorModalOpen(true)}
         />
 
         {/* View Router Main Screen */}
@@ -718,10 +786,15 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'settings' && (
+          {(activeTab === 'settings' || activeTab === 'service_settings') && (
             <SettingsView
               settings={activeSettings}
               onRefreshData={() => loadData(currentStoreId)}
+              isServiceMode={
+                activeTab === 'service_settings' ||
+                activeTab.startsWith('service_') ||
+                localStorage.getItem('trademate_active_workspace') === 'service'
+              }
             />
           )}
 
@@ -745,6 +818,41 @@ export default function App() {
             <SystemAdminView
               onSwitchStore={handleAdminSwitchStore}
             />
+          )}
+
+          {/* SERVICE ERP MODULE VIEWS */}
+          {(activeTab === 'service_dashboard' || activeTab === 'services') && (
+            <ServiceDashboardView onNavigateTab={setActiveTab} />
+          )}
+          {activeTab === 'service_pos' && (
+            <ServicePosView onNavigateTab={setActiveTab} />
+          )}
+          {activeTab === 'service_appointments' && (
+            <ServiceAppointmentsView onNavigateTab={setActiveTab} />
+          )}
+          {activeTab === 'service_jobs' && (
+            <ServiceJobCardsView onNavigateTab={setActiveTab} />
+          )}
+          {activeTab === 'service_customers' && (
+            <ServiceCustomersView onNavigateTab={setActiveTab} />
+          )}
+          {activeTab === 'service_staff' && (
+            <ServiceStaffView />
+          )}
+          {activeTab === 'service_packages' && (
+            <ServicePackagesView />
+          )}
+          {activeTab === 'service_payments' && (
+            <ServicePaymentsView />
+          )}
+          {activeTab === 'service_invoices' && (
+            <ServiceInvoicesView />
+          )}
+          {activeTab === 'service_quotations' && (
+            <ServiceQuotationsView />
+          )}
+          {activeTab === 'service_reports' && (
+            <ServiceReportsView />
           )}
         </main>
       </div>
@@ -852,6 +960,13 @@ export default function App() {
         onClose={() => setIsSectorModalOpen(false)}
         currentSector={settings?.sector}
         onSelectSectorDemo={handleSelectSectorDemo}
+      />
+
+      {/* Universal Service ERP Sector Selector Modal */}
+      <ServiceSectorModal
+        isOpen={isServiceSectorModalOpen}
+        onClose={() => setIsServiceSectorModalOpen(false)}
+        onSelectSector={handleSelectServiceSector}
       />
 
       {/* AI Assistant & Voice Commands Floating Widget */}

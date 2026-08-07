@@ -22,7 +22,8 @@ import {
   Printer,
   Bell,
   HelpCircle,
-  Layers
+  Layers,
+  Wrench
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
 
@@ -33,6 +34,7 @@ interface LandingViewProps {
   onLanguageChange: (lang: LanguageCode) => void;
   onSelectSectorDemo?: (sectorId: TradingSector, demoStoreId: string) => void;
   onOpenSectorModal?: () => void;
+  onOpenServiceSectorModal?: () => void;
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({
@@ -41,7 +43,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
   lang,
   onLanguageChange,
   onSelectSectorDemo,
-  onOpenSectorModal
+  onOpenSectorModal,
+  onOpenServiceSectorModal
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
@@ -71,25 +74,48 @@ export const LandingView: React.FC<LandingViewProps> = ({
             title="Browse all 23 Industry ERP Templates & Demo Environments"
           >
             <Layers className="w-4 h-4 text-blue-400" />
-            <span>23 Industry Templates</span>
+            <span>23 Trading Templates</span>
             <span className="bg-blue-500/30 text-blue-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase">
               Hub
             </span>
           </button>
+
+          {/* Service ERP Directory Button */}
+          <button
+            onClick={onOpenServiceSectorModal}
+            className="flex items-center gap-1.5 text-indigo-300 hover:text-white font-extrabold transition-all bg-gradient-to-r from-indigo-600/30 to-purple-600/30 hover:from-indigo-600/50 hover:to-purple-600/50 border border-indigo-400/40 px-3.5 py-1.5 rounded-lg cursor-pointer shadow-sm hover:shadow-indigo-500/20"
+            title="Open Universal Service Business ERP (50+ Service Sectors)"
+          >
+            <Wrench className="w-4 h-4 text-indigo-400 animate-pulse" />
+            <span>🛠 Service ERP</span>
+            <span className="bg-indigo-500/40 text-indigo-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+              50+ Sectors
+            </span>
+          </button>
+
           <a href="#features" className="hover:text-white transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-          <a href="#testimonials" className="hover:text-white transition-colors">Shopkeeper Reviews</a>
+          <a href="#testimonials" className="hover:text-white transition-colors">Reviews</a>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          {/* Mobile Service ERP Button */}
+          <button
+            onClick={onOpenServiceSectorModal}
+            className="lg:hidden flex items-center gap-1 text-indigo-300 bg-indigo-600/20 border border-indigo-500/40 px-2.5 py-1.5 rounded-lg text-xs font-bold"
+          >
+            <Wrench className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Service ERP</span>
+          </button>
+
           {/* Mobile Industry Hub Button */}
           <button
             onClick={onOpenSectorModal}
             className="lg:hidden flex items-center gap-1 text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-xs font-bold"
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Industries</span>
+            <span>Trading</span>
           </button>
 
           {/* Language Switcher */}
