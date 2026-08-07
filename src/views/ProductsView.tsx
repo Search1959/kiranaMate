@@ -259,6 +259,32 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                     <span className="text-xs font-bold text-slate-700">₹{p.purchasePrice}</span>
                   </div>
                 </div>
+
+                {/* Stock Intelligence Indicators */}
+                <div className="mt-2.5 pt-2 border-t border-dashed border-slate-200 flex items-center justify-between text-[10px]">
+                  <div className="flex items-center gap-1.5">
+                    {p.currentStock > 30 ? (
+                      <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md font-bold border border-emerald-200">
+                        🚀 Fast Moving
+                      </span>
+                    ) : p.currentStock === 0 ? (
+                      <span className="bg-rose-50 text-rose-700 px-2 py-0.5 rounded-md font-bold border border-rose-200">
+                        ⚠️ Out of Stock
+                      </span>
+                    ) : (
+                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-bold">
+                        📦 Normal Stock
+                      </span>
+                    )}
+                    <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-bold border border-blue-200">
+                      {p.sellingPrice > 0 ? `${(((p.sellingPrice - p.purchasePrice) / p.sellingPrice) * 100).toFixed(0)}% Margin` : '0%'}
+                    </span>
+                  </div>
+
+                  <span className="text-slate-500 font-bold">
+                    Val: ₹{(p.currentStock * p.purchasePrice).toLocaleString('en-IN')}
+                  </span>
+                </div>
               </div>
 
               {/* Action Buttons: View, Edit, Add Stock, Delete */}

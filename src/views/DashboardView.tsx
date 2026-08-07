@@ -22,6 +22,7 @@ import { DailyStats, StoreSettings, Customer, LanguageCode, Sale, Order, Product
 import { translations } from '../lib/translations';
 import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
 import { EmptyStateWizard } from '../components/EmptyStateWizard';
+import { BusinessHealthCard } from '../components/BusinessHealthCard';
 
 interface DashboardViewProps {
   stats: DailyStats;
@@ -68,6 +69,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onRefreshData={onRefreshData}
         />
       )}
+
+      {/* AI Business Health Score Card */}
+      <BusinessHealthCard
+        stats={stats}
+        products={lowStockProducts}
+        customers={customersWithUdhaar}
+        onNavigateToTab={onNavigateToTab}
+      />
+
       {/* 1. Metric Cards Grid (4 columns on desktop) */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Today's Sales */}

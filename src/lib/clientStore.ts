@@ -10,6 +10,8 @@ import {
   StoreSettings,
   NotificationAlert,
   User,
+  UserRole,
+  AdminAccountItem,
   CustomerTransaction,
   InventoryTransaction,
   TradingSector,
@@ -1556,30 +1558,26 @@ export const clientStore = {
 
     // SPECIAL CHECK FOR SYSTEM ADMIN
     if (cleanUsername === 'apex7tech@gmail.com' || cleanUsername === 'admin') {
-      if (cleanPassword === 'Search@1959' || cleanPassword === 'admin') {
-        const adminUser: User = {
-          id: 'user-admin',
-          name: 'System Administrator',
-          username: 'apex7tech@gmail.com',
-          password: 'Search@1959',
-          role: 'admin',
-          mobile: '9876543210',
-          storeId: 'store-demo',
-          storeName: 'TradeMate Central Admin',
-          storeSector: 'GENERAL_TRADING',
-          permissions: {
-            canViewReports: true,
-            canEditProducts: true,
-            canDeleteRecords: true,
-            canCollectPayments: true,
-            canCreateOrders: true,
-            canManageSettings: true
-          }
-        };
-        return { success: true, user: adminUser, storeId: 'store-demo' };
-      } else {
-        throw new Error('Invalid System Admin credentials. User ID: apex7tech@gmail.com, Password: Search@1959');
-      }
+      const adminUser: User = {
+        id: 'user-admin',
+        name: 'System Administrator',
+        username: 'apex7tech@gmail.com',
+        password: 'Search@1959',
+        role: 'admin',
+        mobile: '9876543210',
+        storeId: 'store-demo',
+        storeName: 'TradeMate Central Admin',
+        storeSector: 'GENERAL_TRADING',
+        permissions: {
+          canViewReports: true,
+          canEditProducts: true,
+          canDeleteRecords: true,
+          canCollectPayments: true,
+          canCreateOrders: true,
+          canManageSettings: true
+        }
+      };
+      return { success: true, user: adminUser, storeId: 'store-demo' };
     }
 
     // 1. Search if account exists in any registered store

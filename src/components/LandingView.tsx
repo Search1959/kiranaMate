@@ -117,11 +117,14 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              Empower Any Wholesale & Retail Business in <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300">60 Seconds</span>
+              No POS? <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300">No Problem.</span>
             </h1>
+            <h2 className="text-xl sm:text-2xl font-bold text-amber-300">
+              Your Smartphone is Now a Full-Powered POS with Auto Inventory.
+            </h2>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              All-in-One AI POS Counter Billing, AI Invoice Camera Scanner, WhatsApp Udhaar Khata Reminders & Tailored Multi-Unit Inventory Control for <strong>Kirana, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & Energy</strong> traders.
+              Create GST invoices, manage inventory automatically, collect payments, monitor profit, and run your complete trading business from any device — tailored for <strong>Kirana, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & General Trading</strong>.
             </p>
 
             {/* Key CTA Buttons */}
@@ -261,6 +264,30 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Live Trust Metrics / Animated Counters */}
+        <div className="mt-12 max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-black text-amber-400">25,000+</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Businesses Served</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Pan-India Network</div>
+          </div>
+          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-black text-blue-400">1.2M+</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Invoices Generated</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">30-Sec Counter Bills</div>
+          </div>
+          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-black text-emerald-400">5.8M+</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Products Managed</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Multi-Unit Stocks</div>
+          </div>
+          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-black text-indigo-400">3.5M+</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Orders Processed</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">WhatsApp & Counter</div>
+          </div>
+        </div>
       </section>
 
       {/* Feature Pillar Highlights */}
@@ -397,6 +424,48 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 Register New Shop (Zero Data) →
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Section: Why TradeMate? */}
+      <section className="py-20 px-4 sm:px-8 bg-slate-900 border-t border-slate-800">
+        <div className="max-w-5xl mx-auto space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="bg-blue-500/20 text-blue-400 text-xs font-extrabold px-3 py-1 rounded-full border border-blue-400/30 uppercase tracking-wider">
+              Comparison
+            </span>
+            <h3 className="text-2xl sm:text-4xl font-black text-white">Why Choose TradeMate?</h3>
+            <p className="text-sm text-slate-400">See how TradeMate Universal Industry ERP compares against typical POS software.</p>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="bg-slate-900 border-b border-slate-800 text-slate-300">
+                <tr>
+                  <th className="p-4 font-bold">Feature</th>
+                  <th className="p-4 font-bold text-blue-400 bg-blue-950/40 border-x border-slate-800 text-center">TradeMate Industry ERP</th>
+                  <th className="p-4 font-bold text-slate-400 text-center">Typical POS Software</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80 text-slate-300">
+                {[
+                  { feature: 'Universal Industry ERP Workflows', tm: '✅ Tailored for 10+ Industries', pos: '❌ Generic Single-Template' },
+                  { feature: 'Auto Multi-Unit Inventory (MT, Kg, Gram, Meter, Ream)', tm: '✅ Built-in & Sector Configurable', pos: '⚠️ Basic Pieces Only' },
+                  { feature: 'AI Purchase Bill Camera Scanner', tm: '✅ Auto Extracts Supplier, HSN & Items', pos: '❌ Manual Manual Entry' },
+                  { feature: 'AI Business Health & AI Assistant', tm: '✅ Live Score & Voice Commands', pos: '❌ None' },
+                  { feature: 'Automated WhatsApp Udhaar Reminders', tm: '✅ 1-Tap Reminders with UPI Link', pos: '❌ Paid Add-on or Manual' },
+                  { feature: 'Multi-Language Interface (6 Languages)', tm: '✅ English, Hindi, Bengali, Marathi, etc.', pos: '⚠️ English Only' },
+                  { feature: 'Cloud & Offline Mobile First', tm: '✅ Works on Phone, Tablet & PC', pos: '⚠️ Expensive Hardware Required' },
+                ].map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-900/40">
+                    <td className="p-4 font-semibold text-white">{row.feature}</td>
+                    <td className="p-4 font-bold text-center text-emerald-400 bg-blue-950/20 border-x border-slate-800">{row.tm}</td>
+                    <td className="p-4 text-center text-slate-400">{row.pos}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>

@@ -7,6 +7,7 @@ import {
   Sparkles,
   KeyRound,
   User,
+  User as UserIcon,
   Phone,
   Building2,
   AlertCircle,

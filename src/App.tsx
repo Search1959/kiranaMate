@@ -102,6 +102,7 @@ import { InvoicePrintModal } from './components/InvoicePrintModal';
 import { BulkProductImportModal } from './components/BulkProductImportModal';
 import { ScanPurchaseBillModal } from './components/ScanPurchaseBillModal';
 import { SectorDemoModal } from './components/SectorDemoModal';
+import { AiAssistantWidget } from './components/AiAssistantWidget';
 
 // Views
 import { DashboardView } from './views/DashboardView';
@@ -117,6 +118,7 @@ import { SuppliersView } from './views/SuppliersView';
 import { BackupView } from './views/BackupView';
 import { StockLedgerView } from './views/StockLedgerView';
 import { FinanceView } from './views/FinanceView';
+import { SystemAdminView } from './views/SystemAdminView';
 
 export default function App() {
   // Navigation & Page State
@@ -703,6 +705,12 @@ export default function App() {
               onRefreshData={() => loadData(currentStoreId)}
             />
           )}
+
+          {activeTab === 'system_admin' && (
+            <SystemAdminView
+              onSwitchStore={handleAdminSwitchStore}
+            />
+          )}
         </main>
       </div>
 
@@ -810,6 +818,22 @@ export default function App() {
         currentSector={settings?.sector}
         onSelectSectorDemo={handleSelectSectorDemo}
       />
+
+      {/* AI Assistant & Voice Commands Floating Widget */}
+      {viewMode === 'app' && (
+        <AiAssistantWidget
+          products={products}
+          customers={customers}
+          stats={stats}
+          recentSales={sales}
+          onNavigateTab={setActiveTab}
+          onOpenQuickAction={(action) => {
+            if (action === 'new_sale') setIsNewSaleOpen(true);
+            else if (action === 'new_order') setIsNewOrderOpen(true);
+            else if (action === 'scan_bill') setIsScanPurchaseBillOpen(true);
+          }}
+        />
+      )}
 
       {/* Auth Modal Triggered from Header or Landing */}
       <AuthModal
