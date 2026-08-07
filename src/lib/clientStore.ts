@@ -33,7 +33,8 @@ interface StoreData {
   notifications: NotificationAlert[];
 }
 
-const LOCAL_STORAGE_PREFIX = 'kiranamate_store_';
+const LOCAL_STORAGE_PREFIX = 'trademate_store_';
+const LEGACY_LOCAL_STORAGE_PREFIX = 'kiranamate_store_';
 
 const PREDEFINED_ACCOUNTS: { [username: string]: { storeId: string; user: User; storeData: StoreData } } = {
   'deshna@gmail.com': {
@@ -184,8 +185,10 @@ function findUserAcrossAllStores(username: string): { user: User; storeId: strin
   // 1. Check browser localStorage
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.startsWith(LOCAL_STORAGE_PREFIX)) {
-      const sid = key.replace(LOCAL_STORAGE_PREFIX, '');
+    if (key && (key.startsWith(LOCAL_STORAGE_PREFIX) || key.startsWith(LEGACY_LOCAL_STORAGE_PREFIX))) {
+      const sid = key.startsWith(LOCAL_STORAGE_PREFIX)
+        ? key.replace(LOCAL_STORAGE_PREFIX, '')
+        : key.replace(LEGACY_LOCAL_STORAGE_PREFIX, '');
       try {
         const raw = localStorage.getItem(key);
         if (raw) {
@@ -233,7 +236,8 @@ function getStoreData(storeId: string = 'store-demo'): StoreData {
   }
 
   const key = `${LOCAL_STORAGE_PREFIX}${storeId}`;
-  const raw = localStorage.getItem(key);
+  const legacyKey = `${LEGACY_LOCAL_STORAGE_PREFIX}${storeId}`;
+  const raw = localStorage.getItem(key) || localStorage.getItem(legacyKey);
   if (raw) {
     try {
       const parsed: StoreData = JSON.parse(raw);
@@ -1354,7 +1358,7 @@ export const clientStore = {
         {
           id: `notif-${Date.now()}`,
           type: 'NEW_ORDER',
-          title: '🎉 Welcome to KiranaMate!',
+          title: '🎉 Welcome to TradeMate!',
           message: `Your new store '${payload.shopName}' is ready for ${sectorConfig.name}. Add your first product to start!`,
           isRead: false,
           createdAt: new Date().toISOString()
@@ -1366,8 +1370,217 @@ export const clientStore = {
     return { success: true, user: newUser, storeId: newStoreId };
   },
 
-  login(storeId: string = 'store-demo', username: string, selectedSector?: TradingSector): { success: boolean; user: User; storeId: string } {
+  getAdminAccounts(): { accounts: AdminAccountItem[] } {
+    const list: AdminAccountItem[] = [];
+    const seenUsernames = new Set<string>();
+
+    // 1. Scan custom registered stores in localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith(LOCAL_STORAGE_PREFIX) || key.startsWith(LEGACY_LOCAL_STORAGE_PREFIX))) {
+        const sid = key.startsWith(LOCAL_STORAGE_PREFIX)
+          ? key.replace(LOCAL_STORAGE_PREFIX, '')
+          : key.replace(LEGACY_LOCAL_STORAGE_PREFIX, '');
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const data: StoreData = JSON.parse(raw);
+            const users = data.users || [];
+            users.forEach(u => {
+              if (u.username && !seenUsernames.has(u.username.toLowerCase())) {
+                seenUsernames.add(u.username.toLowerCase());
+                list.push({
+                  id: u.id,
+                  userId: u.id,
+                  name: u.name || 'Store Manager',
+                  username: u.username,
+                  password: u.password || '123456',
+                  role: u.role || 'owner',
+                  mobile: u.mobile || '9876543210',
+                  storeId: sid,
+                  storeName: data.settings?.storeName || u.storeName || 'Registered Store',
+                  storeSector: data.settings?.sector || u.storeSector || 'GENERAL_TRADING',
+                  productCount: data.products ? data.products.length : 0,
+                  salesCount: data.sales ? data.sales.length : 0,
+                  customerCount: data.customers ? data.customers.length : 0,
+                  createdAt: u.createdAt || new Date().toISOString(),
+                  isDemo: sid.startsWith('store-demo')
+                });
+              }
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 2. Pre-defined accounts if not seen yet
+    Object.keys(PREDEFINED_ACCOUNTS).forEach(uname => {
+      if (!seenUsernames.has(uname.toLowerCase())) {
+        const item = PREDEFINED_ACCOUNTS[uname];
+        seenUsernames.add(uname.toLowerCase());
+        list.push({
+          id: item.user.id,
+          userId: item.user.id,
+          name: item.user.name,
+          username: item.user.username,
+          password: item.user.password || '123456',
+          role: item.user.role,
+          mobile: item.user.mobile || '9876543210',
+          storeId: item.storeId,
+          storeName: item.storeData.settings.storeName,
+          storeSector: item.storeData.settings.sector,
+          productCount: item.storeData.products.length,
+          salesCount: item.storeData.sales.length,
+          customerCount: item.storeData.customers.length,
+          createdAt: new Date().toISOString(),
+          isDemo: true
+        });
+      }
+    });
+
+    // 3. Always include System Admin account
+    if (!seenUsernames.has('apex7tech@gmail.com')) {
+      list.unshift({
+        id: 'user-admin',
+        userId: 'user-admin',
+        name: 'System Administrator',
+        username: 'apex7tech@gmail.com',
+        password: 'Search@1959',
+        role: 'admin',
+        mobile: '9876543210',
+        storeId: 'store-demo',
+        storeName: 'TradeMate Central Admin',
+        storeSector: 'GENERAL_TRADING',
+        productCount: 0,
+        salesCount: 0,
+        customerCount: 0,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        isDemo: true
+      });
+    }
+
+    return { accounts: list };
+  },
+
+  updateAdminAccount(payload: {
+    userId: string;
+    storeId: string;
+    name: string;
+    username: string;
+    password?: string;
+    mobile: string;
+    role: UserRole;
+    storeName: string;
+    storeSector?: TradingSector;
+  }): { success: boolean; account: AdminAccountItem } {
+    const data = getStoreData(payload.storeId);
+    let user = data.users.find(u => u.id === payload.userId || u.username.toLowerCase() === payload.username.toLowerCase());
+
+    if (!user) {
+      user = {
+        id: payload.userId || `u-${Date.now()}`,
+        name: payload.name,
+        username: payload.username,
+        role: payload.role,
+        mobile: payload.mobile,
+        storeId: payload.storeId,
+        permissions: {
+          canViewReports: true,
+          canEditProducts: true,
+          canDeleteRecords: true,
+          canCollectPayments: true,
+          canCreateOrders: true,
+          canManageSettings: true
+        }
+      };
+      data.users.push(user);
+    }
+
+    user.name = payload.name;
+    user.username = payload.username;
+    if (payload.password) user.password = payload.password;
+    user.mobile = payload.mobile;
+    user.role = payload.role;
+    user.storeName = payload.storeName;
+    if (payload.storeSector) user.storeSector = payload.storeSector;
+
+    if (data.settings) {
+      data.settings.storeName = payload.storeName;
+      data.settings.ownerName = payload.name;
+      if (payload.storeSector) data.settings.sector = payload.storeSector;
+      data.settings.phone = payload.mobile;
+    }
+
+    saveStoreData(payload.storeId, data);
+
+    return {
+      success: true,
+      account: {
+        id: user.id,
+        userId: user.id,
+        name: user.name,
+        username: user.username,
+        password: user.password || '123456',
+        role: user.role,
+        mobile: user.mobile,
+        storeId: payload.storeId,
+        storeName: payload.storeName,
+        storeSector: payload.storeSector || 'GENERAL_TRADING',
+        productCount: data.products ? data.products.length : 0,
+        salesCount: data.sales ? data.sales.length : 0,
+        customerCount: data.customers ? data.customers.length : 0,
+        createdAt: user.createdAt || new Date().toISOString()
+      }
+    };
+  },
+
+  deleteAdminAccount(storeId: string, userId: string): { success: boolean } {
+    const data = getStoreData(storeId);
+    data.users = data.users.filter(u => u.id !== userId && u.username !== userId);
+
+    if (data.users.length === 0 && !storeId.startsWith('store-demo')) {
+      localStorage.removeItem(`${LOCAL_STORAGE_PREFIX}${storeId}`);
+      localStorage.removeItem(`${LEGACY_LOCAL_STORAGE_PREFIX}${storeId}`);
+    } else {
+      saveStoreData(storeId, data);
+    }
+
+    return { success: true };
+  },
+
+  login(storeId: string = 'store-demo', username: string, password?: string, selectedSector?: TradingSector): { success: boolean; user: User; storeId: string } {
     const cleanUsername = username.trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
+
+    // SPECIAL CHECK FOR SYSTEM ADMIN
+    if (cleanUsername === 'apex7tech@gmail.com' || cleanUsername === 'admin') {
+      if (cleanPassword === 'Search@1959' || cleanPassword === 'admin') {
+        const adminUser: User = {
+          id: 'user-admin',
+          name: 'System Administrator',
+          username: 'apex7tech@gmail.com',
+          password: 'Search@1959',
+          role: 'admin',
+          mobile: '9876543210',
+          storeId: 'store-demo',
+          storeName: 'TradeMate Central Admin',
+          storeSector: 'GENERAL_TRADING',
+          permissions: {
+            canViewReports: true,
+            canEditProducts: true,
+            canDeleteRecords: true,
+            canCollectPayments: true,
+            canCreateOrders: true,
+            canManageSettings: true
+          }
+        };
+        return { success: true, user: adminUser, storeId: 'store-demo' };
+      } else {
+        throw new Error('Invalid System Admin credentials. User ID: apex7tech@gmail.com, Password: Search@1959');
+      }
+    }
 
     // 1. Search if account exists in any registered store
     const found = findUserAcrossAllStores(cleanUsername);
@@ -1440,7 +1653,7 @@ export const clientStore = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `KiranaMate_Backup_${storeId}_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `TradeMate_Backup_${storeId}_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
   },
 

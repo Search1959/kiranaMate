@@ -13,7 +13,8 @@ import {
   CustomerTransaction,
   InventoryTransaction,
   UserRole,
-  TradingSector
+  TradingSector,
+  AdminAccountItem
 } from '../types';
 import { clientStore } from './clientStore';
 
@@ -50,7 +51,7 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
 
   // 2. Auth
   if (pathname === '/api/auth/login') {
-    return clientStore.login(currentStoreId, body.username, body.sector) as unknown as T;
+    return clientStore.login(currentStoreId, body.username, body.password, body.sector) as unknown as T;
   }
   if (pathname === '/api/auth/register') {
     return clientStore.register(body) as unknown as T;
@@ -64,6 +65,18 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
   }
   if (pathname === '/api/admin/stores') {
     return clientStore.getAdminStores() as unknown as T;
+  }
+  if (pathname === '/api/admin/accounts' && method === 'GET') {
+    return clientStore.getAdminAccounts() as unknown as T;
+  }
+  if (pathname === '/api/admin/accounts/update' && method === 'POST') {
+    return clientStore.updateAdminAccount(body) as unknown as T;
+  }
+  if (pathname === '/api/admin/accounts/delete' && method === 'POST') {
+    return clientStore.deleteAdminAccount(body.storeId, body.userId) as unknown as T;
+  }
+  if (pathname === '/api/admin/accounts/create' && method === 'POST') {
+    return clientStore.register(body) as unknown as T;
   }
 
   // 3. Customers
@@ -224,6 +237,7 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
     return clientStore.restoreBackup(currentStoreId, body.jsonContent) as unknown as T;
   }
   if (pathname === '/api/backup/reset-demo') {
+    localStorage.removeItem(`trademate_store_${currentStoreId}`);
     localStorage.removeItem(`kiranamate_store_${currentStoreId}`);
     return { success: true, message: 'Demo data reset successfully!' } as unknown as T;
   }
@@ -290,6 +304,13 @@ export const api = {
   getUsers: () => apiFetch<{ users: User[] }>('/api/auth/me'),
   updateUserPermissions: (userId: string, permissions: User['permissions']) => apiFetch<{ success: boolean; user: User }>(`/api/auth/permissions/${userId}`, { method: 'PUT', body: JSON.stringify({ permissions }) }),
   getAdminStores: () => apiFetch<{ stores: { id: string; storeName: string; ownerName: string; isDemo: boolean; productCount: number; salesCount: number }[] }>('/api/admin/stores'),
+  getAdminAccounts: () => apiFetch<{ accounts: AdminAccountItem[] }>('/api/admin/accounts'),
+  updateAdminAccount: (data: { userId: string; storeId: string; name: string; username: string; password?: string; mobile: string; role: UserRole; storeName: string; storeSector?: TradingSector }) =>
+    apiFetch<{ success: boolean; account: AdminAccountItem }>('/api/admin/accounts/update', { method: 'POST', body: JSON.stringify(data) }),
+  deleteAdminAccount: (storeId: string, userId: string) =>
+    apiFetch<{ success: boolean }>('/api/admin/accounts/delete', { method: 'POST', body: JSON.stringify({ storeId, userId }) }),
+  createAdminAccount: (data: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector }) =>
+    apiFetch<{ success: boolean; user: User; storeId: string }>('/api/admin/accounts/create', { method: 'POST', body: JSON.stringify(data) }),
 
   // Customers & Udhaar
   getCustomers: (search?: string, area?: string) => {

@@ -1,6 +1,6 @@
 {
-  "name": "KiranaMate – Kirana Store Management & Daily Business Tracker",
-  "description": "Mobile-first Kirana store management app for Indian shopkeepers to manage sales, orders, stock, Udhaar, customers, expenses, and WhatsApp billing.",
+  "name": "TradeMate – Universal Business ERP, POS Billing & Udhaar Ledger",
+  "description": "Mobile-first AI POS billing, WhatsApp Udhaar Khata ledger, AI bill scanner, and multi-sector stock management software for FMCG, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & Energy traders across India.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

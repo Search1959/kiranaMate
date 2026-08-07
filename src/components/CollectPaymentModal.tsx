@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Receipt, CheckCircle2, Share2, Copy, DollarSign } from 'lucide-react';
+import { X, Receipt, CheckCircle2, Share2, Copy, DollarSign, MessageSquare } from 'lucide-react';
 import { Customer, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
-import { getWhatsAppWebLink, copyToClipboard } from '../lib/whatsapp';
+import { getWhatsAppWebLink, getSmsLink, copyToClipboard } from '../lib/whatsapp';
 
 interface CollectPaymentModalProps {
   isOpen: boolean;
@@ -113,6 +113,12 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" /> Send WhatsApp Receipt
+              </a>
+              <a
+                href={getSmsLink(currentCustomer.mobile, receiptMsg)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4" /> Send SMS Text Receipt
               </a>
               <button
                 onClick={() => {

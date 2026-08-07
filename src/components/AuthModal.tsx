@@ -49,6 +49,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loginPassword, setLoginPassword] = useState('');
   const [loginSector, setLoginSector] = useState<TradingSector>('METALS_STEEL');
 
+  // Admin Login Form State
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -121,6 +125,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  const handleAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    if (!adminUsername.trim() || !adminPassword.trim()) {
+      setErrorMsg('Please enter both System Admin User ID and Secret Password.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await api.login(adminUsername.trim(), adminPassword.trim());
+      if (res && res.user) {
+        if (res.user.role !== 'admin') {
+          setErrorMsg('This account does not have System Administrator privileges.');
+          setLoading(false);
+          return;
+        }
+        api.setStoreId('store-demo');
+        api.setUserRole('admin');
+        setSuccessMsg(`System Admin authenticated successfully! Welcome, ${res.user.name}.`);
+        setTimeout(() => {
+          onAuthSuccess(res.user, 'store-demo');
+          onClose();
+        }, 500);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid System Admin credentials. Required User ID: apex7tech@gmail.com, Password: Search@1959');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleQuickDemoAccess = async (role: 'admin' | 'owner' | 'staff') => {
     setLoading(true);
     setErrorMsg('');
@@ -170,7 +208,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Store className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-white">KiranaMate Shop Access</h3>
+              <h3 className="font-bold text-base text-white">TradeMate Business Access</h3>
               <p className="text-[11px] text-slate-400">Account & Store Access</p>
             </div>
           </div>
@@ -423,51 +461,90 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </form>
           )}
 
-          {/* TAB 3: DEMO & SYSTEM ADMIN ACCESS */}
+          {/* TAB 3: SYSTEM ADMIN LOGIN */}
           {activeTab === 'admin' && (
-            <div className="space-y-3">
-              <p className="text-xs text-slate-300 font-medium">
-                1-Click Quick Access by Trading Sector Dashboard:
-              </p>
-
-              {/* Quick Sector Demos */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
-                {TRADING_SECTORS.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => handleSectorDemoAccess(s.demoStoreId)}
-                    disabled={loading}
-                    className="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/50 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between group"
-                  >
-                    <div className="min-w-0 pr-1">
-                      <div className="font-bold text-[11px] text-white truncate">{s.name}</div>
-                      <div className="text-[9px] text-slate-400 truncate">{s.tagline || s.description}</div>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-blue-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                ))}
+            <div className="space-y-4">
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-amber-300 text-xs">
+                <div className="font-bold flex items-center gap-1.5 mb-1 text-amber-400">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>System Administrator Authentication</span>
+                </div>
+                <p className="text-[11px] text-slate-300">
+                  Enter hardcoded System Admin credentials to view platform control panel and account management:
+                </p>
+                <div className="mt-2 bg-slate-950/80 rounded-lg p-2 font-mono text-[11px] border border-amber-500/20 text-amber-200">
+                  <div><span className="text-slate-400">User ID:</span> apex7tech@gmail.com</div>
+                  <div><span className="text-slate-400">Password:</span> Search@1959</div>
+                </div>
               </div>
 
-              <div className="border-t border-slate-800 pt-3">
-                <p className="text-[11px] text-slate-400 mb-2 font-medium">Role Based Demo Access:</p>
-
-                {/* System Admin Button */}
-                <button
-                  onClick={() => handleQuickDemoAccess('admin')}
-                  disabled={loading}
-                  className="w-full p-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between mb-2"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold shrink-0">
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-amber-300">System Administrator</div>
-                      <div className="text-[10px] text-slate-400">Manage all registered shops & view platform analytics</div>
-                    </div>
+              <form onSubmit={handleAdminSubmit} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    System Admin User ID / Email *
+                  </label>
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="apex7tech@gmail.com"
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    />
                   </div>
-                  <span className="text-xs font-bold text-amber-400">Launch →</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    System Admin Secret Password *
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="Search@1959"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-amber-500/20 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{loading ? 'Authenticating Admin...' : 'Authenticate & Access Admin Dashboard'}</span>
                 </button>
+              </form>
+
+              <div className="border-t border-slate-800 pt-3">
+                <p className="text-[11px] text-slate-400 mb-2 font-medium">Quick Demo Role Access:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoAccess('owner')}
+                    disabled={loading}
+                    className="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-[11px] text-slate-300 hover:text-white"
+                  >
+                    <div className="font-bold">Shop Owner Demo</div>
+                    <div className="text-[9px] text-slate-500">Full Store Access</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoAccess('staff')}
+                    disabled={loading}
+                    className="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-[11px] text-slate-300 hover:text-white"
+                  >
+                    <div className="font-bold">Counter Staff Demo</div>
+                    <div className="text-[9px] text-slate-500">POS & Sales Only</div>
+                  </button>
+                </div>
               </div>
             </div>
           )}

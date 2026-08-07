@@ -15,11 +15,12 @@ import {
   ChevronRight,
   Clock,
   Sparkles,
-  Wallet
+  Wallet,
+  MessageSquare
 } from 'lucide-react';
 import { DailyStats, StoreSettings, Customer, LanguageCode, Sale, Order, Product } from '../types';
 import { translations } from '../lib/translations';
-import { getWhatsAppWebLink, generateUdhaarReminderText } from '../lib/whatsapp';
+import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
 import { EmptyStateWizard } from '../components/EmptyStateWizard';
 
 interface DashboardViewProps {
@@ -203,6 +204,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             className="bg-green-100 text-green-700 hover:bg-green-200 px-2.5 py-1 rounded text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
                           >
                             <Share2 className="w-3 h-3" /> WhatsApp
+                          </a>
+                          <a
+                            href={getSmsLink(cust.mobile, generateUdhaarReminderText(cust, settings, lang))}
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-2.5 py-1 rounded text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                            title="Send standard SMS Text message"
+                          >
+                            <MessageSquare className="w-3 h-3" /> SMS
                           </a>
                         </div>
                       </td>

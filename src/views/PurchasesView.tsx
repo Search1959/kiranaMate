@@ -196,7 +196,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
             </tbody>
           </table>
           ${p.notes ? `<p style="font-size:12px; margin-top:12px;"><strong>Notes:</strong> ${p.notes}</p>` : ''}
-          <div class="footer">KiranaMate Inventory & POS - Verified Record</div>
+          <div class="footer">TradeMate Inventory & POS - Verified Record</div>
           <script>window.onload = function() { window.print(); }</script>
         </body>
       </html>

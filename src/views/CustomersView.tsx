@@ -14,11 +14,12 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Eye
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 import { Customer, CustomerTransaction, StoreSettings, LanguageCode } from '../types';
 import { api } from '../lib/api';
-import { getWhatsAppWebLink, generateUdhaarReminderText } from '../lib/whatsapp';
+import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
 
 interface CustomersViewProps {
   customers: Customer[];
@@ -287,9 +288,17 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                     target="_blank"
                     rel="noreferrer"
                     className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center shadow-2xs"
-                    title="WhatsApp Reminder"
+                    title="WhatsApp Udhaar Reminder"
                   >
                     <Share2 className="w-3.5 h-3.5" />
+                  </a>
+
+                  <a
+                    href={getSmsLink(cust.mobile, generateUdhaarReminderText(cust, settings, lang))}
+                    className="p-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center shadow-2xs"
+                    title="SMS Text Udhaar Reminder"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
                   </a>
 
                   <button
@@ -348,6 +357,13 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                     title="Send WhatsApp Reminder"
                   >
                     <Share2 className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={getSmsLink(selectedCustomer.mobile, generateUdhaarReminderText(selectedCustomer, settings, lang))}
+                    className="p-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center"
+                    title="Send SMS Text Reminder"
+                  >
+                    <MessageSquare className="w-4 h-4" />
                   </a>
                 </div>
               </div>

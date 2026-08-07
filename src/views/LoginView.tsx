@@ -29,7 +29,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             <Store className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">{settings.storeName}</h1>
-          <p className="text-xs text-slate-500 font-medium">Kirana Store Management & Business Tracker</p>
+          <p className="text-xs text-slate-500 font-medium">Universal Business ERP & Management Tracker</p>
         </div>
 
         <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
@@ -80,7 +80,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             type="submit"
             className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-98"
           >
-            <span>LOGIN TO KIRANAMATE</span>
+            <span>LOGIN TO TRADEMATE</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

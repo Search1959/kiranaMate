@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { X, Printer, Share2, Store, CheckCircle2, QrCode } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { X, Printer, Share2, Store, CheckCircle2, QrCode, MessageSquare, Copy, Check } from 'lucide-react';
 import { Sale, Order, StoreSettings } from '../types';
-import { getWhatsAppWebLink, generateInvoiceWhatsAppText } from '../lib/whatsapp';
+import { getWhatsAppWebLink, getSmsLink, generateInvoiceWhatsAppText, copyToClipboard } from '../lib/whatsapp';
 
 interface InvoicePrintModalProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
   settings
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
   if (!isOpen || !data) return null;
 
@@ -75,6 +76,9 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
             <div className="text-right">
               <p><strong>Customer:</strong> {customerName}</p>
               {customerMobile && <p><strong>Mobile:</strong> +91 {customerMobile}</p>}
+              {isSale && (data as Sale).customerGstin && (
+                <p><strong>Customer GSTIN:</strong> {(data as Sale).customerGstin}</p>
+              )}
             </div>
           </div>
 
@@ -94,6 +98,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
                   <tr key={idx} className="py-1">
                     <td className="py-1.5 font-semibold text-slate-900">
                       {item.productName}
+                      {item.gstRate ? <span className="text-[9px] text-slate-500 block font-normal">GST @ {item.gstRate}%</span> : null}
                     </td>
                     <td className="py-1.5 text-center font-bold">{item.quantity}</td>
                     <td className="py-1.5 text-right text-slate-600">₹{item.unitPrice || item.price}</td>
@@ -116,10 +121,55 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
                 <span>- ₹{discount}</span>
               </div>
             )}
+
+            {/* GST Tax Breakdown if present */}
+            {isSale && (data as Sale).totalTaxAmount && (data as Sale).totalTaxAmount! > 0 ? (
+              <>
+                {(data as Sale).taxableAmount ? (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Taxable Amount:</span>
+                    <span>₹{(data as Sale).taxableAmount}</span>
+                  </div>
+                ) : null}
+                {(data as Sale).cgstAmount && (data as Sale).cgstAmount! > 0 ? (
+                  <div className="flex justify-between text-slate-600">
+                    <span>CGST (Half):</span>
+                    <span>₹{(data as Sale).cgstAmount}</span>
+                  </div>
+                ) : null}
+                {(data as Sale).sgstAmount && (data as Sale).sgstAmount! > 0 ? (
+                  <div className="flex justify-between text-slate-600">
+                    <span>SGST (Half):</span>
+                    <span>₹{(data as Sale).sgstAmount}</span>
+                  </div>
+                ) : null}
+                {(data as Sale).igstAmount && (data as Sale).igstAmount! > 0 ? (
+                  <div className="flex justify-between text-slate-600">
+                    <span>IGST:</span>
+                    <span>₹{(data as Sale).igstAmount}</span>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+
             <div className="flex justify-between text-sm font-black text-slate-900 pt-1 border-t border-slate-200">
               <span>Grand Total:</span>
               <span>₹{grandTotal}</span>
             </div>
+
+            {isSale && (data as Sale).receivedAmount && (data as Sale).receivedAmount! > 0 ? (
+              <div className="flex justify-between text-slate-700 font-bold pt-1">
+                <span>Amount Received:</span>
+                <span>₹{(data as Sale).receivedAmount}</span>
+              </div>
+            ) : null}
+            {isSale && (data as Sale).changeAmount && (data as Sale).changeAmount! > 0 ? (
+              <div className="flex justify-between text-emerald-700 font-extrabold">
+                <span>Change Returned:</span>
+                <span>₹{(data as Sale).changeAmount}</span>
+              </div>
+            ) : null}
+
             <div className="text-[10px] text-slate-500 pt-1">
               Payment Mode: <strong className="text-slate-800 uppercase">{paymentMethod}</strong>
             </div>
@@ -128,21 +178,41 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
           {/* Footer Note & UPI QR */}
           <div className="mt-6 pt-3 border-t border-dashed border-slate-300 text-center text-[10px] text-slate-500 space-y-1">
             <p className="font-semibold text-slate-700">{settings.invoiceFooterNote}</p>
-            <p className="text-[9px] text-slate-400">Computer Generated Cash/Credit Memo • KiranaMate Digital POS</p>
+            <p className="text-[9px] text-slate-400">Computer Generated Cash/Credit Memo • TradeMate Universal POS</p>
           </div>
         </div>
 
         {/* Footer Actions (Print/Share) */}
         {customerMobile && isSale && (
-          <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-center print:hidden">
+          <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-2 justify-center print:hidden">
             <a
               href={getWhatsAppWebLink(customerMobile, generateInvoiceWhatsAppText(data as Sale, settings))}
               target="_blank"
               rel="noreferrer"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center gap-2"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5"
             >
-              <Share2 className="w-4 h-4" /> Share Bill on WhatsApp
+              <Share2 className="w-4 h-4" /> WhatsApp
             </a>
+
+            <a
+              href={getSmsLink(customerMobile, generateInvoiceWhatsAppText(data as Sale, settings))}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5"
+              title="Send via standard mobile SMS Text"
+            >
+              <MessageSquare className="w-4 h-4" /> SMS Text
+            </a>
+
+            <button
+              onClick={() => {
+                copyToClipboard(generateInvoiceWhatsAppText(data as Sale, settings));
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copied' : 'Copy Text'}
+            </button>
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 /**
- * KiranaMate Shared Data Types & Interfaces
+ * TradeMate Shared Data Types & Interfaces
  */
 
 export type UserRole = 'owner' | 'staff' | 'admin';
@@ -29,6 +29,8 @@ export interface User {
   id: string;
   name: string;
   username: string;
+  password?: string;
+  createdAt?: string;
   role: UserRole;
   mobile: string;
   permissions: UserPermissions;
@@ -37,6 +39,24 @@ export interface User {
   storeSector?: TradingSector;
   isDemoUser?: boolean;
   token?: string;
+}
+
+export interface AdminAccountItem {
+  id: string;
+  userId: string;
+  name: string;
+  username: string;
+  password?: string;
+  role: UserRole;
+  mobile: string;
+  storeId: string;
+  storeName: string;
+  storeSector?: TradingSector;
+  productCount: number;
+  salesCount: number;
+  customerCount: number;
+  createdAt?: string;
+  isDemo?: boolean;
 }
 
 export interface Customer {
@@ -209,6 +229,8 @@ export interface SaleItem {
   unitPrice: number;
   mrp: number;
   totalPrice: number;
+  gstRate?: number;
+  gstAmount?: number;
 }
 
 export interface Sale {
@@ -217,12 +239,22 @@ export interface Sale {
   customerId?: string;
   customerName: string;
   customerMobile?: string;
+  customerGstin?: string;
   items: SaleItem[];
   subtotal: number;
   discount: number;
+  taxType?: 'INCLUSIVE' | 'EXCLUSIVE' | 'EXEMPT';
+  gstRate?: number;
+  taxableAmount?: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
+  totalTaxAmount?: number;
   grandTotal: number;
   paymentMethod: PaymentMethod | 'CREDIT';
   paymentStatus: PaymentStatus;
+  receivedAmount?: number;
+  changeAmount?: number;
   createdByName?: string;
   notes?: string;
   createdAt: string;
@@ -297,7 +329,7 @@ export interface StoreSettings {
   invoicePrefix: string;
   invoiceFooterNote: string;
   lowStockThresholdDefault: number;
-  defaultLanguage: 'en' | 'hi' | 'mr' | 'gu' | 'ta';
+  defaultLanguage: 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'bn';
   sector?: TradingSector;
 }
 
@@ -321,4 +353,4 @@ export interface DailyStats {
   outOfStockCount: number;
 }
 
-export type LanguageCode = 'en' | 'hi' | 'mr' | 'gu' | 'ta';
+export type LanguageCode = 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'bn';

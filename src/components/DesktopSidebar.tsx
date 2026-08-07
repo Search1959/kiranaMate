@@ -15,7 +15,8 @@ import {
   CreditCard,
   Store,
   BookOpen,
-  DollarSign
+  DollarSign,
+  ShieldCheck
 } from 'lucide-react';
 import { Layers, Sparkles } from 'lucide-react';
 import { LanguageCode, DailyStats, User, TradingSector } from '../types';
@@ -68,6 +69,9 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         { id: 'finance', label: t.finance, icon: DollarSign },
         { id: 'stockLedger', label: t.stockLedger, icon: BookOpen },
         { id: 'reports', label: t.reports, icon: FileText },
+        ...(currentUser?.role === 'admin'
+          ? [{ id: 'system_admin', label: 'System Admin Accounts', icon: ShieldCheck, badge: 'Admin', badgeColor: 'bg-amber-500 text-slate-950 font-bold' }]
+          : []),
         { id: 'settings', label: t.settings, icon: Settings },
         { id: 'backup', label: t.backup, icon: Database },
       ]
@@ -81,7 +85,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Store className="w-5 h-5 text-blue-400" />
-            <span>Kirana<span className="text-blue-400">Mate</span></span>
+            <span>Trade<span className="text-blue-400">Mate</span></span>
           </h1>
           <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5 font-semibold">Store Management</p>
         </div>

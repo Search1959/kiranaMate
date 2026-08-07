@@ -147,7 +147,7 @@ class Database {
         role: 'owner',
         mobile: '9876543210',
         storeId: 'store-demo',
-        storeName: 'KiranaMate General Store',
+        storeName: 'TradeMate General Store',
         isDemoUser: false,
         permissions: {
           canViewReports: true,
@@ -350,7 +350,7 @@ class Database {
     const welcomeNotification: NotificationAlert = {
       id: `notif-${Date.now()}`,
       type: 'NEW_ORDER',
-      title: '🎉 Welcome to KiranaMate!',
+      title: '🎉 Welcome to TradeMate!',
       message: `Your new store '${data.shopName}' is ready with clean zero data. Add your first product or customer to get started!`,
       isRead: false,
       createdAt: new Date().toISOString()

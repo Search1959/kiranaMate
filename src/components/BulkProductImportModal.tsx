@@ -52,7 +52,7 @@ export const BulkProductImportModal: React.FC<BulkProductImportModalProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "kiranamate_sample_products.csv");
+    link.setAttribute("download", "trademate_sample_products.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -57,7 +57,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             <div className="space-y-1.5">
               <h2 className="text-xl font-bold text-white tracking-tight">
-                KiranaMate Application Notice
+                TradeMate Application Notice
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed">
                 An unexpected component rendering issue occurred. You can safely recover below without losing your shop data.

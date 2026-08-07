@@ -329,6 +329,7 @@ export const Header: React.FC<HeaderProps> = ({
               {[
                 { code: 'en', label: 'English' },
                 { code: 'hi', label: 'हिन्दी (Hindi)' },
+                { code: 'bn', label: 'বাংলা (Bengali)' },
                 { code: 'mr', label: 'मराठी (Marathi)' },
                 { code: 'gu', label: 'ગુજરાતી (Gujarati)' },
                 { code: 'ta', label: 'தமிழ் (Tamil)' }

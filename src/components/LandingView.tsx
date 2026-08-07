@@ -52,10 +52,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </div>
           <div>
             <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1">
-              Kirana<span className="text-blue-400">Mate</span>
+              Trade<span className="text-blue-400">Mate</span>
             </span>
             <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-semibold leading-none">
-              Smart POS & Khata System
+              Universal Business ERP & POS
             </span>
           </div>
         </div>
@@ -79,6 +79,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             >
               <option value="en" className="bg-slate-800">English</option>
               <option value="hi" className="bg-slate-800">हिन्दी (Hindi)</option>
+              <option value="bn" className="bg-slate-800">বাংলা (Bengali)</option>
               <option value="mr" className="bg-slate-800">मराठी (Marathi)</option>
               <option value="gu" className="bg-slate-800">ગુજરાતી (Gujarati)</option>
               <option value="ta" className="bg-slate-800">தமிழ் (Tamil)</option>
@@ -112,15 +113,15 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="lg:col-span-5 text-left space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              🇮🇳 Trusted by 10,000+ Kirana & Grocery Shops Across India
+              🇮🇳 India's #1 Universal ERP & POS for FMCG, Steel, Mandi, Textiles & Hardware
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              Digitalize Your Kirana Shop in <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300">60 Seconds</span>
+              Empower Any Wholesale & Retail Business in <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300">60 Seconds</span>
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              All-in-One Smart POS Counter Billing, WhatsApp Udhaar Khata Digital Reminders, Barcode Stock Alerts & WhatsApp Delivery Order Management.
+              All-in-One AI POS Counter Billing, AI Invoice Camera Scanner, WhatsApp Udhaar Khata Reminders & Tailored Multi-Unit Inventory Control for <strong>Kirana, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & Energy</strong> traders.
             </p>
 
             {/* Key CTA Buttons */}
@@ -266,12 +267,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
       <section id="features" className="py-20 px-4 sm:px-8 bg-slate-950 border-t border-slate-800">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <h2 className="text-xs uppercase font-bold tracking-widest text-blue-400">Complete Shop Solution</h2>
+            <h2 className="text-xs uppercase font-bold tracking-widest text-blue-400">Universal Trading Platform</h2>
             <h3 className="text-2xl sm:text-4xl font-black text-white">
-              Everything Your Kirana Shop Needs to Grow Profit
+              Everything Your Trading Business Needs to Scale & Maximize Profit
             </h3>
             <p className="text-sm sm:text-base text-slate-400">
-              Designed specifically for Indian grocery counters, KiranaMate replaces traditional ledger notebooks with lightning fast digital tools.
+              Designed specifically for wholesale distributors, retail counters & traders across India. TradeMate replaces messy paper ledgers with fast, multi-unit digital tools.
             </p>
           </div>
 
@@ -336,9 +337,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">
                 <Globe className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">5 Regional Languages</h4>
+              <h4 className="text-lg font-bold text-white">6 Regional Languages</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Switch entire app interface between English, Hindi (हिन्दी), Marathi (मराठी), Gujarati (ગુજરાતી), and Tamil (தமிழ்) with 1 click.
+                Switch entire app interface between English, Hindi (हिन्दी), Bengali (বাংলা), Marathi (मराठी), Gujarati (ગુજરાતી), and Tamil (தமிழ்) with 1 click.
               </p>
             </div>
           </div>
@@ -352,7 +353,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <ShieldCheck className="w-8 h-8 text-blue-400 shrink-0" />
             <div>
               <h3 className="text-xl sm:text-2xl font-bold text-white">Two Modes for Ultimate Flexibility</h3>
-              <p className="text-xs sm:text-sm text-slate-300">Choose how you want to experience KiranaMate today</p>
+              <p className="text-xs sm:text-sm text-slate-300">Choose how you want to experience TradeMate today</p>
             </div>
           </div>
 
@@ -492,15 +493,15 @@ export const LandingView: React.FC<LandingViewProps> = ({
             {[
               {
                 q: "Do I need an expensive computer or barcode scanner?",
-                a: "No! KiranaMate runs directly in any phone browser, tablet, or PC. You can scan barcodes using your smartphone camera or plug in any standard USB barcode scanner."
+                a: "No! TradeMate runs directly in any phone browser, tablet, or PC. You can scan barcodes or AI invoices using your smartphone camera or plug in any standard USB barcode scanner."
               },
               {
                 q: "Does a new registered account come with zero demo data?",
-                a: "Yes! When you click 'Create Free Store' and register your shop name, your account starts with a fresh clean database (0 sales, 0 products) so you build your own shop inventory from scratch."
+                a: "Yes! When you click 'Create Free Store' and register your business name, your account starts with a fresh clean database so you build your own inventory and sector unit setup from scratch."
               },
               {
                 q: "How does the WhatsApp Udhaar Khata reminder work?",
-                a: "When a customer has pending credit balance, you can click 'Send WhatsApp Reminder'. KiranaMate auto-formats a polite reminder message in Hindi or English with their balance and your shop UPI payment link."
+                a: "When a customer has pending credit balance, you can click 'Send WhatsApp Reminder'. TradeMate auto-formats a polite reminder message in your chosen regional language (English, Hindi, Bengali, Marathi, Gujarati, Tamil) with their balance and your shop UPI payment link."
               },
               {
                 q: "Can my shop staff use this with limited permissions?",
@@ -534,10 +535,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Store className="w-4 h-4 text-blue-400" />
-            <span className="font-bold text-white">KiranaMate</span>
-            <span>— Smart POS & Udhaar Management System</span>
+            <span className="font-bold text-white">TradeMate</span>
+            <span>— Universal Business ERP, POS Billing & Khata System</span>
           </div>
-          <p>© {new Date().getFullYear()} KiranaMate POS. Built for Indian Shopkeepers with ❤️</p>
+          <p>© {new Date().getFullYear()} TradeMate POS. Built for Wholesale & Retail Traders across India with ❤️</p>
         </div>
       </footer>
     </div>

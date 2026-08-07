@@ -8,11 +8,12 @@ import {
   CheckCircle2,
   Truck,
   XCircle,
-  Receipt
+  Receipt,
+  MessageSquare
 } from 'lucide-react';
 import { Order, OrderStatus, StoreSettings, LanguageCode } from '../types';
 import { api } from '../lib/api';
-import { getWhatsAppWebLink, generateOrderStatusWhatsAppText } from '../lib/whatsapp';
+import { getWhatsAppWebLink, getSmsLink, generateOrderStatusWhatsAppText } from '../lib/whatsapp';
 
 interface OrdersViewProps {
   orders: Order[];
@@ -166,14 +167,24 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
               </button>
 
               {order.customerMobile && (
-                <a
-                  href={getWhatsAppWebLink(order.customerMobile, generateOrderStatusWhatsAppText(order, settings, lang))}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-xs"
-                >
-                  <Share2 className="w-3.5 h-3.5" /> WhatsApp Update
-                </a>
+                <div className="flex gap-1.5">
+                  <a
+                    href={getWhatsAppWebLink(order.customerMobile, generateOrderStatusWhatsAppText(order, settings, lang))}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1 text-[11px] shadow-xs"
+                    title="Send WhatsApp Order Update"
+                  >
+                    <Share2 className="w-3.5 h-3.5" /> WhatsApp
+                  </a>
+                  <a
+                    href={getSmsLink(order.customerMobile, generateOrderStatusWhatsAppText(order, settings, lang))}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1 text-[11px] shadow-xs"
+                    title="Send SMS Text Order Update"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" /> SMS
+                  </a>
+                </div>
               )}
             </div>
           </div>

@@ -261,7 +261,7 @@ export default function App() {
         const activeStoreName = activeSettings.storeName || primaryUser.storeName;
         if (!prev) {
           const newUserObj = { ...primaryUser, storeName: activeStoreName };
-          localStorage.setItem('kiranamate_session_user', JSON.stringify(newUserObj));
+          localStorage.setItem('trademate_session_user', JSON.stringify(newUserObj));
           return newUserObj;
         }
         const matchedUser = usersData.find(u => u.id === prev.id || u.username.toLowerCase() === prev.username.toLowerCase()) || primaryUser;
@@ -269,7 +269,7 @@ export default function App() {
           ...matchedUser,
           storeName: activeStoreName
         };
-        localStorage.setItem('kiranamate_session_user', JSON.stringify(updatedUserObj));
+        localStorage.setItem('trademate_session_user', JSON.stringify(updatedUserObj));
         return updatedUserObj;
       });
       if (usersData[0]) {
@@ -293,7 +293,7 @@ export default function App() {
         setAdminStoresList(adminRes.stores || []);
       }
     } catch (err) {
-      console.error("Failed to load KiranaMate data:", err);
+      console.error("Failed to load TradeMate data:", err);
       setCurrentUser(prev => prev || DEFAULT_USER);
       setSettings(prev => prev || getFallbackSettings(targetStore));
       setStats(prev => prev || DEFAULT_STATS);
@@ -303,8 +303,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    const savedUserRaw = localStorage.getItem('kiranamate_session_user');
-    const savedStoreId = localStorage.getItem('kiranamate_session_store_id');
+    const savedUserRaw = localStorage.getItem('trademate_session_user') || localStorage.getItem('kiranamate_session_user');
+    const savedStoreId = localStorage.getItem('trademate_session_store_id') || localStorage.getItem('kiranamate_session_store_id');
 
     if (savedUserRaw && savedStoreId) {
       try {
@@ -367,8 +367,8 @@ export default function App() {
 
       setCurrentUser(userObj);
       api.setUserRole(userObj.role);
-      localStorage.setItem('kiranamate_session_user', JSON.stringify(userObj));
-      localStorage.setItem('kiranamate_session_store_id', 'store-demo');
+      localStorage.setItem('trademate_session_user', JSON.stringify(userObj));
+      localStorage.setItem('trademate_session_store_id', 'store-demo');
 
       await loadData('store-demo');
       setActiveTab('home');
@@ -386,8 +386,8 @@ export default function App() {
     api.setStoreId(storeId);
     setCurrentStoreId(storeId);
 
-    localStorage.setItem('kiranamate_session_user', JSON.stringify(user));
-    localStorage.setItem('kiranamate_session_store_id', storeId);
+    localStorage.setItem('trademate_session_user', JSON.stringify(user));
+    localStorage.setItem('trademate_session_store_id', storeId);
 
     await loadData(storeId);
     setViewMode('app');
@@ -396,15 +396,17 @@ export default function App() {
   const handleUserSwitch = (user: User) => {
     setCurrentUser(user);
     api.setUserRole(user.role);
-    localStorage.setItem('kiranamate_session_user', JSON.stringify(user));
+    localStorage.setItem('trademate_session_user', JSON.stringify(user));
   };
 
   const handleAdminSwitchStore = async (targetStoreId: string) => {
-    localStorage.setItem('kiranamate_session_store_id', targetStoreId);
+    localStorage.setItem('trademate_session_store_id', targetStoreId);
     await loadData(targetStoreId);
   };
 
   const handleGoToLanding = () => {
+    localStorage.removeItem('trademate_session_user');
+    localStorage.removeItem('trademate_session_store_id');
     localStorage.removeItem('kiranamate_session_user');
     localStorage.removeItem('kiranamate_session_store_id');
     setCurrentUser(null);
@@ -507,7 +509,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-400 font-medium">Loading KiranaMate Store Control Panel...</p>
+          <p className="text-xs text-slate-400 font-medium">Loading TradeMate Universal Control Panel...</p>
         </div>
       </div>
     );
