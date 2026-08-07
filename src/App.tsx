@@ -273,6 +273,14 @@ export default function App() {
           localStorage.setItem('trademate_session_user', JSON.stringify(newUserObj));
           return newUserObj;
         }
+
+        // If active user is System Admin, preserve admin identity
+        if (prev.role === 'admin') {
+          const updatedAdminObj = { ...prev, storeName: activeStoreName };
+          localStorage.setItem('trademate_session_user', JSON.stringify(updatedAdminObj));
+          return updatedAdminObj;
+        }
+
         const matchedUser = usersData.find(u => u.id === prev.id || u.username.toLowerCase() === prev.username.toLowerCase()) || primaryUser;
         const updatedUserObj = {
           ...matchedUser,
@@ -281,7 +289,24 @@ export default function App() {
         localStorage.setItem('trademate_session_user', JSON.stringify(updatedUserObj));
         return updatedUserObj;
       });
-      if (usersData[0]) {
+
+      // Determine active role from session
+      let activeRole = currentUser?.role;
+      try {
+        const savedUserRaw = localStorage.getItem('trademate_session_user') || localStorage.getItem('kiranamate_session_user');
+        if (savedUserRaw) {
+          const parsed = JSON.parse(savedUserRaw);
+          if (parsed && parsed.role) activeRole = parsed.role;
+        }
+      } catch {
+        // ignore
+      }
+
+      if (activeRole === 'admin') {
+        api.setUserRole('admin');
+        const adminRes = await api.getAdminStores().catch(() => ({ stores: [] }));
+        setAdminStoresList(adminRes.stores || []);
+      } else if (usersData[0]) {
         api.setUserRole(usersData[0].role);
       }
 
@@ -295,12 +320,6 @@ export default function App() {
       setSuppliers(suppliersData || []);
       setNotifications(notifsData || []);
       setInventoryTransactions(invTxData || []);
-
-      // If user is admin, fetch list of all stores
-      if (currentUser?.role === 'admin') {
-        const adminRes = await api.getAdminStores().catch(() => ({ stores: [] }));
-        setAdminStoresList(adminRes.stores || []);
-      }
     } catch (err) {
       console.error("Failed to load TradeMate data:", err);
       setCurrentUser(prev => prev || DEFAULT_USER);

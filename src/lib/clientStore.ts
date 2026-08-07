@@ -401,20 +401,35 @@ export const clientStore = {
   },
 
   getAdminStores(): { stores: { id: string; storeName: string; ownerName: string; isDemo: boolean; productCount: number; salesCount: number }[] } {
-    const list: { id: string; storeName: string; ownerName: string; isDemo: boolean; productCount: number; salesCount: number }[] = [];
-    
-    // 1. Add all registered custom stores from localStorage
+    const storesMap = new Map<string, { id: string; storeName: string; ownerName: string; isDemo: boolean; productCount: number; salesCount: number }>();
+
+    // 1. Add default sector demo stores
+    TRADING_SECTORS.forEach(sec => {
+      const seed = generateSectorSeedData(sec.id);
+      storesMap.set(sec.demoStoreId, {
+        id: sec.demoStoreId,
+        storeName: seed.settings.storeName,
+        ownerName: 'Demo Manager',
+        isDemo: true,
+        productCount: seed.products.length,
+        salesCount: seed.sales.length
+      });
+    });
+
+    // 2. Scan custom registered stores in localStorage
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(LOCAL_STORAGE_PREFIX)) {
-        const sid = key.replace(LOCAL_STORAGE_PREFIX, '');
+      if (key && (key.startsWith(LOCAL_STORAGE_PREFIX) || key.startsWith(LEGACY_LOCAL_STORAGE_PREFIX))) {
+        const sid = key.startsWith(LOCAL_STORAGE_PREFIX)
+          ? key.replace(LOCAL_STORAGE_PREFIX, '')
+          : key.replace(LEGACY_LOCAL_STORAGE_PREFIX, '');
         try {
           const raw = localStorage.getItem(key);
           if (raw) {
             const data: StoreData = JSON.parse(raw);
-            list.push({
+            storesMap.set(sid, {
               id: sid,
-              storeName: data.settings?.storeName || 'Store',
+              storeName: data.settings?.storeName || 'Registered Store',
               ownerName: data.settings?.ownerName || 'Owner',
               isDemo: sid.startsWith('store-demo'),
               productCount: data.products ? data.products.length : 0,
@@ -427,22 +442,7 @@ export const clientStore = {
       }
     }
 
-    // 2. If no stores in list yet, include default demo sectors
-    if (list.length === 0) {
-      TRADING_SECTORS.forEach(sec => {
-        const seed = generateSectorSeedData(sec.id);
-        list.push({
-          id: sec.demoStoreId,
-          storeName: seed.settings.storeName,
-          ownerName: 'Demo Manager',
-          isDemo: true,
-          productCount: seed.products.length,
-          salesCount: seed.sales.length
-        });
-      });
-    }
-
-    return { stores: list };
+    return { stores: Array.from(storesMap.values()) };
   },
 
   // Customers
@@ -1298,13 +1298,19 @@ export const clientStore = {
     return { success: true };
   },
 
-  register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector }): { success: boolean; user: User; storeId: string } {
-    const cleanUsername = payload.username.trim().toLowerCase();
+  register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector; allowExisting?: boolean }): { success: boolean; user: User; storeId: string } {
+    const rawUsername = payload.username || 'user';
+    let cleanUsername = rawUsername.trim().toLowerCase();
 
     // Check if user already exists
     const existing = findUserAcrossAllStores(cleanUsername);
     if (existing) {
-      throw new Error(`Username/Email '${payload.username}' is already registered. Please login or use a different username.`);
+      if (payload.allowExisting !== false) {
+        // Log in directly to the existing account and store
+        return { success: true, user: existing.user, storeId: existing.storeId };
+      }
+      // Generate a unique username if requested
+      cleanUsername = `${cleanUsername}_${Date.now().toString().slice(-4)}`;
     }
 
     const newStoreId = `store-${Date.now()}`;

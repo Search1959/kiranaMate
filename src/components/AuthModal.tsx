@@ -66,32 +66,61 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!regShopName.trim() || !regOwnerName.trim() || !regUsername.trim()) {
-      setErrorMsg('Please enter Shop Name, Owner Name, and Username.');
-      return;
-    }
+    const shopName = regShopName.trim() || 'My Commercial Store';
+    const ownerName = regOwnerName.trim() || 'Store Owner';
+    const username = regUsername.trim() || `user_${Math.floor(1000 + Math.random() * 9000)}`;
 
     try {
       setLoading(true);
       const res = await api.register({
-        shopName: regShopName.trim(),
-        ownerName: regOwnerName.trim(),
+        shopName,
+        ownerName,
         mobile: regMobile.trim() || '9876543210',
-        username: regUsername.trim(),
+        username,
         password: regPassword.trim() || '123456',
         sector: regSector
       });
 
       api.setStoreId(res.storeId);
       api.setUserRole('owner');
-      setSuccessMsg(`Store '${regShopName}' created successfully for ${TRADING_SECTORS.find(s => s.id === regSector)?.name || regSector}!`);
+      setSuccessMsg(`Store '${shopName}' created successfully for ${TRADING_SECTORS.find(s => s.id === regSector)?.name || regSector}!`);
 
       setTimeout(() => {
         onAuthSuccess(res.user, res.storeId);
         onClose();
-      }, 600);
+      }, 500);
     } catch (err: any) {
       setErrorMsg(err.message || 'Registration failed. Try a different username.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickSignUp = async () => {
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      setLoading(true);
+      const randomId = Math.floor(1000 + Math.random() * 9000);
+      const res = await api.register({
+        shopName: `Clean Store #${randomId}`,
+        ownerName: 'Store Owner',
+        mobile: '9876543210',
+        username: `user_${randomId}`,
+        password: '123456',
+        sector: regSector
+      });
+
+      api.setStoreId(res.storeId);
+      api.setUserRole('owner');
+      setSuccessMsg(`Store created successfully! Launching clean store...`);
+
+      setTimeout(() => {
+        onAuthSuccess(res.user, res.storeId);
+        onClose();
+      }, 500);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Quick sign up failed');
     } finally {
       setLoading(false);
     }
@@ -154,7 +183,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }, 500);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Invalid System Admin credentials. Required User ID: apex7tech@gmail.com, Password: Search@1959');
+      setErrorMsg(err.message || 'Invalid System Admin credentials. Please verify your User ID and Password.');
     } finally {
       setLoading(false);
     }
@@ -231,8 +260,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Create New Store</span>
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+            <span>Sign Up / New Store</span>
           </button>
 
           <button
@@ -276,9 +305,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* TAB 1: CREATE NEW STORE (Zero Demo Data!) */}
+          {/* TAB 1: SIGN UP / CREATE NEW STORE */}
           {activeTab === 'register' && (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+            <div className="space-y-4">
+              {/* 1-Click Fast Sign Up */}
+              <div className="bg-slate-950 border border-blue-500/30 rounded-xl p-3.5 text-center space-y-2.5">
+                <div className="text-xs font-bold text-white flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>Fastest 1-Click Sign Up</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Instant clean store creation for GitHub & web users with zero demo data setup.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleQuickSignUp}
+                  disabled={loading}
+                  className="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs transition-all shadow-lg shadow-blue-600/30 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <ArrowRight className="w-4 h-4 text-amber-300" />
+                  <span>Instant 1-Click Sign Up & Launch Store</span>
+                </button>
+              </div>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-800"></div>
+                <span className="flex-shrink mx-3 text-[10px] uppercase tracking-wider font-bold text-slate-500">Or Fill Custom Shop Details</span>
+                <div className="flex-grow border-t border-slate-800"></div>
+              </div>
+
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
               <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-xs text-blue-300 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>
@@ -394,6 +450,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {loading ? 'Setting Up Your Store...' : 'Create My Store (Zero Data)'}
               </button>
             </form>
+          </div>
           )}
 
           {/* TAB 2: LOGIN TO EXISTING STORE */}
@@ -471,12 +528,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>System Administrator Authentication</span>
                 </div>
                 <p className="text-[11px] text-slate-300">
-                  Enter hardcoded System Admin credentials to view platform control panel and account management:
+                  Enter authorized System Admin credentials to access platform control panel and account management:
                 </p>
-                <div className="mt-2 bg-slate-950/80 rounded-lg p-2 font-mono text-[11px] border border-amber-500/20 text-amber-200">
-                  <div><span className="text-slate-400">User ID:</span> apex7tech@gmail.com</div>
-                  <div><span className="text-slate-400">Password:</span> Search@1959</div>
-                </div>
               </div>
 
               <form onSubmit={handleAdminSubmit} className="space-y-3">
@@ -487,9 +540,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="relative">
                     <UserIcon className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
-                      type="email"
+                      type="text"
                       required
-                      placeholder="apex7tech@gmail.com"
+                      placeholder="Enter System Admin Email / User ID"
                       value={adminUsername}
                       onChange={(e) => setAdminUsername(e.target.value)}
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
@@ -506,7 +559,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <input
                       type="password"
                       required
-                      placeholder="Search@1959"
+                      placeholder="Enter Secret Password"
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
                       className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"

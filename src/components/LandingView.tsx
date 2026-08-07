@@ -121,7 +121,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             className="px-4 py-2 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Sparkles className="w-4 h-4 text-blue-200" />
-            <span>Create Free Store</span>
+            <span>Sign Up / Create Store</span>
           </button>
         </div>
       </nav>
@@ -165,7 +165,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm"
               >
                 <Store className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Start Clean Shop</span>
+                <span>Sign Up (Start Clean Shop)</span>
               </button>
             </div>
 
