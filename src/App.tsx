@@ -16,7 +16,7 @@ import {
   TradingSector
 } from './types';
 import { api, getCurrentStoreId } from './lib/api';
-import { getSectorConfig } from './lib/sectorConfig';
+import { getSectorConfig, TRADING_SECTORS } from './lib/sectorConfig';
 
 const DEFAULT_USER: User = {
   id: 'user-demo-owner',
@@ -184,24 +184,31 @@ export default function App() {
       api.setStoreId(demoStoreId);
       setCurrentStoreId(demoStoreId);
 
-      if (!currentUser) {
-        const userObj: User = {
-          id: `user-owner-${demoStoreId}`,
-          name: `Demo Manager`,
-          username: 'owner',
-          role: 'owner',
-          mobile: '9876543210',
-          permissions: {
-            canViewReports: true,
-            canEditProducts: true,
-            canDeleteRecords: true,
-            canCollectPayments: true,
-            canCreateOrders: true,
-            canManageSettings: true
-          }
-        };
-        setCurrentUser(userObj);
-      }
+      const sectorDef = TRADING_SECTORS.find(s => s.id === sectorId || s.demoStoreId === demoStoreId);
+      const storeName = sectorDef?.defaultSettings?.storeName || sectorDef?.name || 'TradeMate Demo Store';
+
+      const userObj: User = {
+        id: `user-owner-${demoStoreId}`,
+        name: `Demo Manager`,
+        username: 'owner',
+        role: 'owner',
+        mobile: '9876543210',
+        storeId: demoStoreId,
+        storeName: storeName,
+        storeSector: sectorId,
+        permissions: {
+          canViewReports: true,
+          canEditProducts: true,
+          canDeleteRecords: true,
+          canCollectPayments: true,
+          canCreateOrders: true,
+          canManageSettings: true
+        }
+      };
+
+      setCurrentUser(userObj);
+      localStorage.setItem('trademate_session_user', JSON.stringify(userObj));
+      localStorage.setItem('trademate_session_store_id', demoStoreId);
 
       await loadData(demoStoreId);
       setActiveTab('home');
@@ -488,6 +495,15 @@ export default function App() {
           onStartDemo={handleStartDemo}
           lang={lang}
           onLanguageChange={setLang}
+          onSelectSectorDemo={handleSelectSectorDemo}
+          onOpenSectorModal={() => setIsSectorModalOpen(true)}
+        />
+
+        {/* Multi-Sector Trading Demo Selector Modal */}
+        <SectorDemoModal
+          isOpen={isSectorModalOpen}
+          onClose={() => setIsSectorModalOpen(false)}
+          currentSector={settings?.sector}
           onSelectSectorDemo={handleSelectSectorDemo}
         />
 

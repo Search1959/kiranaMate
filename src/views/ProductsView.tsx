@@ -247,6 +247,57 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                   </span>
                 </div>
 
+                {/* Sector-Specific Product Attributes Badges */}
+                {(p.batchNumber || p.expiryDate || p.grade || p.imei || p.warrantyMonths || p.size || p.color || p.cropSeason || p.purity || p.vehicleModel || p.shade) && (
+                  <div className="mt-2 mb-2 flex items-center gap-1.5 flex-wrap text-[10px]">
+                    {p.batchNumber && (
+                      <span className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono border border-slate-200">
+                        Batch: {p.batchNumber}
+                      </span>
+                    )}
+                    {p.expiryDate && (
+                      <span className="bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded font-semibold border border-amber-200">
+                        Exp: {p.expiryDate}
+                      </span>
+                    )}
+                    {p.scheduleCategory && (
+                      <span className="bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded font-bold border border-rose-200">
+                        {p.scheduleCategory}
+                      </span>
+                    )}
+                    {p.grade && (
+                      <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-200">
+                        {p.grade}
+                      </span>
+                    )}
+                    {p.imei && (
+                      <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-mono border border-purple-200">
+                        IMEI: {p.imei.slice(-6)}
+                      </span>
+                    )}
+                    {p.warrantyMonths && (
+                      <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-semibold border border-emerald-200">
+                        {p.warrantyMonths}M Warranty
+                      </span>
+                    )}
+                    {p.size && (
+                      <span className="bg-stone-100 text-stone-800 px-1.5 py-0.5 rounded font-bold border border-stone-200">
+                        Size: {p.size}
+                      </span>
+                    )}
+                    {p.purity && (
+                      <span className="bg-yellow-50 text-yellow-800 px-1.5 py-0.5 rounded font-bold border border-yellow-200">
+                        {p.purity}
+                      </span>
+                    )}
+                    {p.vehicleModel && (
+                      <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-semibold border border-indigo-200">
+                        {p.vehicleModel}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                   <div>
                     <span className="text-[10px] text-slate-400 block">Selling Price</span>

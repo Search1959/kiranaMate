@@ -23,7 +23,20 @@ export type TradingSector =
   | 'JEWELLERY'
   | 'STATIONERY'
   | 'BUILDING_HARDWARE'
-  | 'GENERAL_TRADING';
+  | 'GENERAL_TRADING'
+  | 'PHARMACY'
+  | 'ELECTRICAL_ELECTRONICS'
+  | 'AUTO_PARTS'
+  | 'DAIRY_BEVERAGE'
+  | 'FRUITS_VEGETABLES'
+  | 'BAKERY'
+  | 'FURNITURE_WOOD'
+  | 'PLASTICS_PACKAGING'
+  | 'MOBILE_COMPUTERS'
+  | 'FOOTWEAR_GARMENTS'
+  | 'COSMETICS'
+  | 'SEEDS_FERTILIZERS'
+  | 'WATER_RO';
 
 export interface User {
   id: string;
@@ -128,6 +141,35 @@ export interface Product {
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
   updatedAt: string;
+  // Sector-Specific Attributes
+  batchNumber?: string;
+  expiryDate?: string;
+  manufacturingDate?: string;
+  scheduleCategory?: string;
+  grade?: string;
+  thickness?: string;
+  width?: string;
+  length?: string;
+  heatNumber?: string;
+  millName?: string;
+  imei?: string;
+  serialNumber?: string;
+  warrantyMonths?: number;
+  purity?: string;
+  makingCharge?: number;
+  stoneWeightGrams?: number;
+  gsm?: number;
+  color?: string;
+  fabricType?: string;
+  size?: string;
+  cropSeason?: string;
+  vehicleModel?: string;
+  oemNumber?: string;
+  shade?: string;
+  amcCost?: number;
+  nextServiceDueDate?: string;
+  hazardClass?: string;
+  density?: string;
 }
 
 export type ProductUnit = 'kg' | 'g' | 'liter' | 'ml' | 'pcs' | 'pkt' | 'box' | 'bottle' | 'pouch' | 'bag' | 'tin' | 'jar' | string;

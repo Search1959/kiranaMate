@@ -223,7 +223,13 @@ function findUserAcrossAllStores(username: string): { user: User; storeId: strin
 
 function getStoreData(storeId: string = 'store-demo'): StoreData {
   let sectorKey: TradingSector = 'KIRANA_FMCG';
-  if (storeId === 'store-demo-steel' || storeId.includes('steel')) sectorKey = 'METALS_STEEL';
+  const sectorDef = TRADING_SECTORS.find(s => s.demoStoreId === storeId || s.id === storeId);
+  if (sectorDef) {
+    sectorKey = sectorDef.id;
+  } else if (storeId === 'store-demo-steel' || storeId.includes('steel')) sectorKey = 'METALS_STEEL';
+  else if (storeId === 'store-demo-footwear' || storeId.includes('footwear')) sectorKey = 'FOOTWEAR_GARMENTS';
+  else if (storeId === 'store-demo-pharma' || storeId.includes('pharma')) sectorKey = 'PHARMACY';
+  else if (storeId === 'store-demo-electrical' || storeId.includes('electrical')) sectorKey = 'ELECTRICAL_ELECTRONICS';
   else if (storeId === 'store-demo-agri' || storeId.includes('agri')) sectorKey = 'AGRICULTURE';
   else if (storeId === 'store-demo-textile' || storeId.includes('textile')) sectorKey = 'TEXTILES';
   else if (storeId === 'store-demo-chemical' || storeId.includes('chemical')) sectorKey = 'CHEMICALS';
@@ -232,10 +238,6 @@ function getStoreData(storeId: string = 'store-demo'): StoreData {
   else if (storeId === 'store-demo-stationery' || storeId.includes('stationery')) sectorKey = 'STATIONERY';
   else if (storeId === 'store-demo-hardware' || storeId.includes('hardware')) sectorKey = 'BUILDING_HARDWARE';
   else if (storeId === 'store-demo-kirana' || storeId.includes('kirana')) sectorKey = 'KIRANA_FMCG';
-  else {
-    const sectorDef = TRADING_SECTORS.find(s => s.demoStoreId === storeId || s.id === storeId);
-    if (sectorDef) sectorKey = sectorDef.id;
-  }
 
   const key = `${LOCAL_STORAGE_PREFIX}${storeId}`;
   const legacyKey = `${LEGACY_LOCAL_STORAGE_PREFIX}${storeId}`;

@@ -61,6 +61,22 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [supplierId, setSupplierId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Sector-Specific Form State
+  const [batchNumber, setBatchNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [scheduleCategory, setScheduleCategory] = useState('');
+  const [grade, setGrade] = useState('');
+  const [thickness, setThickness] = useState('');
+  const [imei, setImei] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
+  const [warrantyMonths, setWarrantyMonths] = useState<number | ''>('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [oemNumber, setOemNumber] = useState('');
+  const [purity, setPurity] = useState('');
+  const [makingCharge, setMakingCharge] = useState<number | ''>('');
+  const [size, setSize] = useState('');
+  const [color, setColor] = useState('');
+
   useEffect(() => {
     if (isOpen) {
       if (productToEdit) {
@@ -77,11 +93,25 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         setMinStock(productToEdit.minStock);
         setGstPercent(productToEdit.gstPercent || 0);
         setSupplierId(productToEdit.supplierId || '');
+        setBatchNumber(productToEdit.batchNumber || '');
+        setExpiryDate(productToEdit.expiryDate || '');
+        setScheduleCategory(productToEdit.scheduleCategory || '');
+        setGrade(productToEdit.grade || '');
+        setThickness(productToEdit.thickness || '');
+        setImei(productToEdit.imei || '');
+        setSerialNumber(productToEdit.serialNumber || '');
+        setWarrantyMonths(productToEdit.warrantyMonths || '');
+        setVehicleModel(productToEdit.vehicleModel || '');
+        setOemNumber(productToEdit.oemNumber || '');
+        setPurity(productToEdit.purity || '');
+        setMakingCharge(productToEdit.makingCharge || '');
+        setSize(productToEdit.size || '');
+        setColor(productToEdit.color || '');
       } else {
         setName('');
         setBrand('');
-        setCategory('Rice & Grains');
-        setUnit('pkt');
+        setCategory(availableCategories[0] || 'General');
+        setUnit(availableUnits[0] || 'pcs');
         setBarcode(scannedBarcode || '');
         setSku('');
         setMrp('');
@@ -89,11 +119,25 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         setPurchasePrice('');
         setCurrentStock(10);
         setMinStock(5);
-        setGstPercent(0);
+        setGstPercent(sectorCfg.defaultGstPercent || 0);
         setSupplierId('');
+        setBatchNumber('');
+        setExpiryDate('');
+        setScheduleCategory('');
+        setGrade('');
+        setThickness('');
+        setImei('');
+        setSerialNumber('');
+        setWarrantyMonths('');
+        setVehicleModel('');
+        setOemNumber('');
+        setPurity('');
+        setMakingCharge('');
+        setSize('');
+        setColor('');
       }
     }
-  }, [isOpen, productToEdit, scannedBarcode]);
+  }, [isOpen, productToEdit, scannedBarcode, activeSector]);
 
   if (!isOpen) return null;
 
@@ -120,7 +164,21 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         minStock: Number(minStock) || 5,
         gstPercent: Number(gstPercent) || 0,
         supplierId: supplierId || undefined,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        batchNumber: batchNumber || undefined,
+        expiryDate: expiryDate || undefined,
+        scheduleCategory: scheduleCategory || undefined,
+        grade: grade || undefined,
+        thickness: thickness || undefined,
+        imei: imei || undefined,
+        serialNumber: serialNumber || undefined,
+        warrantyMonths: warrantyMonths !== '' ? Number(warrantyMonths) : undefined,
+        vehicleModel: vehicleModel || undefined,
+        oemNumber: oemNumber || undefined,
+        purity: purity || undefined,
+        makingCharge: makingCharge !== '' ? Number(makingCharge) : undefined,
+        size: size || undefined,
+        color: color || undefined
       };
 
       if (productToEdit) {
@@ -259,6 +317,197 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Sector-Specific Fields Box */}
+          {(activeSector === 'PHARMACY' || activeSector === 'COSMETICS') && (
+            <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 space-y-2">
+              <span className="text-[11px] font-bold text-emerald-900 block">🏥 Pharmacy & Expiry Tracking Attributes</span>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Batch Number</label>
+                  <input
+                    type="text"
+                    value={batchNumber}
+                    onChange={(e) => setBatchNumber(e.target.value)}
+                    placeholder="e.g. B-2026-X8"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Schedule Category</label>
+                  <select
+                    value={scheduleCategory}
+                    onChange={(e) => setScheduleCategory(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs font-semibold"
+                  >
+                    <option value="">None / OTC</option>
+                    <option value="Schedule H">Schedule H</option>
+                    <option value="Schedule H1">Schedule H1</option>
+                    <option value="Schedule X">Schedule X</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeSector === 'METALS_STEEL' || activeSector === 'BUILDING_HARDWARE' || activeSector === 'FURNITURE_WOOD') && (
+            <div className="bg-blue-50/70 p-3 rounded-2xl border border-blue-200 space-y-2">
+              <span className="text-[11px] font-bold text-blue-900 block">🏗️ Metals, Steel & Wood Specifications</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Grade / Standard</label>
+                  <input
+                    type="text"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    placeholder="e.g. Fe500D / OPC 43"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Thickness / Dimension</label>
+                  <input
+                    type="text"
+                    value={thickness}
+                    onChange={(e) => setThickness(e.target.value)}
+                    placeholder="e.g. 12mm / 2.5mm"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeSector === 'MOBILE_COMPUTERS' || activeSector === 'ELECTRICAL_ELECTRONICS' || activeSector === 'WATER_RO') && (
+            <div className="bg-purple-50/70 p-3 rounded-2xl border border-purple-200 space-y-2">
+              <span className="text-[11px] font-bold text-purple-900 block">📱 IMEI, Serial & Warranty Tracking</span>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">IMEI Number</label>
+                  <input
+                    type="text"
+                    value={imei}
+                    onChange={(e) => setImei(e.target.value)}
+                    placeholder="15-digit IMEI"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Serial Number</label>
+                  <input
+                    type="text"
+                    value={serialNumber}
+                    onChange={(e) => setSerialNumber(e.target.value)}
+                    placeholder="Device Serial"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Warranty (Months)</label>
+                  <input
+                    type="number"
+                    value={warrantyMonths}
+                    onChange={(e) => setWarrantyMonths(e.target.value !== '' ? Number(e.target.value) : '')}
+                    placeholder="e.g. 12"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeSector === 'AUTO_PARTS') && (
+            <div className="bg-orange-50/70 p-3 rounded-2xl border border-orange-200 space-y-2">
+              <span className="text-[11px] font-bold text-orange-900 block">🚗 Auto Spare Parts OEM Mapping</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">OEM Part Number</label>
+                  <input
+                    type="text"
+                    value={oemNumber}
+                    onChange={(e) => setOemNumber(e.target.value)}
+                    placeholder="e.g. BS-OIL-091"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Compatible Vehicle</label>
+                  <input
+                    type="text"
+                    value={vehicleModel}
+                    onChange={(e) => setVehicleModel(e.target.value)}
+                    placeholder="e.g. Maruti Swift / Dzire"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeSector === 'JEWELLERY') && (
+            <div className="bg-rose-50/70 p-3 rounded-2xl border border-rose-200 space-y-2">
+              <span className="text-[11px] font-bold text-rose-900 block">💎 Gold, Silver & Diamond Attributes</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Gold Purity / Hallmarking</label>
+                  <input
+                    type="text"
+                    value={purity}
+                    onChange={(e) => setPurity(e.target.value)}
+                    placeholder="e.g. 22K (916) / 24K"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Making Charge (₹/g)</label>
+                  <input
+                    type="number"
+                    value={makingCharge}
+                    onChange={(e) => setMakingCharge(e.target.value !== '' ? Number(e.target.value) : '')}
+                    placeholder="e.g. 450"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(activeSector === 'FOOTWEAR_GARMENTS' || activeSector === 'TEXTILES') && (
+            <div className="bg-amber-50/70 p-3 rounded-2xl border border-amber-200 space-y-2">
+              <span className="text-[11px] font-bold text-amber-900 block">👕 Garment & Footwear Matrix</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Size</label>
+                  <input
+                    type="text"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                    placeholder="e.g. UK 8 / XL / 32"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Color / Design</label>
+                  <input
+                    type="text"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    placeholder="e.g. Navy Blue / Indigo"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-2">
             <div>

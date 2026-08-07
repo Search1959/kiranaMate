@@ -374,6 +374,472 @@ export const TRADING_SECTORS: SectorDefinition[] = [
       { name: 'Asian Paints Apex Exterior Emulsion White (20L Bucket)', category: 'Paints, Primers & Wall Putty', brand: 'Asian Paints', unit: 'Bucket', purchasePrice: 3400, sellingPrice: 3950, mrp: 4300, currentStock: 25, minStock: 5, gstPercent: 18 },
       { name: 'Havells HRFR Flame Retardant Wire 2.5 sq.mm 90m', category: 'Electrical Wires, Switches & Lighting', brand: 'Havells', unit: 'Coil', purchasePrice: 1820, sellingPrice: 2180, mrp: 2400, currentStock: 45, minStock: 10, gstPercent: 18 }
     ]
+  },
+  {
+    id: 'PHARMACY',
+    name: 'Pharmacy, Chemist & Medical Store',
+    shortLabel: 'Pharmacy & Medical',
+    tagline: 'Batch & Expiry Management • Schedule H/H1, Strips, Vials & MRP Control',
+    iconName: 'Pill',
+    color: 'emerald',
+    description: 'Pharmaceuticals, prescription drugs, OTC medicines, surgical supplies, ayurvedic remedies & medical devices.',
+    primaryUnits: ['Strip', 'Tablet', 'Bottle', 'Box', 'Vial', 'Ampoule', 'Pcs'],
+    categories: [
+      'Prescription Antibiotics & Antivirals',
+      'Analgesics & Pain Relievers',
+      'Chronic Care (Diabetes/Cardiac/BP)',
+      'Vitamins & Health Supplements',
+      'Ayurvedic & Herbal Remedies',
+      'Surgical & Diagnostic Devices',
+      'Baby Care & Hygiene',
+      'Other'
+    ],
+    defaultGstPercent: 12,
+    invoiceScanHint: 'Look for Batch Number, Expiry Date (MM/YY), HSN Code 3004, Schedule H/H1 flag, MRP, Composition, Strip/Tablet count, and 5%/12% GST.',
+    demoStoreId: 'store-demo-pharmacy',
+    defaultSettings: {
+      storeName: 'Sanjivani Medicos & Pharma Chemist',
+      tagline: 'Licensed Retail Chemist & Wholesale Pharma Supplier • 100% Genuine Medicines',
+      invoicePrefix: 'MED-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Sun Pharma & Cipla Distributors', contactPerson: 'Ramesh Chawla', mobile: '9811122334', city: 'Delhi', outstandingBalance: 42000 },
+      { name: 'Mankind & Zydus Wholesale Agency', contactPerson: 'Alok Saxena', mobile: '9829033221', city: 'Jaipur', outstandingBalance: 18500 }
+    ],
+    sampleProducts: [
+      { name: 'Crocin 650mg Paracetamol Tablets (Strip of 15)', category: 'Analgesics & Pain Relievers', brand: 'GSK Pharma', unit: 'Strip', purchasePrice: 22, sellingPrice: 30, mrp: 33, currentStock: 120, minStock: 20, gstPercent: 12, batchNumber: 'B-2026-X8', expiryDate: '2027-11-30', scheduleCategory: 'OTC' },
+      { name: 'Augmentin 625 Duo Tablets (Strip of 10)', category: 'Prescription Antibiotics & Antivirals', brand: 'GSK', unit: 'Strip', purchasePrice: 168, sellingPrice: 200, mrp: 220, currentStock: 45, minStock: 10, gstPercent: 12, batchNumber: 'AUG-9912', expiryDate: '2027-08-31', scheduleCategory: 'Schedule H' },
+      { name: 'Glycomet GP 2mg Diabetes Tablet (Strip of 15)', category: 'Chronic Care (Diabetes/Cardiac/BP)', brand: 'USV', unit: 'Strip', purchasePrice: 82, sellingPrice: 105, mrp: 115, currentStock: 80, minStock: 15, gstPercent: 12, batchNumber: 'GLY-4402', expiryDate: '2028-02-28', scheduleCategory: 'Schedule H1' },
+      { name: 'Becosules Z Multivitamin Capsules (Strip of 20)', category: 'Vitamins & Health Supplements', brand: 'Pfizer', unit: 'Strip', purchasePrice: 38, sellingPrice: 48, mrp: 52, currentStock: 150, minStock: 25, gstPercent: 12, batchNumber: 'BCS-1020', expiryDate: '2027-05-31', scheduleCategory: 'OTC' }
+    ]
+  },
+  {
+    id: 'ELECTRICAL_ELECTRONICS',
+    name: 'Electricals, Cables & Consumer Electronics',
+    shortLabel: 'Electricals & Electronics',
+    tagline: 'Brand Warranty Tracking • Coils, Switches, MCBs, LED Lights & Appliances',
+    iconName: 'Tv',
+    color: 'blue',
+    description: 'Electrical wires, MCB switchgear, modular plates, LED bulbs, ceiling fans, power cables & home electronics.',
+    primaryUnits: ['Piece', 'Coil (90m)', 'Meter', 'Box', 'Set', 'Roll'],
+    categories: [
+      'Flame Retardant Electrical Wires',
+      'Modular Switches & Sockets',
+      'MCB Switchgear & DB Boxes',
+      'LED Lighting & Commercial Panel Lights',
+      'Ceiling & Exhaust Fans',
+      'Water Heaters & Kitchen Appliances',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for Wire gauge sq.mm, Coil length 90m, Voltage/Wattage, Brand Warranty years, Model No, and 18% GST.',
+    demoStoreId: 'store-demo-electrical',
+    defaultSettings: {
+      storeName: 'Havells & Polycab Electrical Trade Depot',
+      tagline: 'Authorized Electrical Wholesaler • Wires, Switchgear, Lighting & Fans',
+      invoicePrefix: 'ELC-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Polycab Wires & Cables Ltd', contactPerson: 'Suresh Singhal', mobile: '9820033441', city: 'Mumbai', outstandingBalance: 125000 },
+      { name: 'Schneider Electric & Anchor Depot', contactPerson: 'Manish Jain', mobile: '9810044552', city: 'Delhi', outstandingBalance: 88000 }
+    ],
+    sampleProducts: [
+      { name: 'Polycab Green Wire FR 1.5 sq.mm 90m Coil', category: 'Flame Retardant Electrical Wires', brand: 'Polycab', unit: 'Coil (90m)', purchasePrice: 1150, sellingPrice: 1380, mrp: 1550, currentStock: 60, minStock: 12, gstPercent: 18, warrantyMonths: 120 },
+      { name: 'Havells 16A Single Pole MCB C-Curve', category: 'MCB Switchgear & DB Boxes', brand: 'Havells', unit: 'Piece', purchasePrice: 140, sellingPrice: 180, mrp: 210, currentStock: 110, minStock: 20, gstPercent: 18, warrantyMonths: 24 },
+      { name: 'Philips 9W Cool Day Light LED Bulb', category: 'LED Lighting & Commercial Panel Lights', brand: 'Philips', unit: 'Piece', purchasePrice: 65, sellingPrice: 90, mrp: 100, currentStock: 200, minStock: 30, gstPercent: 18, warrantyMonths: 24 }
+    ]
+  },
+  {
+    id: 'AUTO_PARTS',
+    name: 'Automobile, Spare Parts & Accessories',
+    shortLabel: 'Auto & Spare Parts',
+    tagline: 'OEM Compatibility • Engine Components, Brakes, Filters, Tyres & Lubricants',
+    iconName: 'Car',
+    color: 'orange',
+    description: 'OEM spare parts, brake pads, oil filters, clutch plates, shock absorbers, batteries, tyres & auto accessories.',
+    primaryUnits: ['Piece', 'Pair', 'Set', 'Box', 'Litre'],
+    categories: [
+      'Engine Parts & Piston Assembly',
+      'Braking Systems & Brake Pads',
+      'Filters (Oil/Air/Fuel)',
+      'Electricals & Automotive Batteries',
+      'Clutch & Transmission Assemblies',
+      'Tyres, Tubes & Alloy Wheels',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for OEM Part Number, Vehicle Compatibility (e.g. Maruti Swift / Hero Splendor), Brand, and 18% / 28% GST.',
+    demoStoreId: 'store-demo-autoparts',
+    defaultSettings: {
+      storeName: 'Royal Auto Spares & Motor Components',
+      tagline: 'Wholesale OEM Automobile Parts • Maruti, Hyundai, Tata & Hero Compatible',
+      invoicePrefix: 'AUT-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Minda & Bosch Auto Components Depot', contactPerson: 'Rajesh Narang', mobile: '9810055667', city: 'Gurugram', outstandingBalance: 92000 }
+    ],
+    sampleProducts: [
+      { name: 'Bosch Premium Synthetic Oil Filter Maruti Swift', category: 'Filters (Oil/Air/Fuel)', brand: 'Bosch', unit: 'Piece', purchasePrice: 120, sellingPrice: 165, mrp: 185, currentStock: 80, minStock: 15, gstPercent: 18, oemNumber: 'BS-OIL-091', vehicleModel: 'Maruti Swift / Dzire Diesel' },
+      { name: 'TVS Eurogrip Tyre 90/90-12 Tubeless Scooter', category: 'Tyres, Tubes & Alloy Wheels', brand: 'TVS Tyres', unit: 'Piece', purchasePrice: 980, sellingPrice: 1250, mrp: 1380, currentStock: 35, minStock: 8, gstPercent: 28, warrantyMonths: 36, vehicleModel: 'Activa / Jupiter' }
+    ]
+  },
+  {
+    id: 'DAIRY_BEVERAGE',
+    name: 'Dairy, Milk & Beverage Distribution',
+    shortLabel: 'Dairy & Beverage',
+    tagline: 'Crate & Route Management • Cold Chain, Pouches, Bottles & Expiry Alerts',
+    iconName: 'Milk',
+    color: 'sky',
+    description: 'Fresh pasteurized milk, paneer, curd, butter, ghee, ice creams, cold drinks & juices.',
+    primaryUnits: ['Packet', 'Litre', 'Crate', 'Bottle', 'Kg', 'Box'],
+    categories: [
+      'Fresh Milk Pouches & Toned Milk',
+      'Fresh Paneer, Butter & Ghee',
+      'Curd, Lassi & Flavored Milk',
+      'Packaged Fruit Juices & Carbonated Drinks',
+      'Ice Creams & Frozen Desserts',
+      'Other'
+    ],
+    defaultGstPercent: 5,
+    invoiceScanHint: 'Look for Crate deposit charges, Milk fat %, Batch time, Expiry Date (Daily), and 0% / 5% / 12% GST.',
+    demoStoreId: 'store-demo-dairy',
+    defaultSettings: {
+      storeName: 'Amul & Mother Dairy Express Distributor',
+      tagline: 'Fresh Cold Chain Dairy Delivery • Daily Morning Wholesale Routes',
+      invoicePrefix: 'DRY-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Amul Dairy Co-operative Depot', contactPerson: 'Nilesh Patel', mobile: '9825099887', city: 'Anand', outstandingBalance: 65000 }
+    ],
+    sampleProducts: [
+      { name: 'Amul Taaza Toned Milk 500ml Pouch', category: 'Fresh Milk Pouches & Toned Milk', brand: 'Amul', unit: 'Packet', purchasePrice: 26, sellingPrice: 28, mrp: 28, currentStock: 250, minStock: 40, gstPercent: 0, expiryDate: '2026-08-09' },
+      { name: 'Amul Fresh Malai Paneer 200g Pack', category: 'Fresh Paneer, Butter & Ghee', brand: 'Amul', unit: 'Packet', purchasePrice: 72, sellingPrice: 85, mrp: 90, currentStock: 40, minStock: 10, gstPercent: 5, expiryDate: '2026-08-15' }
+    ]
+  },
+  {
+    id: 'FRUITS_VEGETABLES',
+    name: 'Fruits, Vegetables & Perishables Mandi',
+    shortLabel: 'Fruits & Veg Mandi',
+    tagline: 'Daily Rates & Weight Loss Tracking • Farm Fresh Fruits & Veggies',
+    iconName: 'Apple',
+    color: 'emerald',
+    description: 'Fresh vegetables, seasonal fruits, exotic greens, organic produce & wholesale mandi crates.',
+    primaryUnits: ['Kg', 'Crate', 'Quintal', 'Basket', 'Dozen', 'Pcs'],
+    categories: [
+      'Daily Vegetables (Potato/Onion/Tomato)',
+      'Green Leafy Vegetables',
+      'Seasonal Fruits (Apples/Mangoes/Grapes)',
+      'Citrus & Melons',
+      'Exotic & Organic Greens',
+      'Other'
+    ],
+    defaultGstPercent: 0,
+    invoiceScanHint: 'Look for Mandi Daily Rate, Net Crate Weight, Weight Loss %, Quality Grade, and 0% GST exempt flag.',
+    demoStoreId: 'store-demo-fruits',
+    defaultSettings: {
+      storeName: 'Subzi Mandi Farm Fresh Wholesalers',
+      tagline: 'Direct Farmer Sourcing • Daily Fresh Fruit & Vegetable Supplies',
+      invoicePrefix: 'FRT-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Azadpur Fruit & Veg Market Commission', contactPerson: 'Harish Saini', mobile: '9811088776', city: 'Delhi', outstandingBalance: 34000 }
+    ],
+    sampleProducts: [
+      { name: 'Nashik Red Onions Premium Grade', category: 'Daily Vegetables (Potato/Onion/Tomato)', brand: 'Mandi Sourced', unit: 'Kg', purchasePrice: 22, sellingPrice: 28, mrp: 32, currentStock: 800, minStock: 100, gstPercent: 0 },
+      { name: 'Kashmir Royal Delicious Red Apples 20kg Crate', category: 'Seasonal Fruits (Apples/Mangoes/Grapes)', brand: 'Kashmir Orchards', unit: 'Crate', purchasePrice: 1400, sellingPrice: 1750, mrp: 1900, currentStock: 25, minStock: 5, gstPercent: 0 }
+    ]
+  },
+  {
+    id: 'BAKERY',
+    name: 'Bakery, Confectionery & Sweet Mart',
+    shortLabel: 'Bakery & Sweets',
+    tagline: 'Production Batch & Shelf Life • Breads, Cakes, Pastries & Mithai',
+    iconName: 'Cake',
+    color: 'amber',
+    description: 'Fresh breads, artisan cakes, cookies, traditional Indian mithai, chocolates & bakery raw materials.',
+    primaryUnits: ['Kg', 'Tray', 'Box', 'Packet', 'Piece'],
+    categories: [
+      'Fresh Bread & Buns',
+      'Custom Birthday Cakes & Pastries',
+      'Traditional Indian Mithai & Sweets',
+      'Artisan Cookies & Dry Bakery',
+      'Chocolates & Gift Hampers',
+      'Other'
+    ],
+    defaultGstPercent: 5,
+    invoiceScanHint: 'Look for Manufacturing Date/Time, Shelf Life in hours/days, Eggless flag, and 5% / 18% GST.',
+    demoStoreId: 'store-demo-bakery',
+    defaultSettings: {
+      storeName: 'Mithas Artisan Bakery & Sweet Mart',
+      tagline: 'Fresh Pure Desi Ghee Sweets & Daily Baked Breads & Designer Cakes',
+      invoicePrefix: 'BKR-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Haldiram Raw Ingredients Supplier', contactPerson: 'Deepak Agrawal', mobile: '9810022119', city: 'Noida', outstandingBalance: 28000 }
+    ],
+    sampleProducts: [
+      { name: 'Fresh White Sandwich Bread 400g', category: 'Fresh Bread & Buns', brand: 'In-House Bakery', unit: 'Packet', purchasePrice: 22, sellingPrice: 35, mrp: 35, currentStock: 60, minStock: 15, gstPercent: 0, expiryDate: '2026-08-11' },
+      { name: 'Pure Desi Ghee Kaju Katli 1kg Box', category: 'Traditional Indian Mithai & Sweets', brand: 'Mithas Sweets', unit: 'Box', purchasePrice: 650, sellingPrice: 880, mrp: 950, currentStock: 20, minStock: 5, gstPercent: 5, expiryDate: '2026-08-25' }
+    ]
+  },
+  {
+    id: 'FURNITURE_WOOD',
+    name: 'Furniture, Plywood & Interior Hardware',
+    shortLabel: 'Furniture & Plywood',
+    tagline: 'Thickness & Material Specs • Plywood Sheets, Laminates, Hardwood & Fittings',
+    iconName: 'Sofa',
+    color: 'stone',
+    description: 'Commercial plywood, waterproof BWP ply, decorative laminates, office furniture, wooden logs & hardware.',
+    primaryUnits: ['Sheet', 'Piece', 'Set', 'Sq.Ft', 'Meter'],
+    categories: [
+      'BWP Waterproof Plywood & Blockboards',
+      'Decorative Mica Laminates',
+      'Office Ergonomic Chairs & Tables',
+      'Wooden Doors & Frames',
+      'Modular Kitchen Fittings',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for Ply thickness in mm (12mm, 18mm), Sheet size (8x4 ft), IS grade 710/303, and 18% / 28% GST.',
+    demoStoreId: 'store-demo-furniture',
+    defaultSettings: {
+      storeName: 'Century Plywood & Teak Furniture Mart',
+      tagline: 'Wholesale Timber, Waterproof Marine Ply & Premium Office Furniture',
+      invoicePrefix: 'FUR-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Century Ply & Greenply Depot', contactPerson: 'Subhash Kedia', mobile: '9811099112', city: 'Kolkata', outstandingBalance: 145000 }
+    ],
+    sampleProducts: [
+      { name: 'Century Club Prime BWP Marine Plywood 18mm (8x4 Ft Sheet)', category: 'BWP Waterproof Plywood & Blockboards', brand: 'CenturyPly', unit: 'Sheet', purchasePrice: 2800, sellingPrice: 3400, mrp: 3700, currentStock: 45, minStock: 10, gstPercent: 18, thickness: '18mm', size: '8x4 Ft' },
+      { name: 'Greenlam High Gloss Decorative Laminate 1mm Sheet', category: 'Decorative Mica Laminates', brand: 'Greenlam', unit: 'Sheet', purchasePrice: 850, sellingPrice: 1150, mrp: 1300, currentStock: 90, minStock: 15, gstPercent: 18, thickness: '1mm' }
+    ]
+  },
+  {
+    id: 'PLASTICS_PACKAGING',
+    name: 'Plastics, Packaging & Polymer Goods',
+    shortLabel: 'Plastics & Packaging',
+    tagline: 'Rolls, Polybags, Strapping & Corrugated Cartons',
+    iconName: 'Package',
+    color: 'teal',
+    description: 'Industrial polybags, stretch film rolls, bubble wrap, plastic containers, BOPP tapes & strapping rolls.',
+    primaryUnits: ['Roll', 'Bag', 'Bundle', 'Kg', 'Box', 'Piece'],
+    categories: [
+      'Stretch Film & Bubble Wrap Rolls',
+      'Polybags & Ziplock Bags',
+      'Corrugated Packing Boxes',
+      'Plastic Buckets & Drums',
+      'Strapping & Binding Tapes',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for Micron thickness, Roll width, Net Weight in Kg, and 18% GST.',
+    demoStoreId: 'store-demo-plastics',
+    defaultSettings: {
+      storeName: 'Vardhman Packaging & Plastic Traders',
+      tagline: 'Bulk Industrial Packaging Solutions • Stretch Film, Cartons & Polybags',
+      invoicePrefix: 'PKG-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Supreme Industries Plastic Division', contactPerson: 'Manish Shah', mobile: '9820066554', city: 'Mumbai', outstandingBalance: 78000 }
+    ],
+    sampleProducts: [
+      { name: 'Industrial Transparent Stretch Film Roll 23 Micron 3kg', category: 'Stretch Film & Bubble Wrap Rolls', brand: 'PackMaster', unit: 'Roll', purchasePrice: 380, sellingPrice: 480, mrp: 540, currentStock: 120, minStock: 20, gstPercent: 18 }
+    ]
+  },
+  {
+    id: 'MOBILE_COMPUTERS',
+    name: 'Mobiles, Laptops, Computers & Accessories',
+    shortLabel: 'Mobile & Computers',
+    tagline: 'IMEI & Serial Number Tracking • Smartphones, Laptops, Keyboards & Accessories',
+    iconName: 'Smartphone',
+    color: 'indigo',
+    description: 'Smartphones, laptops, desktop PCs, monitors, hard drives, chargers, headphones & mobile covers.',
+    primaryUnits: ['Piece', 'Set', 'Box'],
+    categories: [
+      'Smartphones & 5G Handsets',
+      'Laptops & Desktop Workstations',
+      'PC Components (RAM/SSD/Graphics)',
+      'Mobile Accessories & Chargers',
+      'Audio & Wireless Headphones',
+      'Printers & Networking Routers',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for IMEI Number (15 digits), Laptop Serial No, Brand Warranty, and 18% GST.',
+    demoStoreId: 'store-demo-mobile',
+    defaultSettings: {
+      storeName: 'TechnoHub Mobile & Computer World',
+      tagline: 'Authorized Mobile & Laptop Dealer • Apple, Samsung, HP & Lenovo',
+      invoicePrefix: 'MOB-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Redington India IT Distribution', contactPerson: 'Venkatesh Iyer', mobile: '9840011223', city: 'Chennai', outstandingBalance: 280000 }
+    ],
+    sampleProducts: [
+      { name: 'Samsung Galaxy A35 5G (8GB RAM, 128GB Storage)', category: 'Smartphones & 5G Handsets', brand: 'Samsung', unit: 'Piece', purchasePrice: 22500, sellingPrice: 25999, mrp: 27999, currentStock: 12, minStock: 3, gstPercent: 18, imei: '864210987654321', warrantyMonths: 12 },
+      { name: 'HP 15s Intel Core i5 12th Gen Laptop 16GB/512GB SSD', category: 'Laptops & Desktop Workstations', brand: 'HP', unit: 'Piece', purchasePrice: 46000, sellingPrice: 51990, mrp: 56000, currentStock: 6, minStock: 2, gstPercent: 18, serialNumber: 'HP-CND9912X', warrantyMonths: 12 }
+    ]
+  },
+  {
+    id: 'FOOTWEAR_GARMENTS',
+    name: 'Footwear, Garments & Apparel Store',
+    shortLabel: 'Footwear & Garments',
+    tagline: 'Size & Color Matrix • Shoes, Sandals, Shirts, Trousers & Kids Wear',
+    iconName: 'Shirt',
+    color: 'rose',
+    description: 'Leather shoes, sports sneakers, gents formal shirts, ladies ethnic suits, kids wear & apparel.',
+    primaryUnits: ['Pair', 'Piece', 'Box', 'Dozen'],
+    categories: [
+      'Sports Shoes & Running Sneakers',
+      'Leather Formal & Casual Shoes',
+      'Men\'s Formal Shirts & Trousers',
+      'Ladies Salwar Suits & Kurtis',
+      'Kids Apparel & School Uniforms',
+      'Other'
+    ],
+    defaultGstPercent: 5,
+    invoiceScanHint: 'Look for Shoe Size (e.g. UK 8 / 9), Article Number, Color, Garment HSN 6109 / 6203, and 5% / 12% GST.',
+    demoStoreId: 'store-demo-footwear',
+    defaultSettings: {
+      storeName: 'Bata & Liberty Footwear & Garment World',
+      tagline: 'Family Shoe & Fashion Apparel Store • Top Brands & Trendy Styles',
+      invoicePrefix: 'APP-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Bata India Wholesale Depot', contactPerson: 'Sanjay Dutt', mobile: '9810033221', city: 'Kolkata', outstandingBalance: 64000 }
+    ],
+    sampleProducts: [
+      { name: 'Bata Power Men\'s Air Cushion Running Shoes Black', category: 'Sports Shoes & Running Sneakers', brand: 'Bata Power', unit: 'Pair', purchasePrice: 1200, sellingPrice: 1699, mrp: 1899, currentStock: 25, minStock: 5, gstPercent: 12, size: 'UK 8', color: 'Black' }
+    ]
+  },
+  {
+    id: 'COSMETICS',
+    name: 'Cosmetics, Beauty & Personal Care',
+    shortLabel: 'Cosmetics & Beauty',
+    tagline: 'Shade & Brand Variety • Skincare, Perfumes, Hair Care & Makeup',
+    iconName: 'Sparkles',
+    color: 'purple',
+    description: 'Lipsticks, foundations, skin creams, hair oils, shampoos, perfumes, grooming kits & salon products.',
+    primaryUnits: ['Bottle', 'Tube', 'Box', 'Piece', 'Set'],
+    categories: [
+      'Face Makeup & Lipsticks',
+      'Skincare & Moisturizing Creams',
+      'Hair Oils, Shampoos & Conditioners',
+      'Perfumes, Deodorants & Colognes',
+      'Grooming Kits & Salon Equipment',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for Shade Code / Name, Volume ml, Batch No, Expiry Date, and 18% GST.',
+    demoStoreId: 'store-demo-cosmetics',
+    defaultSettings: {
+      storeName: 'Glamour Cosmetics & Beauty Supplies',
+      tagline: 'Wholesale Beauty, Hair Care & Salon Essentials • Lakme, Loreal & Maybelline',
+      invoicePrefix: 'COS-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'L\'Oreal & Lakme India Agencies', contactPerson: 'Anjali Kapur', mobile: '9820044112', city: 'Mumbai', outstandingBalance: 48000 }
+    ],
+    sampleProducts: [
+      { name: 'Lakme Absolute Matte Melt Liquid Lipstick (Red Velvet)', category: 'Face Makeup & Lipsticks', brand: 'Lakme', unit: 'Piece', purchasePrice: 380, sellingPrice: 499, mrp: 525, currentStock: 40, minStock: 8, gstPercent: 18, shade: 'Red Velvet' }
+    ]
+  },
+  {
+    id: 'SEEDS_FERTILIZERS',
+    name: 'Seeds, Fertilizers & Pesticides Store',
+    shortLabel: 'Seeds & Fertilizers',
+    tagline: 'Crop Season & License Rules • Hybrid Seeds, DAP, Urea & Insecticides',
+    iconName: 'Sprout',
+    color: 'emerald',
+    description: 'Certified hybrid seeds, DAP, NPK fertilizers, bio-pesticides, fungicides & agrochemical sprays.',
+    primaryUnits: ['Bag', 'Bottle', 'Kg', 'Litre', 'Pouch'],
+    categories: [
+      'Hybrid Crop Seeds (Wheat/Paddy/Cotton)',
+      'Chemical Fertilizers (DAP/Urea/MOP)',
+      'Insecticides & Pesticides',
+      'Fungicides & Plant Tonics',
+      'Organic Bio-Fertilizers',
+      'Other'
+    ],
+    defaultGstPercent: 5,
+    invoiceScanHint: 'Look for Seed Germination %, Lot No, Expiry Date, Fertilizer Subsidy MRP, Insecticide CIB License, and 5% / 18% GST.',
+    demoStoreId: 'store-demo-seeds',
+    defaultSettings: {
+      storeName: 'Kisan Seva Kendra - Seeds & Agri Chemicals',
+      tagline: 'Government Licensed Dealer • Certified Hybrid Seeds, DAP & Pesticides',
+      invoicePrefix: 'AGC-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'UPL Agro & Bayer CropScience Depot', contactPerson: 'Balraj Singh', mobile: '9810088991', city: 'Chandigarh', outstandingBalance: 110000 }
+    ],
+    sampleProducts: [
+      { name: 'Kaveri Hybrid Cotton Seeds 450g Pouch', category: 'Hybrid Crop Seeds (Wheat/Paddy/Cotton)', brand: 'Kaveri Seeds', unit: 'Pouch', purchasePrice: 720, sellingPrice: 850, mrp: 864, currentStock: 80, minStock: 15, gstPercent: 5, cropSeason: 'Kharif 2026' }
+    ]
+  },
+  {
+    id: 'WATER_RO',
+    name: 'Water Purifier, RO & Service Business',
+    shortLabel: 'Water Purifier & RO',
+    tagline: 'AMC & Filter Service Reminders • RO Systems, Membranes & Spares',
+    iconName: 'Droplets',
+    color: 'sky',
+    description: 'Domestic & commercial RO water purifiers, sediment filters, RO membranes, pumps & annual service contracts.',
+    primaryUnits: ['Piece', 'Filter', 'Set', 'Kit'],
+    categories: [
+      'Domestic RO Water Purifiers',
+      'RO Membranes & Carbon Filters',
+      'Booster Pumps & UV Lamps',
+      'Commercial RO Plants & Chillers',
+      'AMC & Annual Service Contracts',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for RO GPD capacity, Filter micron size, Brand warranty, and 18% GST.',
+    demoStoreId: 'store-demo-waterro',
+    defaultSettings: {
+      storeName: 'AquaPure RO Systems & Water Care',
+      tagline: 'Kent & Aquaguard Sales & Service Center • Genuine RO Filters & AMC',
+      invoicePrefix: 'WTR-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Kent RO Systems Regional Depot', contactPerson: 'Suresh Bhatia', mobile: '9811044556', city: 'Delhi', outstandingBalance: 35000 }
+    ],
+    sampleProducts: [
+      { name: 'Kent Grand Plus 8L Mineral RO Water Purifier', category: 'Domestic RO Water Purifiers', brand: 'Kent', unit: 'Piece', purchasePrice: 13500, sellingPrice: 16500, mrp: 18500, currentStock: 8, minStock: 2, gstPercent: 18, warrantyMonths: 12, amcCost: 2500 }
+    ]
+  },
+  {
+    id: 'GENERAL_TRADING',
+    name: 'General Wholesale & Retail Trading',
+    shortLabel: 'General Trading',
+    tagline: 'Universal Multi-Unit Configurator • Flexible Categories & Units',
+    iconName: 'Building2',
+    color: 'slate',
+    description: 'Universal setup for multi-category trading businesses, general merchants, importers & distributors.',
+    primaryUnits: ['Piece', 'Box', 'Packet', 'Kg', 'Carton', 'Dozen', 'Meter', 'Set'],
+    categories: [
+      'Fast Moving Consumer Goods',
+      'Hardware & Tools',
+      'Stationery & Packaging',
+      'Garments & Accessories',
+      'General Merchandise',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for Product Item Name, Quantity, Unit Rate, HSN Code, and GST Tax Amount.',
+    demoStoreId: 'store-demo-general',
+    defaultSettings: {
+      storeName: 'Universal Traders & Merchants',
+      tagline: 'All-in-One Multi-Product Wholesale & Retail Business ERP',
+      invoicePrefix: 'GEN-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'Universal Wholesale Distributors', contactPerson: 'Ashok Kumar', mobile: '9876543210', city: 'Delhi', outstandingBalance: 25000 }
+    ],
+    sampleProducts: [
+      { name: 'Multi-Purpose Stainless Steel Utility Scissors 8 Inch', category: 'Hardware & Tools', brand: 'MasterCut', unit: 'Piece', purchasePrice: 45, sellingPrice: 75, mrp: 95, currentStock: 150, minStock: 25, gstPercent: 18 }
+    ]
   }
 ];
 

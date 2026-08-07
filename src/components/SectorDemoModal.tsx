@@ -14,7 +14,19 @@ import {
   Sparkles,
   ArrowRight,
   Layers,
-  Building2
+  Building2,
+  Pill,
+  Tv,
+  Car,
+  Milk,
+  Apple,
+  Cake,
+  Sofa,
+  Package,
+  Smartphone,
+  Shirt,
+  Sprout,
+  Droplets
 } from 'lucide-react';
 import { TRADING_SECTORS, SectorDefinition, getSectorConfig } from '../lib/sectorConfig';
 import { TradingSector } from '../types';
@@ -47,6 +59,19 @@ export const SectorDemoModal: React.FC<SectorDemoModalProps> = ({
       case 'Gem': return <Gem className="w-5 h-5" />;
       case 'FileText': return <FileText className="w-5 h-5" />;
       case 'Hammer': return <Hammer className="w-5 h-5" />;
+      case 'Pill': return <Pill className="w-5 h-5" />;
+      case 'Tv': return <Tv className="w-5 h-5" />;
+      case 'Car': return <Car className="w-5 h-5" />;
+      case 'Milk': return <Milk className="w-5 h-5" />;
+      case 'Apple': return <Apple className="w-5 h-5" />;
+      case 'Cake': return <Cake className="w-5 h-5" />;
+      case 'Sofa': return <Sofa className="w-5 h-5" />;
+      case 'Package': return <Package className="w-5 h-5" />;
+      case 'Smartphone': return <Smartphone className="w-5 h-5" />;
+      case 'Shirt': return <Shirt className="w-5 h-5" />;
+      case 'Sparkles': return <Sparkles className="w-5 h-5" />;
+      case 'Sprout': return <Sprout className="w-5 h-5" />;
+      case 'Droplets': return <Droplets className="w-5 h-5" />;
       default: return <Building2 className="w-5 h-5" />;
     }
   };

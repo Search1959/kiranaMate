@@ -22,7 +22,7 @@ import {
   TradingSector
 } from '../types';
 import { generateSeedData, generateSectorSeedData } from './seedData';
-import { getSectorConfig } from '../lib/sectorConfig';
+import { getSectorConfig, TRADING_SECTORS } from '../lib/sectorConfig';
 
 const DB_FILE = path.join(process.cwd(), 'data_kiranamate_db.json');
 
@@ -199,17 +199,64 @@ class Database {
   }
 
   private getStore(storeId: string = 'store-demo'): DatabaseSchema {
+    let targetSectorId: TradingSector | undefined;
+    const matchedSector = TRADING_SECTORS.find(s => s.demoStoreId === storeId || s.id === storeId);
+    if (matchedSector) {
+      targetSectorId = matchedSector.id;
+    } else if (storeId.includes('footwear') || storeId.includes('garment')) {
+      targetSectorId = 'FOOTWEAR_GARMENTS';
+    } else if (storeId.includes('pharma') || storeId.includes('chemist')) {
+      targetSectorId = 'PHARMACY';
+    } else if (storeId.includes('electric')) {
+      targetSectorId = 'ELECTRICAL_ELECTRONICS';
+    } else if (storeId.includes('steel') || storeId.includes('metal')) {
+      targetSectorId = 'METALS_STEEL';
+    } else if (storeId.includes('agri')) {
+      targetSectorId = 'AGRICULTURE';
+    } else if (storeId.includes('textile')) {
+      targetSectorId = 'TEXTILES';
+    } else if (storeId.includes('chemical')) {
+      targetSectorId = 'CHEMICALS';
+    } else if (storeId.includes('energy')) {
+      targetSectorId = 'ENERGY';
+    } else if (storeId.includes('jewel')) {
+      targetSectorId = 'JEWELLERY';
+    } else if (storeId.includes('stationery')) {
+      targetSectorId = 'STATIONERY';
+    } else if (storeId.includes('hardware')) {
+      targetSectorId = 'BUILDING_HARDWARE';
+    } else if (storeId.includes('auto')) {
+      targetSectorId = 'AUTO_PARTS';
+    } else if (storeId.includes('cosmetic')) {
+      targetSectorId = 'COSMETICS';
+    } else if (storeId.includes('fruit') || storeId.includes('veg')) {
+      targetSectorId = 'FRUITS_VEGETABLES';
+    } else if (storeId.includes('bakery')) {
+      targetSectorId = 'BAKERY';
+    } else if (storeId.includes('dairy')) {
+      targetSectorId = 'DAIRY_BEVERAGE';
+    } else if (storeId.includes('seed')) {
+      targetSectorId = 'SEEDS_FERTILIZERS';
+    } else if (storeId.includes('water') || storeId.includes('ro')) {
+      targetSectorId = 'WATER_RO';
+    } else if (storeId.includes('mobile') || storeId.includes('computer')) {
+      targetSectorId = 'MOBILE_COMPUTERS';
+    } else if (storeId.includes('plastic') || storeId.includes('package')) {
+      targetSectorId = 'PLASTICS_PACKAGING';
+    } else if (storeId.includes('furniture') || storeId.includes('wood')) {
+      targetSectorId = 'FURNITURE_WOOD';
+    }
+
+    // Purge cached demo store if its stored sector does not match expected targetSectorId
+    if (this.storeMap[storeId] && storeId.startsWith('store-demo-') && targetSectorId) {
+      if (this.storeMap[storeId].settings?.sector !== targetSectorId) {
+        delete this.storeMap[storeId];
+      }
+    }
+
     if (!this.storeMap[storeId]) {
       if (storeId.startsWith('store-demo-') || storeId === 'store-demo') {
-        let sectorKey: TradingSector = 'KIRANA_FMCG';
-        if (storeId === 'store-demo-steel') sectorKey = 'METALS_STEEL';
-        else if (storeId === 'store-demo-agri') sectorKey = 'AGRICULTURE';
-        else if (storeId === 'store-demo-textile') sectorKey = 'TEXTILES';
-        else if (storeId === 'store-demo-chemical') sectorKey = 'CHEMICALS';
-        else if (storeId === 'store-demo-energy') sectorKey = 'ENERGY';
-        else if (storeId === 'store-demo-jewellery') sectorKey = 'JEWELLERY';
-        else if (storeId === 'store-demo-stationery') sectorKey = 'STATIONERY';
-        else if (storeId === 'store-demo-hardware') sectorKey = 'BUILDING_HARDWARE';
+        const sectorKey: TradingSector = targetSectorId || 'KIRANA_FMCG';
 
         const seed = generateSectorSeedData(sectorKey);
         const defaultUsers: User[] = [

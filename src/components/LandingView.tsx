@@ -21,7 +21,8 @@ import {
   Star,
   Printer,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Layers
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
 
@@ -31,6 +32,7 @@ interface LandingViewProps {
   lang: LanguageCode;
   onLanguageChange: (lang: LanguageCode) => void;
   onSelectSectorDemo?: (sectorId: TradingSector, demoStoreId: string) => void;
+  onOpenSectorModal?: () => void;
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({
@@ -38,7 +40,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onStartDemo,
   lang,
   onLanguageChange,
-  onSelectSectorDemo
+  onSelectSectorDemo,
+  onOpenSectorModal
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
@@ -61,7 +64,18 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
 
         {/* Nav Links & Actions */}
-        <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-300">
+          <button
+            onClick={onOpenSectorModal}
+            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-bold transition-all bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-lg cursor-pointer"
+            title="Browse all 23 Industry ERP Templates & Demo Environments"
+          >
+            <Layers className="w-4 h-4 text-blue-400" />
+            <span>23 Industry Templates</span>
+            <span className="bg-blue-500/30 text-blue-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+              Hub
+            </span>
+          </button>
           <a href="#features" className="hover:text-white transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
@@ -69,6 +83,15 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Mobile Industry Hub Button */}
+          <button
+            onClick={onOpenSectorModal}
+            className="lg:hidden flex items-center gap-1 text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-xs font-bold"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Industries</span>
+          </button>
+
           {/* Language Switcher */}
           <div className="hidden sm:flex items-center gap-1 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs">
             <Globe className="w-3.5 h-3.5 text-blue-400" />
@@ -173,30 +196,41 @@ export const LandingView: React.FC<LandingViewProps> = ({
                     <h3 className="text-sm sm:text-base font-bold text-white">Built for Any Trading Industry</h3>
                   </div>
                   <p className="text-[11px] text-slate-300 mt-0.5">
-                    Select a sector below to test live interactive demo environments customized with tailored units & categories.
+                    Select a sector below or open the full Multi-Sector Trading Hub to test live interactive demo environments.
                   </p>
                 </div>
-                <button
-                  onClick={() => onStartDemo('owner')}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-                >
-                  <Zap className="w-3.5 h-3.5 text-yellow-300" />
-                  <span>Launch Kirana Demo</span>
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={onOpenSectorModal}
+                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-blue-400/40"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-blue-200" />
+                    <span>View All 23 Sectors →</span>
+                  </button>
+                  <button
+                    onClick={() => onStartDemo('owner')}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-yellow-300" />
+                    <span>Launch Kirana</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 pt-3">
                 {[
+                  { id: 'FOOTWEAR_GARMENTS', title: 'Footwear & Garments', units: 'Pair, UK Size, pcs, Box', color: 'text-rose-200 bg-rose-950/30 border-rose-800/40', demoStoreId: 'store-demo-footwear' },
+                  { id: 'PHARMACY', title: 'Pharmacy & Medical', units: 'Strip, Tablet, Bottle, Box', color: 'text-emerald-200 bg-emerald-950/30 border-emerald-800/40', demoStoreId: 'store-demo-pharmacy' },
+                  { id: 'ELECTRICAL_ELECTRONICS', title: 'Electricals & Electronics', units: 'Piece, Coil, Meter, Box', color: 'text-blue-200 bg-blue-950/30 border-blue-800/40', demoStoreId: 'store-demo-electrical' },
+                  { id: 'AUTO_PARTS', title: 'Auto Parts & Spares', units: 'Set, Piece, Pair, Box', color: 'text-orange-200 bg-orange-950/30 border-orange-800/40', demoStoreId: 'store-demo-auto' },
                   { id: 'METALS_STEEL', title: 'Iron & Steel / Metals', units: 'MT, Quintal, kg, Length', color: 'text-slate-200 bg-slate-800/80 border-slate-700', demoStoreId: 'store-demo-steel' },
-                  { id: 'ENERGY', title: 'Energy Commodities', units: 'Litre, KL, Barrel, Cylinder', color: 'text-amber-200 bg-amber-950/30 border-amber-800/40', demoStoreId: 'store-demo-energy' },
                   { id: 'AGRICULTURE', title: 'Agri Commodities', units: 'Quintal, MT, Bag, kg', color: 'text-emerald-200 bg-emerald-950/30 border-emerald-800/40', demoStoreId: 'store-demo-agri' },
-                  { id: 'CHEMICALS', title: 'Chemicals & Petro', units: 'Drum, Barrel, kg, Litre', color: 'text-purple-200 bg-purple-950/30 border-purple-800/40', demoStoreId: 'store-demo-chemical' },
-                  { id: 'KIRANA_FMCG', title: 'FMCG & Kirana', units: 'pkt, kg, pouch, bottle', color: 'text-blue-200 bg-blue-950/30 border-blue-800/40', demoStoreId: 'store-demo-kirana' },
+                  { id: 'KIRANA_FMCG', title: 'FMCG & Kirana', units: 'pkt, kg, pouch, bottle', color: 'text-cyan-200 bg-cyan-950/30 border-cyan-800/40', demoStoreId: 'store-demo-kirana' },
                   { id: 'TEXTILES', title: 'Textiles & Fabrics', units: 'Meter, Roll, Bale, pcs', color: 'text-teal-200 bg-teal-950/30 border-teal-800/40', demoStoreId: 'store-demo-textile' },
                   { id: 'JEWELLERY', title: 'Jewellery & Gems', units: 'Gram, Carat, Tola, pcs', color: 'text-yellow-200 bg-amber-900/30 border-amber-700/50', demoStoreId: 'store-demo-jewellery' },
-                  { id: 'STATIONERY', title: 'Stationery & Books', units: 'Ream, Box, Pack, pcs', color: 'text-indigo-200 bg-indigo-950/30 border-indigo-800/40', demoStoreId: 'store-demo-stationery' },
+                  { id: 'COSMETICS', title: 'Cosmetics & Beauty', units: 'Bottle, Tube, Box, Piece', color: 'text-purple-200 bg-purple-950/30 border-purple-800/40', demoStoreId: 'store-demo-cosmetics' },
                   { id: 'BUILDING_HARDWARE', title: 'Building & Hardware', units: 'Bag, Piece, Box, Meter', color: 'text-stone-200 bg-stone-900/50 border-stone-700', demoStoreId: 'store-demo-hardware' },
-                  { id: 'KIRANA_FMCG', title: 'General Trading', units: 'pcs, Box, Lot, kg', color: 'text-blue-200 bg-slate-800/80 border-slate-700', demoStoreId: 'store-demo-kirana' },
+                  { id: 'STATIONERY', title: 'Stationery & Books', units: 'Ream, Box, Pack, pcs', color: 'text-indigo-200 bg-indigo-950/30 border-indigo-800/40', demoStoreId: 'store-demo-stationery' },
                 ].map((s) => (
                   <div
                     key={s.title}
