@@ -95,6 +95,7 @@ import { AuthModal } from './components/AuthModal';
 // Modals
 import { BarcodeScannerModal } from './components/BarcodeScannerModal';
 import { NewSaleModal } from './components/NewSaleModal';
+import { MobilePosView } from './components/MobilePosView';
 import { NewOrderModal } from './components/NewOrderModal';
 import { CollectPaymentModal } from './components/CollectPaymentModal';
 import { AddProductModal } from './components/AddProductModal';
@@ -177,6 +178,7 @@ export default function App() {
 
   // Navigation & UI State
   const [activeTab, setActiveTab] = useState<string>('home');
+  const [mobilePosReturnTab, setMobilePosReturnTab] = useState<string>('home');
   const [lang, setLang] = useState<LanguageCode>('en');
   const [globalSearch, setGlobalSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -500,10 +502,25 @@ export default function App() {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
 
+  /**
+   * Single entry point for "open the billing counter" across the app (header button,
+   * sidebar quick action, mobile FAB). On phones it opens the dedicated full-screen
+   * Mobile POS (billing-only, no sidebar/nav chrome); on desktop it keeps opening the
+   * existing New Sale popup exactly as before.
+   */
+  const handleOpenPos = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setMobilePosReturnTab(activeTab);
+      setActiveTab('mobile_pos');
+    } else {
+      setIsNewSaleOpen(true);
+    }
+  };
+
   const handleQuickAction = (actionId: string) => {
     switch (actionId) {
       case 'new-sale':
-        setIsNewSaleOpen(true);
+        handleOpenPos();
         break;
       case 'new-order':
         setIsNewOrderOpen(true);
@@ -664,12 +681,25 @@ export default function App() {
         onOpenSectorModal={() => setIsSectorModalOpen(true)}
         onSelectSectorDemo={handleSelectSectorDemo}
         activeSectorId={activeSettings.sector}
-        onOpenNewSale={() => setIsNewSaleOpen(true)}
+        onOpenNewSale={handleOpenPos}
         onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
         onOpenCollectPayment={() => handleOpenCollectPayment()}
         activeTab={activeTab}
         onOpenServiceSectorModal={() => handleOpenServiceAuthModal('register')}
       />
+
+      {/* Dedicated Full-Screen Mobile POS (billing only, no sidebar/nav chrome) */}
+      {activeTab === 'mobile_pos' && (
+        <MobilePosView
+          products={products}
+          customers={customers}
+          settings={activeSettings}
+          onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
+          onSaleSuccess={() => loadData(currentStoreId)}
+          onOpenInvoicePrint={handleOpenInvoicePrint}
+          onClose={() => setActiveTab(mobilePosReturnTab)}
+        />
+      )}
 
       {/* Main Container Layout */}
       <div className="flex-1 w-full flex overflow-hidden">
@@ -752,7 +782,7 @@ export default function App() {
             <SalesView
               sales={sales}
               settings={activeSettings}
-              onOpenNewSale={() => setIsNewSaleOpen(true)}
+              onOpenNewSale={handleOpenPos}
               onOpenInvoicePrint={handleOpenInvoicePrint}
               onRefreshData={() => loadData(currentStoreId)}
             />
@@ -1025,7 +1055,7 @@ export default function App() {
           settings={activeSettings}
           onNavigateTab={setActiveTab}
           onOpenQuickAction={(action) => {
-            if (action === 'new_sale') setIsNewSaleOpen(true);
+            if (action === 'new_sale') handleOpenPos();
             else if (action === 'new_order') setIsNewOrderOpen(true);
             else if (action === 'scan_bill') setIsScanPurchaseBillOpen(true);
           }}
