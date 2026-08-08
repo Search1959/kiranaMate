@@ -12,7 +12,9 @@ import {
   ServiceStats,
   AppointmentStatus,
   JobCardStatus,
-  PaymentMethod
+  PaymentMethod,
+  Expense,
+  ExpenseCategory
 } from '../types';
 import { getServiceSectorConfig, SERVICE_SECTORS } from './serviceSectorConfig';
 import { cloudRegisterCompany, cloudLoginCompany, cloudSaveCompanyData, cloudUpdateAccountProfile, CloudUnavailableError } from './serviceCloud';
@@ -38,6 +40,7 @@ export interface ServiceStoreData {
   invoices: ServiceInvoice[];
   quotations: ServiceQuotation[];
   payments: ServicePayment[];
+  expenses: Expense[];
 }
 
 /**
@@ -295,6 +298,45 @@ export function generateSeedServiceData(sector: ServiceSector): ServiceStoreData
     }
   ];
 
+  const expenses: Expense[] = [
+    {
+      id: 'sexp-1',
+      category: 'Staff Salary',
+      amount: 12000,
+      date: todayStr,
+      description: `Paid To: ${staff[0]?.name || 'Team Lead'} • Monthly ${cfg.staffTerm.toLowerCase()} salary`,
+      paymentMethod: 'BANK',
+      payeeName: staff[0]?.name || 'Team Lead',
+      isRecurring: true,
+      recordedBy: 'Owner',
+      createdAt: todayStr
+    },
+    {
+      id: 'sexp-2',
+      category: 'Office/Shop Rent',
+      amount: 9000,
+      date: todayStr,
+      description: `Paid To: Property Owner • Monthly ${cfg.name} premises rent`,
+      paymentMethod: 'BANK',
+      payeeName: 'Property Owner',
+      isRecurring: true,
+      recordedBy: 'Owner',
+      createdAt: todayStr
+    },
+    {
+      id: 'sexp-3',
+      category: 'Software & Subscriptions',
+      amount: 1499,
+      date: todayStr,
+      description: 'Paid To: SaaS Tools • Booking/CRM & WhatsApp Business API subscription',
+      paymentMethod: 'UPI',
+      payeeName: 'SaaS Tools',
+      isRecurring: true,
+      recordedBy: 'Owner',
+      createdAt: todayStr
+    }
+  ];
+
   return {
     activeSector: sector,
     services,
@@ -305,9 +347,24 @@ export function generateSeedServiceData(sector: ServiceSector): ServiceStoreData
     customers,
     invoices,
     quotations,
-    payments
+    payments,
+    expenses
   };
 }
+
+export const SERVICE_EXPENSE_CATEGORIES: (ExpenseCategory | string)[] = [
+  'Staff Salary',
+  'Office/Shop Rent',
+  'Software & Subscriptions',
+  'Marketing & Advertising',
+  'Travel & Conveyance',
+  'Equipment & Supplies',
+  'Internet & Phone',
+  'Insurance',
+  'Bank & Payment Gateway Fees',
+  'Taxes & Licenses',
+  'Other'
+];
 
 export class ServiceStoreManager {
   private data: ServiceStoreData;
@@ -439,7 +496,7 @@ export class ServiceStoreManager {
         businessName: payload.businessName,
         ownerName: payload.ownerName,
         services: [], appointments: [], jobCards: [], staff: [], packages: [],
-        customers: [], invoices: [], quotations: [], payments: []
+        customers: [], invoices: [], quotations: [], payments: [], expenses: []
       };
       this.saveToStorage();
       this.cacheAccountLocally(res.companyId, cleanUsername, payload);
@@ -534,7 +591,8 @@ export class ServiceStoreManager {
       customers: [],
       invoices: [],
       quotations: [],
-      payments: []
+      payments: [],
+      expenses: []
     };
     this.saveToStorage();
 
@@ -820,6 +878,22 @@ export class ServiceStoreManager {
     return newPay;
   }
 
+  // Expenses (staff salary, rent, subscriptions, marketing spend, etc.)
+  getExpenses(): Expense[] {
+    return this.data.expenses || [];
+  }
+
+  addExpense(exp: Omit<Expense, 'id' | 'createdAt'>): Expense {
+    const newExp: Expense = {
+      ...exp,
+      id: `sexp-${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    this.data.expenses = [newExp, ...(this.data.expenses || [])];
+    this.saveToStorage();
+    return newExp;
+  }
+
   // Calculated Service Stats
   getStats(): ServiceStats {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -827,6 +901,7 @@ export class ServiceStoreManager {
     const jobs = this.getJobCards();
     const invs = this.getInvoices();
     const staff = this.getStaff();
+    const expenses = this.getExpenses();
 
     const todayApps = apps.filter(a => a.date === todayStr);
     const todayJobs = jobs.filter(j => j.createdAt === todayStr);
@@ -842,6 +917,10 @@ export class ServiceStoreManager {
     const activeStaff = staff.filter(s => s.status === 'Active').length;
     const avgRating = staff.length > 0 ? (staff.reduce((acc, s) => acc + s.rating, 0) / staff.length) : 4.8;
 
+    const todayExp = expenses.filter(e => e.date === todayStr).reduce((acc, e) => acc + e.amount, 0);
+    const totalExp = expenses.reduce((acc, e) => acc + e.amount, 0);
+    const monthlyIncome = invs.reduce((acc, i) => acc + i.paidAmount, 0);
+
     return {
       todayAppointmentsCount: todayApps.length,
       todayJobsCount: todayJobs.length,
@@ -850,9 +929,12 @@ export class ServiceStoreManager {
       todayRevenue: todayRev,
       outstandingPayments: totalOutstanding,
       todayCustomersCount: new Set([...todayApps.map(a => a.customerId), ...todayJobs.map(j => j.customerId)]).size,
-      monthlyIncome: invs.reduce((acc, i) => acc + i.paidAmount, 0),
+      monthlyIncome,
       activeStaffCount: activeStaff,
-      averageRating: parseFloat(avgRating.toFixed(1))
+      averageRating: parseFloat(avgRating.toFixed(1)),
+      todayExpenses: todayExp,
+      totalExpenses: totalExp,
+      netProfit: monthlyIncome - totalExp
     };
   }
 }

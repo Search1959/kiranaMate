@@ -119,6 +119,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       title: "3. FINANCE & ADMINISTRATION",
       items: [
         { id: 'service_payments', label: 'Service Payments', icon: DollarSign },
+        { id: 'service_expenses', label: 'Service Expenses', icon: TrendingDown },
         { id: 'service_invoices', label: 'Invoices & Receipts', icon: FileText },
         { id: 'service_quotations', label: 'Quotations & Estimates', icon: BookOpen },
         { id: 'service_reports', label: 'Service Analytics', icon: TrendingDown },

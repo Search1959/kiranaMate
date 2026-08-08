@@ -39,6 +39,20 @@ export const ServiceReportsView: React.FC = () => {
           <p className="text-2xl font-black text-amber-400">{stats.averageRating} ★</p>
           <p className="text-[10px] text-slate-400">Feedback from {stats.completedJobsCount} completed jobs</p>
         </div>
+
+        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+          <p className="text-xs font-extrabold uppercase text-slate-400">Total Business Expenses</p>
+          <p className="text-2xl font-black text-rose-400">₹{stats.totalExpenses.toLocaleString('en-IN')}</p>
+          <p className="text-[10px] text-slate-400">Salary, rent, subscriptions & costs</p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+          <p className="text-xs font-extrabold uppercase text-slate-400">Net Profit</p>
+          <p className={`text-2xl font-black ${stats.netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            ₹{stats.netProfit.toLocaleString('en-IN')}
+          </p>
+          <p className="text-[10px] text-slate-400">Revenue minus operating expenses</p>
+        </div>
       </div>
 
       {/* Staff Performance Report Table */}

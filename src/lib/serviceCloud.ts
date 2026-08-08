@@ -110,7 +110,8 @@ export async function cloudRegisterCompany(payload: {
     customers: [],
     invoices: [],
     quotations: [],
-    payments: []
+    payments: [],
+    expenses: []
   };
 
   await setDoc(doc(db, 'serviceAccounts', cleanUsername), account);

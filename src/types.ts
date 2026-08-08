@@ -660,5 +660,8 @@ export interface ServiceStats {
   monthlyIncome: number;
   activeStaffCount: number;
   averageRating: number;
+  todayExpenses: number;
+  totalExpenses: number;
+  netProfit: number;
 }
 

@@ -134,6 +134,7 @@ import { ServiceCustomersView } from './views/services/ServiceCustomersView';
 import { ServiceStaffView } from './views/services/ServiceStaffView';
 import { ServicePackagesView } from './views/services/ServicePackagesView';
 import { ServicePaymentsView } from './views/services/ServicePaymentsView';
+import { ServiceExpensesView } from './views/services/ServiceExpensesView';
 import { ServiceInvoicesView } from './views/services/ServiceInvoicesView';
 import { ServiceQuotationsView } from './views/services/ServiceQuotationsView';
 import { ServiceReportsView } from './views/services/ServiceReportsView';
@@ -872,6 +873,9 @@ export default function App() {
           )}
           {activeTab === 'service_payments' && (
             <ServicePaymentsView />
+          )}
+          {activeTab === 'service_expenses' && (
+            <ServiceExpensesView />
           )}
           {activeTab === 'service_invoices' && (
             <ServiceInvoicesView />
