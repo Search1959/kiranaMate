@@ -1,4 +1,4 @@
-import {
+﻿import {
   Customer,
   Product,
   Order,
@@ -1097,125 +1097,16 @@ export const clientStore = {
     return { success: true };
   },
 
-  scanPurchaseBill(imageBase64: string) {
-    const isSteelBill = imageBase64.includes('DEMO-2026-001') || imageBase64.includes('TMT') || imageBase64.length > 50000;
-
-    if (isSteelBill) {
-      const items = [
-        { name: 'TMT Rod 8mm', productName: 'TMT Rod 8mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 51, purchasePrice: 61, mrp: 76, sellingPrice: 70, totalPrice: 3111.00 },
-        { name: 'TMT Rod 10mm', productName: 'TMT Rod 10mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 52, purchasePrice: 62, mrp: 78, sellingPrice: 72, totalPrice: 3224.00 },
-        { name: 'TMT Rod 12mm', productName: 'TMT Rod 12mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 53, purchasePrice: 63, mrp: 79, sellingPrice: 73, totalPrice: 3339.00 },
-        { name: 'TMT Rod 16mm', productName: 'TMT Rod 16mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 54, purchasePrice: 64, mrp: 80, sellingPrice: 74, totalPrice: 3456.00 },
-        { name: 'TMT Rod 20mm', productName: 'TMT Rod 20mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 55, purchasePrice: 65, mrp: 82, sellingPrice: 75, totalPrice: 3575.00 },
-        { name: 'TMT Rod 25mm', productName: 'TMT Rod 25mm', category: 'Building Materials & Hardware', brand: 'TATA Tiscon', unit: 'kg', quantity: 56, purchasePrice: 66, mrp: 83, sellingPrice: 76, totalPrice: 3696.00 },
-        { name: 'MS Angle 25x25x3', productName: 'MS Angle 25x25x3', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 57, purchasePrice: 67, mrp: 84, sellingPrice: 77, totalPrice: 3819.00 },
-        { name: 'MS Angle 40x40x5', productName: 'MS Angle 40x40x5', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 58, purchasePrice: 68, mrp: 85, sellingPrice: 78, totalPrice: 3944.00 },
-        { name: 'MS Angle 50x50x6', productName: 'MS Angle 50x50x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 59, purchasePrice: 69, mrp: 86, sellingPrice: 79, totalPrice: 4071.00 },
-        { name: 'MS Angle 65x65x6', productName: 'MS Angle 65x65x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 60, purchasePrice: 70, mrp: 88, sellingPrice: 80, totalPrice: 4200.00 },
-        { name: 'MS Flat 25x6', productName: 'MS Flat 25x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 61, purchasePrice: 71, mrp: 89, sellingPrice: 81, totalPrice: 4331.00 },
-        { name: 'MS Flat 40x6', productName: 'MS Flat 40x6', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 62, purchasePrice: 72, mrp: 90, sellingPrice: 82, totalPrice: 4464.00 },
-        { name: 'MS Flat 50x8', productName: 'MS Flat 50x8', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 63, purchasePrice: 73, mrp: 91, sellingPrice: 83, totalPrice: 4599.00 },
-        { name: 'MS Flat 75x10', productName: 'MS Flat 75x10', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 64, purchasePrice: 74, mrp: 92, sellingPrice: 84, totalPrice: 4736.00 },
-        { name: 'MS Round Bar 10', productName: 'MS Round Bar 10', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 65, purchasePrice: 75, mrp: 94, sellingPrice: 85, totalPrice: 4875.00 },
-        { name: 'MS Round Bar 12', productName: 'MS Round Bar 12', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 66, purchasePrice: 76, mrp: 95, sellingPrice: 86, totalPrice: 5016.00 },
-        { name: 'MS Round Bar 16', productName: 'MS Round Bar 16', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 67, purchasePrice: 77, mrp: 96, sellingPrice: 87, totalPrice: 5159.00 },
-        { name: 'MS Round Bar 20', productName: 'MS Round Bar 20', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 68, purchasePrice: 78, mrp: 98, sellingPrice: 88, totalPrice: 5258.72 },
-        { name: 'MS Square Bar 12', productName: 'MS Square Bar 12', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 69, purchasePrice: 79, mrp: 99, sellingPrice: 89, totalPrice: 5451.00 },
-        { name: 'MS Square Bar 16', productName: 'MS Square Bar 16', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 70, purchasePrice: 80, mrp: 100, sellingPrice: 90, totalPrice: 5600.00 },
-        { name: 'MS Channel75', productName: 'MS Channel75', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 71, purchasePrice: 81, mrp: 101, sellingPrice: 91, totalPrice: 5751.00 },
-        { name: 'MS Channel100', productName: 'MS Channel100', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 72, purchasePrice: 82, mrp: 102, sellingPrice: 92, totalPrice: 5904.00 },
-        { name: 'MS Channel125', productName: 'MS Channel125', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 73, purchasePrice: 83, mrp: 104, sellingPrice: 93, totalPrice: 6059.00 },
-        { name: 'MS Channel150', productName: 'MS Channel150', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 74, purchasePrice: 84, mrp: 105, sellingPrice: 94, totalPrice: 6216.00 },
-        { name: 'MS Beam100', productName: 'MS Beam100', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 75, purchasePrice: 85, mrp: 106, sellingPrice: 95, totalPrice: 6375.00 },
-        { name: 'MS Beam150', productName: 'MS Beam150', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 76, purchasePrice: 86, mrp: 108, sellingPrice: 96, totalPrice: 6536.00 },
-        { name: 'MS Beam200', productName: 'MS Beam200', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 77, purchasePrice: 87, mrp: 109, sellingPrice: 97, totalPrice: 6699.00 },
-        { name: 'GI Pipe1/2', productName: 'GI Pipe1/2', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg', quantity: 78, purchasePrice: 88, mrp: 110, sellingPrice: 98, totalPrice: 6864.00 },
-        { name: 'GI Pipe1', productName: 'GI Pipe1', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg', quantity: 79, purchasePrice: 89, mrp: 111, sellingPrice: 99, totalPrice: 7031.00 },
-        { name: 'GI Pipe2', productName: 'GI Pipe2', category: 'Building Materials & Hardware', brand: 'Jindal', unit: 'kg', quantity: 80, purchasePrice: 90, mrp: 112, sellingPrice: 100, totalPrice: 7200.00 },
-        { name: 'MS Pipe1', productName: 'MS Pipe1', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 81, purchasePrice: 91, mrp: 114, sellingPrice: 101, totalPrice: 7371.00 },
-        { name: 'MS Pipe2', productName: 'MS Pipe2', category: 'Building Materials & Hardware', brand: 'Generic', unit: 'kg', quantity: 82, purchasePrice: 92, mrp: 115, sellingPrice: 102, totalPrice: 7544.00 }
-      ];
-
-      const totalAmount = items.reduce((s, i) => s + i.totalPrice, 0);
-
-      return {
-        success: true,
-        data: {
-          supplierName: 'ABC Iron & Steel Traders (Sample)',
-          supplierMobile: '9829012345',
-          supplierGstin: '19AABCA1234M1Z5',
-          supplierAddress: 'M.M. Feeder Road, Kolkata',
-          invoiceNumber: 'DEMO-2026-001',
-          billNumber: 'DEMO-2026-001',
-          invoiceDate: new Date().toISOString().split('T')[0],
-          billDate: new Date().toISOString().split('T')[0],
-          detectedLanguage: 'English (Demo Steel & Hardware Invoice)',
-          items,
-          subtotal: totalAmount,
-          totalAmount,
-          grandTotal: totalAmount,
-          paidAmount: totalAmount,
-          paymentStatus: 'PAID'
-        }
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        supplierName: 'Laxmi Wholesale Kirana Traders',
-        supplierMobile: '9829012345',
-        supplierGstin: '08AABC10011Z1',
-        supplierAddress: 'Ghee Walon Ka Rasta, Wholesale Mandi',
-        invoiceNumber: `BILL-${Math.floor(100000 + Math.random() * 900000)}`,
-        billNumber: `BILL-${Math.floor(100000 + Math.random() * 900000)}`,
-        invoiceDate: new Date().toISOString().split('T')[0],
-        billDate: new Date().toISOString().split('T')[0],
-        detectedLanguage: 'English / Hindi OCR',
-        items: [
-          {
-            name: 'Fortune Refined Soyabean Oil 1L Pouch',
-            productName: 'Fortune Refined Soyabean Oil 1L Pouch',
-            category: 'Edible Oils & Ghee',
-            quantity: 20,
-            unit: 'pouch',
-            purchasePrice: 110,
-            sellingPrice: 125,
-            mrp: 135,
-            totalPrice: 2200
-          },
-          {
-            name: 'Aashirvaad Shuddh Chakki Atta 10kg',
-            productName: 'Aashirvaad Shuddh Chakki Atta 10kg',
-            category: 'Atta & Flours',
-            quantity: 10,
-            unit: 'pkt',
-            purchasePrice: 380,
-            sellingPrice: 420,
-            mrp: 450,
-            totalPrice: 3800
-          },
-          {
-            name: 'Tata Salt Vacuum Evaporated 1kg',
-            productName: 'Tata Salt Vacuum Evaporated 1kg',
-            category: 'Spices & Masalas',
-            quantity: 30,
-            unit: 'pkt',
-            purchasePrice: 22,
-            sellingPrice: 28,
-            mrp: 28,
-            totalPrice: 660
-          }
-        ],
-        subtotal: 6660,
-        gstTotal: 333,
-        totalAmount: 6993,
-        grandTotal: 6993,
-        paidAmount: 6993,
-        paymentStatus: 'PAID',
-        rawText: 'Extracted sample purchase bill data'
-      }
-    };
+  scanPurchaseBill(_imageBase64: string): never {
+    // There is no safe way to call Gemini directly from the browser (it needs a secret
+    // API key, unlike the public Firestore config other clientStore fallbacks use), so
+    // when the real /api/ai/scan-bill server isn't reachable (static hosting, offline,
+    // dev server down) we can't actually perform AI OCR. Throwing here — instead of
+    // returning fabricated "extracted" data dressed up as a real scan result — lets
+    // ScanPurchaseBillModal show an honest "AI unavailable, retry or enter manually"
+    // state. Deliberately-chosen sample bills (the "Try a sample bill" cards) still
+    // work for exploring the feature; they never call this function.
+    throw new Error("AI bill scanning needs a live server connection, which isn't available right now.");
   },
 
   processScannedPurchaseBill(storeId: string = 'store-demo', payload: any) {

@@ -81,6 +81,9 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
 
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  /** Where the data on the review screen actually came from — controls what the top banner honestly claims. */
+  const [dataSource, setDataSource] = useState<'ai' | 'sample' | 'manual'>('ai');
+  const [lastScannedImage, setLastScannedImage] = useState<string | null>(null);
 
   // Sample Bills for testing
   const sampleHindiBillUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="%23fff"><rect width="600" height="800" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="4"/><text x="30" y="50" font-family="sans-serif" font-size="22" font-weight="bold" fill="%231e293b">लक्ष्मी होलसेल किराना स्टोर्स</text><text x="30" y="80" font-family="sans-serif" font-size="14" fill="%23475569">बिल / चालान संख्या: HIN-987456 | दिनांक: 2026-08-01</text><text x="30" y="100" font-family="sans-serif" font-size="14" fill="%23475569">मोबाईल: 9823011223 | स्थान: इंदौर (म.प्र.)</text><line x1="30" y1="120" x2="570" y2="120" stroke="%2394a3b8" stroke-width="2"/><text x="30" y="150" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">1. बासमती चावल (Basmati Rice) - 50 kg @ 95 = 4750</text><text x="30" y="190" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">2. चने की दाल (Chana Dal) - 20 kg @ 82 = 1640</text><text x="30" y="230" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">3. पतंजलि गाय घी 1L (Patanjali Ghee) - 10 pkt @ 580 = 5800</text><text x="30" y="270" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">4. टाटा नमक 1kg (Tata Salt) - 50 pkt @ 21 = 1050</text><line x1="30" y1="310" x2="570" y2="310" stroke="%2394a3b8" stroke-width="2"/><text x="30" y="350" font-family="sans-serif" font-size="20" font-weight="bold" fill="%23166534">कुल राशि (Total Amount): INR 13,240</text></svg>';
@@ -194,8 +197,9 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
         totalAmount: 201343,
         paidAmount: 201343
       };
+      setErrorMsg(null);
       setImagePreview(sampleHindiBillUrl);
-      populateExtractedData(mockData);
+      populateExtractedData(mockData, 'sample');
       return;
     }
 
@@ -232,12 +236,15 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       };
     }
 
+    setErrorMsg(null);
     setImagePreview(sampleHindiBillUrl);
-    populateExtractedData(mockData);
+    populateExtractedData(mockData, 'sample');
   };
 
   const processBillImage = async (base64Img: string) => {
+    setLastScannedImage(base64Img);
     setStep('scanning');
+    setErrorMsg(null);
     setScanningMessage('Analyzing invoice layout with Gemini AI...');
 
     const timer1 = setTimeout(() => setScanningMessage('Translating Hindi / Bengali text to English...'), 1200);
@@ -249,21 +256,26 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       clearTimeout(timer2);
 
       if (res.success && res.data) {
-        populateExtractedData(res.data);
+        populateExtractedData(res.data, 'ai');
       } else {
-        throw new Error('Could not parse response from Gemini bill scanner');
+        throw new Error('Could not parse response from the AI bill scanner');
       }
     } catch (err: any) {
       clearTimeout(timer1);
       clearTimeout(timer2);
       console.error('Scan error:', err);
-      setErrorMsg(err.message || 'Failed to scan bill. You can fill details manually or retry.');
-      // Fallback to sample data so user isn't stuck
-      handleSampleSelect('hindi');
+      // Stay on the capture step with the real photo still visible — never silently swap
+      // in unrelated sample data and claim it was "extracted" from the user's real bill.
+      setStep('capture');
+      setErrorMsg(
+        (err.message || 'AI scan failed') +
+        '. This can happen without an internet connection or if the photo is unclear. Retry the scan, or enter the bill details manually below.'
+      );
     }
   };
 
-  const populateExtractedData = (data: any) => {
+  const populateExtractedData = (data: any, source: 'ai' | 'sample' | 'manual' = 'ai') => {
+    setDataSource(source);
     setSupplierName(data.supplierName || 'Wholesale Trader');
     setSupplierMobile(data.supplierMobile || '9876543210');
     setInvoiceNumber(data.invoiceNumber || `BILL-${Date.now().toString().slice(-6)}`);
@@ -299,6 +311,21 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
     setItems(mappedItems);
     const total = mappedItems.reduce((acc, i) => acc + i.totalPrice, 0);
     setPaidAmount(data.paidAmount !== undefined ? Number(data.paidAmount) : total);
+    setStep('review');
+  };
+
+  /** Recovery path when AI scanning fails: skip straight to the review form, empty and
+   * ready to fill in by hand, keeping the user's real uploaded photo for reference. */
+  const handleManualEntry = () => {
+    setDataSource('manual');
+    setErrorMsg(null);
+    setSupplierName('');
+    setSupplierMobile('');
+    setInvoiceNumber(`BILL-${Date.now().toString().slice(-6)}`);
+    setInvoiceDate(new Date().toISOString().split('T')[0]);
+    setDetectedLanguage('Not scanned');
+    setItems([]);
+    setPaidAmount(0);
     setStep('review');
   };
 
@@ -432,12 +459,30 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
         {/* Content Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-5">
           {errorMsg && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                <span>{errorMsg}</span>
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+                <button onClick={() => setErrorMsg(null)} className="text-red-500 hover:text-red-800 font-bold shrink-0 cursor-pointer">×</button>
               </div>
-              <button onClick={() => setErrorMsg(null)} className="text-red-500 hover:text-red-800 font-bold">×</button>
+              {step === 'capture' && lastScannedImage && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    onClick={() => processBillImage(lastScannedImage)}
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Retry Scan
+                  </button>
+                  <button
+                    onClick={handleManualEntry}
+                    className="px-3 py-1.5 bg-white hover:bg-red-100 text-red-700 border border-red-300 font-bold rounded-lg text-xs cursor-pointer"
+                  >
+                    Enter Bill Details Manually
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -578,25 +623,41 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
           {/* STEP 3: REVIEW & EDIT EXTRACTED DATA */}
           {step === 'review' && (
             <div className="space-y-5">
-              {/* Top Highlights Banner */}
-              <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900 text-white rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Top Highlights Banner — copy honestly reflects where this data actually came from */}
+              <div className={`text-white rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                dataSource === 'ai'
+                  ? 'bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900'
+                  : dataSource === 'sample'
+                  ? 'bg-gradient-to-r from-amber-900 via-slate-900 to-amber-800'
+                  : 'bg-slate-800'
+              }`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center font-bold">
-                    <CheckCircle2 className="w-5 h-5" />
+                  <div className={`w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold ${dataSource === 'sample' ? 'bg-amber-500' : 'bg-blue-500'}`}>
+                    {dataSource === 'manual' ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm sm:text-base flex items-center gap-2">
-                      <span>Bill Extracted & Translated to English</span>
-                      <span className="text-[10px] bg-blue-400/20 text-blue-300 font-extrabold px-2 py-0.5 rounded-full uppercase border border-blue-400/30">
-                        {detectedLanguage}
-                      </span>
+                      {dataSource === 'ai' && <span>Bill Extracted & Translated to English</span>}
+                      {dataSource === 'sample' && <span>Sample Bill Preview (Demo Data)</span>}
+                      {dataSource === 'manual' && <span>Manual Entry — Add Your Bill Items Below</span>}
+                      {dataSource !== 'manual' && (
+                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase border ${
+                          dataSource === 'sample' ? 'bg-amber-400/20 text-amber-200 border-amber-400/30' : 'bg-blue-400/20 text-blue-300 border-blue-400/30'
+                        }`}>
+                          {detectedLanguage}
+                        </span>
+                      )}
                     </h3>
-                    <p className="text-xs text-slate-300">Review supplier, pricing and stock changes below before saving.</p>
+                    <p className="text-xs text-slate-300">
+                      {dataSource === 'ai' && 'Review supplier, pricing and stock changes below before saving.'}
+                      {dataSource === 'sample' && "This is placeholder demo data, not extracted from a real photo — edit or replace it before saving to your real stock."}
+                      {dataSource === 'manual' && 'AI scanning was unavailable, so nothing was auto-filled — add your supplier and items below.'}
+                    </p>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => { setStep('capture'); setImagePreview(null); }}
+                  onClick={() => { setStep('capture'); setImagePreview(null); setErrorMsg(null); }}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -610,9 +671,11 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                   <div className="p-3 bg-slate-950 flex items-center justify-between border-b border-slate-800">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-emerald-400" />
-                      <span className="text-xs font-bold text-slate-200">Uploaded / Scanned Bill Image Preview</span>
+                      <span className="text-xs font-bold text-slate-200">
+                        {dataSource === 'sample' ? 'Sample Reference Image' : 'Uploaded Bill Image Preview'}
+                      </span>
                       <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-full">
-                        Original Document
+                        {dataSource === 'sample' ? 'Demo Image, Not Yours' : 'Your Original Document'}
                       </span>
                     </div>
 
