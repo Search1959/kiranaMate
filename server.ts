@@ -1,3 +1,4 @@
+import 'dotenv/config'; // loads a local .env into process.env — GEMINI_API_KEY, etc.
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -7,7 +8,9 @@ import { UserRole, User } from './src/types';
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // Managed Node hosts (Hostinger, Render, Railway, etc.) assign a port via env var
+  // and expect the app to bind to it — a hardcoded port breaks deployment there.
+  const PORT = Number(process.env.PORT) || 3000;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -18,8 +21,9 @@ async function startServer() {
     }
   });
 
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // 20mb accommodates scanned PDF bills and spreadsheet uploads, not just photos
+  app.use(express.json({ limit: '20mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
   // --- MULTI-TENANT & AUTH MIDDLEWARE ---
   app.use((req, res, next) => {
@@ -412,23 +416,26 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  // AI Camera Scan Purchase Bill (Supports Hindi, Bengali, Gujarati, Marathi, Tamil, English)
+  // AI Scan Purchase Bill — photo, PDF (both via inlineData/multimodal) or a spreadsheet
+  // (Excel/CSV, pre-converted to CSV text client-side since Gemini has no native XLSX
+  // ingestion — sent as plain text instead of inlineData).
+  // Supports Hindi, Bengali, Gujarati, Marathi, Tamil, English.
   app.post('/api/ai/scan-bill', async (req, res) => {
-    const { imageBase64 } = req.body;
-    if (!imageBase64) {
-      return res.status(400).json({ error: 'Image base64 data is required for bill scanning' });
+    const { imageBase64, textContent, sourceFileName } = req.body;
+    if (!imageBase64 && !textContent) {
+      return res.status(400).json({ error: 'Either image/PDF data or spreadsheet text content is required for bill scanning' });
     }
 
     try {
       let mimeType = 'image/jpeg';
       let cleanBase64 = imageBase64;
-      if (imageBase64.includes(';base64,')) {
+      if (imageBase64 && imageBase64.includes(';base64,')) {
         const parts = imageBase64.split(';base64,');
         mimeType = parts[0].replace('data:', '') || 'image/jpeg';
         cleanBase64 = parts[1];
       }
 
-      const promptText = `You are an expert Indian Wholesale, Retail, Hardware & Kirana Bill OCR system. Analyze this purchase bill / supplier invoice image.
+      const promptText = `You are an expert Indian Wholesale, Retail, Hardware & Kirana Bill OCR system. Analyze this purchase bill / supplier invoice${textContent ? ` (supplied below as spreadsheet data from "${sourceFileName || 'uploaded file'}", already extracted from Excel/CSV — read its rows/columns directly, no OCR needed)` : ' image or PDF'}.
 The bill text may be printed or handwritten in Hindi, Bengali, Gujarati, Marathi, Tamil, Telugu, Kannada, English, or any Indian script.
 
 RULES:
@@ -482,13 +489,18 @@ RULES:
         required: ['supplierName', 'items', 'totalAmount']
       };
 
+      // Image/PDF go in as inlineData (Gemini's native multimodal path). A spreadsheet
+      // has already been converted to CSV client-side (Gemini has no raw XLSX ingestion),
+      // so it rides along as plain text appended to the prompt instead.
+      const contentParts = textContent
+        ? [{ text: `${promptText}\n\nSPREADSHEET DATA (CSV):\n${textContent}` }]
+        : [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }];
+
       let response;
       try {
         response = await ai.models.generateContent({
           model: 'gemini-3.6-flash',
-          contents: {
-            parts: [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }]
-          },
+          contents: { parts: contentParts },
           config: { responseMimeType: 'application/json', responseSchema }
         });
       } catch (firstErr) {
@@ -496,7 +508,7 @@ RULES:
         response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: {
-            parts: [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }]
+            parts: contentParts
           },
           config: { responseMimeType: 'application/json', responseSchema }
         });

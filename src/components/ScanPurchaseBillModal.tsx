@@ -22,6 +22,9 @@ import {
 import { Supplier, Product, ProductUnit, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { formatMoney } from '../lib/currency';
+// Loaded on demand (only when someone actually uploads a spreadsheet) rather than a
+// static import — xlsx adds ~115kb gzipped, not worth it on every page load for a
+// feature most sessions never touch.
 
 interface ScanPurchaseBillModalProps {
   isOpen: boolean;
@@ -83,7 +86,10 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   /** Where the data on the review screen actually came from — controls what the top banner honestly claims. */
   const [dataSource, setDataSource] = useState<'ai' | 'sample' | 'manual'>('ai');
-  const [lastScannedImage, setLastScannedImage] = useState<string | null>(null);
+  /** Whatever was last sent to the scanner, kept only so "Retry Scan" can resend it. */
+  const [lastScanPayload, setLastScanPayload] = useState<{ imageBase64?: string; textContent?: string; sourceFileName?: string } | null>(null);
+  /** For a spreadsheet upload there's no image to preview — show a quick row/column summary instead. */
+  const [spreadsheetPreview, setSpreadsheetPreview] = useState<{ fileName: string; rowCount: number; headers: string[] } | null>(null);
 
   // Sample Bills for testing
   const sampleHindiBillUrl = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800" fill="%23fff"><rect width="600" height="800" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="4"/><text x="30" y="50" font-family="sans-serif" font-size="22" font-weight="bold" fill="%231e293b">लक्ष्मी होलसेल किराना स्टोर्स</text><text x="30" y="80" font-family="sans-serif" font-size="14" fill="%23475569">बिल / चालान संख्या: HIN-987456 | दिनांक: 2026-08-01</text><text x="30" y="100" font-family="sans-serif" font-size="14" fill="%23475569">मोबाईल: 9823011223 | स्थान: इंदौर (म.प्र.)</text><line x1="30" y1="120" x2="570" y2="120" stroke="%2394a3b8" stroke-width="2"/><text x="30" y="150" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">1. बासमती चावल (Basmati Rice) - 50 kg @ 95 = 4750</text><text x="30" y="190" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">2. चने की दाल (Chana Dal) - 20 kg @ 82 = 1640</text><text x="30" y="230" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">3. पतंजलि गाय घी 1L (Patanjali Ghee) - 10 pkt @ 580 = 5800</text><text x="30" y="270" font-family="sans-serif" font-size="16" font-weight="bold" fill="%230f172a">4. टाटा नमक 1kg (Tata Salt) - 50 pkt @ 21 = 1050</text><line x1="30" y1="310" x2="570" y2="310" stroke="%2394a3b8" stroke-width="2"/><text x="30" y="350" font-family="sans-serif" font-size="20" font-weight="bold" fill="%23166534">कुल राशि (Total Amount): INR 13,240</text></svg>';
@@ -134,19 +140,27 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
     if (ctx) {
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      setImagePreview(dataUrl);
       stopCamera();
       processBillImage(dataUrl);
     }
   };
 
+  const SPREADSHEET_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const isSpreadsheet = SPREADSHEET_EXTENSIONS.some(ext => file.name.toLowerCase().endsWith(ext));
+    if (isSpreadsheet) {
+      processSpreadsheetFile(file);
+      return;
+    }
+
+    // Image or PDF — both ride the same inlineData path to Gemini.
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      setImagePreview(result);
       processBillImage(result);
     };
     reader.readAsDataURL(file);
@@ -199,6 +213,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       };
       setErrorMsg(null);
       setImagePreview(sampleHindiBillUrl);
+      setSpreadsheetPreview(null);
       populateExtractedData(mockData, 'sample');
       return;
     }
@@ -238,20 +253,25 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
 
     setErrorMsg(null);
     setImagePreview(sampleHindiBillUrl);
+    setSpreadsheetPreview(null);
     populateExtractedData(mockData, 'sample');
   };
 
-  const processBillImage = async (base64Img: string) => {
-    setLastScannedImage(base64Img);
+  /** Unified entry point for the AI scanner — takes a photo/PDF (imageBase64) or
+   * spreadsheet-derived CSV text (textContent), never both. */
+  const processBill = async (payload: { imageBase64?: string; textContent?: string; sourceFileName?: string }) => {
+    setLastScanPayload(payload);
     setStep('scanning');
     setErrorMsg(null);
-    setScanningMessage('Analyzing invoice layout with Gemini AI...');
+    setScanningMessage(payload.textContent ? 'Reading spreadsheet rows with Gemini AI...' : 'Analyzing invoice layout with Gemini AI...');
 
-    const timer1 = setTimeout(() => setScanningMessage('Translating Hindi / Bengali text to English...'), 1200);
+    const timer1 = setTimeout(() => setScanningMessage(
+      payload.textContent ? 'Mapping columns to product fields...' : 'Translating Hindi / Bengali text to English...'
+    ), 1200);
     const timer2 = setTimeout(() => setScanningMessage('Extracting products, quantities & prices...'), 2400);
 
     try {
-      const res = await api.scanPurchaseBill(base64Img);
+      const res = await api.scanPurchaseBill(payload);
       clearTimeout(timer1);
       clearTimeout(timer2);
 
@@ -264,13 +284,51 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       clearTimeout(timer1);
       clearTimeout(timer2);
       console.error('Scan error:', err);
-      // Stay on the capture step with the real photo still visible — never silently swap
+      // Stay on the capture step with the real file still on hand — never silently swap
       // in unrelated sample data and claim it was "extracted" from the user's real bill.
       setStep('capture');
       setErrorMsg(
         (err.message || 'AI scan failed') +
-        '. This can happen without an internet connection or if the photo is unclear. Retry the scan, or enter the bill details manually below.'
+        `. This can happen without an internet connection or if the ${payload.textContent ? 'spreadsheet format is unusual' : 'photo is unclear'}. Retry the scan, or enter the bill details manually below.`
       );
+    }
+  };
+
+  /** Photo or PDF — sent to Gemini as inlineData (native multimodal support for both). */
+  const processBillImage = (base64Img: string) => {
+    setImagePreview(base64Img);
+    setSpreadsheetPreview(null);
+    processBill({ imageBase64: base64Img });
+  };
+
+  /** Excel/CSV — Gemini has no raw-XLSX ingestion, so the workbook is parsed and
+   * converted to CSV text in the browser first, then sent to the same AI endpoint
+   * as text so Gemini can map its columns the same way it reads a photographed bill. */
+  const processSpreadsheetFile = async (file: File) => {
+    setErrorMsg(null);
+    try {
+      const [buffer, XLSX] = await Promise.all([file.arrayBuffer(), import('xlsx')]);
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[firstSheetName];
+      const csv = XLSX.utils.sheet_to_csv(sheet);
+      const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
+
+      if (!csv.trim() || rows.length < 2) {
+        setErrorMsg('This file looks empty, or has no data rows below the header. Please check the file and try again.');
+        return;
+      }
+
+      setImagePreview(null);
+      setSpreadsheetPreview({
+        fileName: file.name,
+        rowCount: rows.length - 1,
+        headers: (rows[0] || []).map(h => String(h || '').trim()).filter(Boolean)
+      });
+      processBill({ textContent: csv, sourceFileName: file.name });
+    } catch (err: any) {
+      console.error('Spreadsheet parse error:', err);
+      setErrorMsg(`Could not read "${file.name}" as a spreadsheet — make sure it's a valid .xlsx, .xls, or .csv file.`);
     }
   };
 
@@ -437,13 +495,13 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
             </div>
             <div>
               <h2 className="font-bold text-sm sm:text-base flex items-center gap-2">
-                <span>Scan Purchase Bill with AI Camera</span>
+                <span>Scan Purchase Bill</span>
                 <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">
-                  Multi-lingual OCR
+                  Photo · PDF · Excel
                 </span>
               </h2>
               <p className="text-[11px] text-slate-300">
-                Supports Hindi, Bengali, Gujarati, Marathi & English • Auto Stock & Supplier Creation
+                Supports Hindi, Bengali, Gujarati, Marathi & English • Auto Stock & Supplier Creation, No Manual Typing
               </p>
             </div>
           </div>
@@ -467,10 +525,10 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                 </div>
                 <button onClick={() => setErrorMsg(null)} className="text-red-500 hover:text-red-800 font-bold shrink-0 cursor-pointer">×</button>
               </div>
-              {step === 'capture' && lastScannedImage && (
+              {step === 'capture' && lastScanPayload && (
                 <div className="flex flex-wrap gap-2 pt-1">
                   <button
-                    onClick={() => processBillImage(lastScannedImage)}
+                    onClick={() => processBill(lastScanPayload)}
                     className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Retry Scan
@@ -498,7 +556,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                   }`}
                 >
                   <Upload className="w-4 h-4" />
-                  <span>Upload Image File</span>
+                  <span>Upload File</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('camera')}
@@ -545,15 +603,15 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                 <div className="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 rounded-2xl p-8 text-center transition-all cursor-pointer relative">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.pdf,application/pdf,.xlsx,.xls,.csv"
                     onChange={handleFileUpload}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   />
                   <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-3">
                     <Upload className="w-6 h-6" />
                   </div>
-                  <p className="font-bold text-sm text-slate-800">Click or Drag Purchase Bill Photo Here</p>
-                  <p className="text-xs text-slate-500 mt-1">Supports JPG, PNG, WebP photo of invoice, bill or receipt</p>
+                  <p className="font-bold text-sm text-slate-800">Click or Drag a Bill, PDF, or Stock Sheet Here</p>
+                  <p className="text-xs text-slate-500 mt-1">Photo (JPG/PNG/WebP), PDF invoice, or Excel/CSV stock list — one item or hundreds</p>
                 </div>
               )}
 
@@ -657,7 +715,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                 </div>
 
                 <button
-                  onClick={() => { setStep('capture'); setImagePreview(null); setErrorMsg(null); }}
+                  onClick={() => { setStep('capture'); setImagePreview(null); setSpreadsheetPreview(null); setErrorMsg(null); }}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -665,29 +723,36 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                 </button>
               </div>
 
-              {/* Uploaded Purchase Bill Image Preview Card */}
+              {/* Uploaded Purchase Bill Preview Card — image, or a PDF/spreadsheet summary since neither renders as an <img> */}
               {imagePreview && (
                 <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md text-white">
                   <div className="p-3 bg-slate-950 flex items-center justify-between border-b border-slate-800">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-emerald-400" />
                       <span className="text-xs font-bold text-slate-200">
-                        {dataSource === 'sample' ? 'Sample Reference Image' : 'Uploaded Bill Image Preview'}
+                        {dataSource === 'sample' ? 'Sample Reference Image' : imagePreview.startsWith('data:application/pdf') ? 'Uploaded PDF' : 'Uploaded Bill Image Preview'}
                       </span>
                       <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-full">
                         {dataSource === 'sample' ? 'Demo Image, Not Yours' : 'Your Original Document'}
                       </span>
                     </div>
 
-                    <button
-                      onClick={() => setShowImagePreview(!showImagePreview)}
-                      className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer flex items-center gap-1"
-                    >
-                      <span>{showImagePreview ? 'Hide Bill Image' : 'Show Bill Image'}</span>
-                    </button>
+                    {!imagePreview.startsWith('data:application/pdf') && (
+                      <button
+                        onClick={() => setShowImagePreview(!showImagePreview)}
+                        className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer flex items-center gap-1"
+                      >
+                        <span>{showImagePreview ? 'Hide Bill Image' : 'Show Bill Image'}</span>
+                      </button>
+                    )}
                   </div>
 
-                  {showImagePreview && (
+                  {imagePreview.startsWith('data:application/pdf') ? (
+                    <div className="p-4 flex items-center gap-3 text-slate-300 text-xs">
+                      <FileText className="w-8 h-8 text-red-400 shrink-0" />
+                      <span>PDF uploaded and sent for scanning — preview isn't shown inline, but the file itself was read directly by the AI.</span>
+                    </div>
+                  ) : showImagePreview && (
                     <div className="p-3 bg-slate-900/80 flex flex-col items-center justify-center max-h-[350px] overflow-auto">
                       <img
                         src={imagePreview}
@@ -696,6 +761,25 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                       />
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Spreadsheet Upload Summary Card (no visual image for Excel/CSV) */}
+              {spreadsheetPreview && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md text-white">
+                  <div className="p-3 bg-slate-950 flex items-center gap-2 border-b border-slate-800">
+                    <Layers className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-bold text-slate-200">Uploaded Stock Sheet</span>
+                    <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded-full">
+                      Your Original File
+                    </span>
+                  </div>
+                  <div className="p-3 text-xs text-slate-300 space-y-1">
+                    <p><strong className="text-white">{spreadsheetPreview.fileName}</strong> — {spreadsheetPreview.rowCount} data row{spreadsheetPreview.rowCount !== 1 ? 's' : ''} read</p>
+                    {spreadsheetPreview.headers.length > 0 && (
+                      <p className="text-slate-400">Columns: {spreadsheetPreview.headers.join(', ')}</p>
+                    )}
+                  </div>
                 </div>
               )}
 

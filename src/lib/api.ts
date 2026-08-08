@@ -216,7 +216,7 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
     return clientStore.deletePurchase(currentStoreId, id) as unknown as T;
   }
   if (pathname === '/api/ai/scan-bill') {
-    return clientStore.scanPurchaseBill(body.imageBase64) as unknown as T;
+    return clientStore.scanPurchaseBill(body.imageBase64 || body.textContent) as unknown as T;
   }
   if (pathname === '/api/purchases/process-scanned') {
     return clientStore.processScannedPurchaseBill(currentStoreId, body) as unknown as T;
@@ -375,7 +375,8 @@ export const api = {
   createPurchase: (data: Partial<Purchase>) => apiFetch<Purchase>('/api/purchases', { method: 'POST', body: JSON.stringify(data) }),
   updatePurchase: (id: string, data: Partial<Purchase>) => apiFetch<Purchase>(`/api/purchases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deletePurchase: (id: string) => apiFetch<{ success: boolean }>(`/api/purchases/${id}`, { method: 'DELETE' }),
-  scanPurchaseBill: (imageBase64: string) => apiFetch<{ success: boolean; data: any }>('/api/ai/scan-bill', { method: 'POST', body: JSON.stringify({ imageBase64 }) }),
+  scanPurchaseBill: (payload: { imageBase64?: string; textContent?: string; sourceFileName?: string }) =>
+    apiFetch<{ success: boolean; data: any }>('/api/ai/scan-bill', { method: 'POST', body: JSON.stringify(payload) }),
   processScannedPurchaseBill: (payload: any) => apiFetch<{ success: boolean; purchase: Purchase; supplier: Supplier; isNewSupplierCreated: boolean; newProductsCount: number; updatedProductsCount: number }>('/api/purchases/process-scanned', { method: 'POST', body: JSON.stringify(payload) }),
 
   // Inventory logs
