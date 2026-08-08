@@ -23,6 +23,7 @@ import {
 } from '../types';
 import { generateSeedData, generateSectorSeedData } from './seedData';
 import { getSectorConfig, TRADING_SECTORS } from '../lib/sectorConfig';
+import { detectCurrencyFromAcceptLanguage, formatMoney } from '../lib/currency';
 
 const DB_FILE = path.join(process.cwd(), 'data_kiranamate_db.json');
 
@@ -341,6 +342,7 @@ class Database {
     ownerName: string;
     mobile: string;
     sector?: TradingSector;
+    acceptLanguage?: string;
   }): { user: User; storeId: string } {
     const cleanUsername = data.username.trim().toLowerCase();
 
@@ -378,6 +380,13 @@ class Database {
       }
     };
 
+    // Auto-detect currency from the signing-up user's browser locale (sent via
+    // the Accept-Language header) — e.g. a visitor signing up from the US gets
+    // USD by default. This is set once at registration; it won't change on
+    // later logins from elsewhere, since a store's bookkeeping currency
+    // shouldn't drift with wherever the owner happens to be. Overridable in Settings.
+    const detectedCurrency = detectCurrencyFromAcceptLanguage(data.acceptLanguage);
+
     const newSettings: StoreSettings = {
       storeName: data.shopName,
       tagline: sectorConfig.defaultSettings?.tagline || sectorConfig.tagline || 'Quality Commercial Trading',
@@ -386,7 +395,8 @@ class Database {
       address: 'Shop No. 1, Main Bazaar Commercial Complex',
       city: 'Commercial Market Area',
       pincode: '400001',
-      currencySymbol: '₹',
+      currencySymbol: detectedCurrency.symbol,
+      currencyCode: detectedCurrency.code,
       invoicePrefix: sectorConfig.defaultSettings?.invoicePrefix || 'INV-',
       invoiceFooterNote: `Thank you for doing business with ${data.shopName}! GST Tax Invoice.`,
       lowStockThresholdDefault: 5,
@@ -859,7 +869,7 @@ class Database {
       id: `notif-${Date.now()}`,
       type: 'NEW_ORDER',
       title: 'New Customer Order Received',
-      message: `${newOrder.customerName} placed order #${ordNum} worth ₹${newOrder.total}.`,
+      message: `${newOrder.customerName} placed order #${ordNum} worth ${formatMoney(newOrder.total, store.settings.currencySymbol, store.settings.currencyCode)}.`,
       referenceId: newOrder.id,
       isRead: false,
       createdAt: new Date().toISOString()

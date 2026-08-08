@@ -17,12 +17,14 @@ import {
   CreditCard,
   ShieldCheck
 } from 'lucide-react';
-import { Supplier, Purchase } from '../types';
+import { Supplier, Purchase, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface SuppliersViewProps {
   suppliers: Supplier[];
   purchases: Purchase[];
+  settings: StoreSettings;
   onRefreshData: () => void;
   onOpenAddStock: () => void;
   onOpenScanBill: () => void;
@@ -31,10 +33,12 @@ interface SuppliersViewProps {
 export const SuppliersView: React.FC<SuppliersViewProps> = ({
   suppliers,
   purchases,
+  settings,
   onRefreshData,
   onOpenAddStock,
   onOpenScanBill
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Modals state
@@ -164,7 +168,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         notes: `Vendor Khata Payment (${payMethod}): ${payNotes || 'Payment to wholesale vendor'}`
       });
 
-      setSuccessMsg(`Payment of ₹${payAmount} recorded for ${selectedSupplierForPay.name}. New Balance: ₹${newBal}`);
+      setSuccessMsg(`Payment of ${money(payAmount)} recorded for ${selectedSupplierForPay.name}. New Balance: ${money(newBal)}`);
       setIsPayModalOpen(false);
       onRefreshData();
     } catch (err: any) {
@@ -246,7 +250,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Payable Khata Balance</span>
-            <span className="text-2xl font-black text-rose-600 mt-1 block">₹{(totalOutstandingPayable ?? 0).toLocaleString('en-IN')}</span>
+            <span className="text-2xl font-black text-rose-600 mt-1 block">{money(totalOutstandingPayable)}</span>
             <span className="text-[11px] text-slate-400">Total amount shop owes to vendors</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -257,7 +261,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Purchases</span>
-            <span className="text-2xl font-black text-emerald-600 mt-1 block">₹{(totalPurchasesVal ?? 0).toLocaleString('en-IN')}</span>
+            <span className="text-2xl font-black text-emerald-600 mt-1 block">{money(totalPurchasesVal)}</span>
             <span className="text-[11px] text-slate-400">{purchases.length} Purchase Invoices</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
@@ -339,7 +343,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       {(sup.outstandingBalance ?? 0) > 0 ? (
                         <div className="inline-flex flex-col">
                           <span className="text-sm font-black text-rose-600">
-                            ₹{(sup.outstandingBalance ?? 0).toLocaleString('en-IN')}
+                            {money(sup.outstandingBalance)}
                           </span>
                           <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                             Payment Due
@@ -472,7 +476,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Current Opening Payable Balance (₹)</label>
+                <label className="block font-bold text-slate-700 mb-1">Current Opening Payable Balance ({settings.currencySymbol})</label>
                 <input
                   type="number"
                   min={0}
@@ -537,13 +541,13 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
               <span className="text-[11px] font-bold text-rose-800 block">Supplier</span>
               <span className="font-extrabold text-slate-900 text-sm block">{selectedSupplierForPay.name}</span>
               <span className="text-xs text-rose-700 font-bold mt-1 block">
-                Total Outstanding Due: ₹{(selectedSupplierForPay.outstandingBalance ?? 0).toLocaleString('en-IN')}
+                Total Outstanding Due: {money(selectedSupplierForPay.outstandingBalance)}
               </span>
             </div>
 
             <form onSubmit={handleSettleSupplierPayment} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Payment Amount Paid (₹) *</label>
+                <label className="block font-bold text-slate-700 mb-1">Payment Amount Paid ({settings.currencySymbol}) *</label>
                 <input
                   type="number"
                   min={1}

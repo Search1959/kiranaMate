@@ -3,6 +3,7 @@ import { X, Receipt, CheckCircle2, Share2, Copy, DollarSign, MessageSquare } fro
 import { Customer, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { getWhatsAppWebLink, getSmsLink, copyToClipboard } from '../lib/whatsapp';
+import { formatMoney } from '../lib/currency';
 
 interface CollectPaymentModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
   settings,
   onPaymentSuccess
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings?.currencySymbol, settings?.currencyCode);
   const [customerId, setCustomerId] = useState('');
   const [amount, setAmount] = useState<number | ''>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
@@ -72,7 +74,7 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
   };
 
   const receiptMsg = currentCustomer && recordedTx
-    ? `Hello ${currentCustomer.name},\n\nPayment Received! Thank you for paying ₹${(recordedTx.amount ?? 0).toLocaleString('en-IN')} via ${paymentMethod}.\n\nReceipt No: ${recordedTx.referenceId || 'RCP-1001'}\nYour remaining outstanding balance with ${settings?.storeName || 'Store'} is ₹${(recordedTx.balanceAfter ?? 0).toLocaleString('en-IN')}.\n\nThank you!\n${settings?.storeName || 'Store'}`
+    ? `Hello ${currentCustomer.name},\n\nPayment Received! Thank you for paying ${money(recordedTx.amount)} via ${paymentMethod}.\n\nReceipt No: ${recordedTx.referenceId || 'RCP-1001'}\nYour remaining outstanding balance with ${settings?.storeName || 'Store'} is ${money(recordedTx.balanceAfter)}.\n\nThank you!\n${settings?.storeName || 'Store'}`
     : '';
 
   return (
@@ -96,13 +98,13 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
             </div>
             <h3 className="text-lg font-bold text-slate-800">Payment Recorded!</h3>
             <p className="text-xs text-slate-600">
-              ₹{recordedTx.amount} collected from <strong>{currentCustomer.name}</strong>
+              {money(recordedTx.amount)} collected from <strong>{currentCustomer.name}</strong>
             </p>
 
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs text-left space-y-1">
               <p><strong>Receipt Ref:</strong> {recordedTx.referenceId}</p>
               <p><strong>Payment Method:</strong> {paymentMethod}</p>
-              <p><strong>Remaining Udhaar:</strong> <span className="font-bold text-emerald-700">₹{recordedTx.balanceAfter}</span></p>
+              <p><strong>Remaining Udhaar:</strong> <span className="font-bold text-emerald-700">{money(recordedTx.balanceAfter)}</span></p>
             </div>
 
             <div className="space-y-2 pt-2">
@@ -159,7 +161,7 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
                   const bal = c.currentBalance ?? c.outstandingBalance ?? 0;
                   return (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.area || c.address || 'Colony'}) - Pending: ₹{bal.toLocaleString('en-IN')}
+                      {c.name} ({c.area || c.address || 'Colony'}) - Pending: {money(bal)}
                     </option>
                   );
                 })}
@@ -169,12 +171,12 @@ export const CollectPaymentModal: React.FC<CollectPaymentModalProps> = ({
             {currentCustomer && (
               <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-xs text-amber-900 flex items-center justify-between">
                 <span>Current Total Udhaar:</span>
-                <span className="text-sm font-extrabold text-amber-950">₹{(currentCustomer.currentBalance ?? currentCustomer.outstandingBalance ?? 0).toLocaleString('en-IN')}</span>
+                <span className="text-sm font-extrabold text-amber-950">{money(currentCustomer.currentBalance ?? currentCustomer.outstandingBalance)}</span>
               </div>
             )}
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Amount Received (₹)</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Amount Received ({settings?.currencySymbol || '₹'})</label>
               <input
                 type="number"
                 value={amount}

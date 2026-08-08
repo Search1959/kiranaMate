@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, Scan } from 'lucide-react';
-import { Product, Supplier, TradingSector } from '../types';
+import { Product, Supplier, TradingSector, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { getSectorConfig } from '../lib/sectorConfig';
 
@@ -9,6 +9,7 @@ interface AddProductModalProps {
   onClose: () => void;
   productToEdit?: Product | null;
   suppliers: Supplier[];
+  settings: StoreSettings;
   onOpenBarcodeScanner: () => void;
   scannedBarcode?: string;
   onProductSaved: () => void;
@@ -37,6 +38,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   onClose,
   productToEdit,
   suppliers,
+  settings,
   onOpenBarcodeScanner,
   scannedBarcode,
   onProductSaved,
@@ -286,7 +288,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Selling Price (₹) *</label>
+              <label className="font-bold text-slate-700 block mb-1">Selling Price ({settings.currencySymbol}) *</label>
               <input
                 type="number"
                 value={sellingPrice}
@@ -297,7 +299,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               />
             </div>
             <div>
-              <label className="font-bold text-slate-700 block mb-1">MRP (₹)</label>
+              <label className="font-bold text-slate-700 block mb-1">MRP ({settings.currencySymbol})</label>
               <input
                 type="number"
                 value={mrp}
@@ -307,7 +309,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               />
             </div>
             <div>
-              <label className="font-bold text-slate-700 block mb-1">Purchase Price (₹)</label>
+              <label className="font-bold text-slate-700 block mb-1">Purchase Price ({settings.currencySymbol})</label>
               <input
                 type="number"
                 value={purchasePrice}
@@ -468,7 +470,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Making Charge (₹/g)</label>
+                  <label className="font-bold text-slate-700 block mb-1">Making Charge ({settings.currencySymbol}/g)</label>
                   <input
                     type="number"
                     value={makingCharge}

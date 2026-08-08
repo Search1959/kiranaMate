@@ -21,6 +21,7 @@ import {
 import { DailyStats, StoreSettings, Customer, LanguageCode, Sale, Order, Product } from '../types';
 import { translations } from '../lib/translations';
 import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
+import { formatMoney } from '../lib/currency';
 import { EmptyStateWizard } from '../components/EmptyStateWizard';
 import { BusinessHealthCard } from '../components/BusinessHealthCard';
 
@@ -58,6 +59,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onRefreshData = () => {}
 }) => {
   const t = translations[lang] || translations.en;
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
 
   return (
     <div className="space-y-5 pb-12 sm:pb-6 font-sans text-slate-900">
@@ -75,6 +77,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         stats={stats}
         products={lowStockProducts}
         customers={customersWithUdhaar}
+        settings={settings}
         onNavigateToTab={onNavigateToTab}
       />
 
@@ -90,13 +93,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
           <div className="flex items-end justify-between">
             <h3 className="text-2xl font-bold text-slate-900">
-              ₹{(stats?.todaySalesTotal ?? 0).toLocaleString('en-IN')}
+              {money(stats?.todaySalesTotal)}
             </h3>
             <span className="text-green-600 text-xs font-bold">↑ Today</span>
           </div>
           <div className="flex gap-2.5 mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500">
-            <span>Cash: <strong className="text-slate-800">₹{stats?.cashSales ?? 0}</strong></span>
-            <span>UPI: <strong className="text-slate-800">₹{stats?.upiSales ?? 0}</strong></span>
+            <span>Cash: <strong className="text-slate-800">{money(stats?.cashSales)}</strong></span>
+            <span>UPI: <strong className="text-slate-800">{money(stats?.upiSales)}</strong></span>
           </div>
         </div>
 
@@ -110,12 +113,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
           <div className="flex items-end justify-between">
             <h3 className="text-2xl font-bold text-slate-900">
-              ₹{(stats?.totalPendingUdhaar ?? 0).toLocaleString('en-IN')}
+              {money(stats?.totalPendingUdhaar)}
             </h3>
             <button className="text-blue-600 text-xs font-bold hover:underline">Collect</button>
           </div>
           <p className="text-[10px] text-slate-400 mt-2">
-            {(customersWithUdhaar || []).length} customers outstanding • Collected ₹{stats?.todayCollection ?? 0}
+            {(customersWithUdhaar || []).length} customers outstanding • Collected {money(stats?.todayCollection)}
           </p>
         </div>
 
@@ -150,12 +153,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
           <div className="flex items-end justify-between">
             <h3 className="text-2xl font-bold text-slate-900">
-              ₹{(stats?.estimatedProfitToday ?? 0).toLocaleString('en-IN')}
+              {money(stats?.estimatedProfitToday)}
             </h3>
             <span className="text-blue-600 text-xs font-bold">~15.5% Margin</span>
           </div>
           <p className="text-[10px] text-slate-400 mt-2">
-            After ₹{stats?.todayExpenses ?? 0} expenses
+            After {money(stats?.todayExpenses)} expenses
           </p>
         </div>
       </section>
@@ -197,7 +200,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <div className="text-[10px] text-slate-400">{cust.area} • +91 {cust.mobile}</div>
                       </td>
                       <td className="p-3 font-bold text-red-600">
-                        ₹{(cust?.currentBalance ?? cust?.outstandingBalance ?? 0).toLocaleString('en-IN')}
+                        {money(cust?.currentBalance ?? cust?.outstandingBalance)}
                       </td>
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
@@ -321,7 +324,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </span>
                 </div>
                 <div className="text-right flex items-center gap-2">
-                  <span className="font-bold text-slate-900 text-sm">₹{s.grandTotal}</span>
+                  <span className="font-bold text-slate-900 text-sm">{money(s.grandTotal)}</span>
                   <button
                     onClick={() => onOpenInvoicePrint(s)}
                     className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700"
@@ -353,7 +356,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <span className="text-[10px] text-slate-400">{o.items.length} items ordered</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-slate-900 block">₹{o.total}</span>
+                  <span className="font-bold text-slate-900 block">{money(o.total)}</span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
                     o.orderStatus === 'DELIVERED' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                   }`}>

@@ -56,7 +56,8 @@ async function startServer() {
         shopName,
         ownerName,
         mobile: mobile || '9876543210',
-        sector
+        sector,
+        acceptLanguage: req.headers['accept-language'] as string
       });
       const token = `token-owner-${Date.now()}`;
       res.status(201).json({
@@ -119,7 +120,8 @@ async function startServer() {
             shopName,
             ownerName,
             mobile: '9836130393',
-            sector: sector || (cleanName.includes('arun') || cleanName.includes('deshna') ? 'METALS_STEEL' : 'KIRANA_FMCG')
+            sector: sector || (cleanName.includes('arun') || cleanName.includes('deshna') ? 'METALS_STEEL' : 'KIRANA_FMCG'),
+            acceptLanguage: req.headers['accept-language'] as string
           });
           found = { user: regResult.user, storeId: regResult.storeId };
         } catch (err) {

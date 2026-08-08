@@ -1,11 +1,13 @@
 import React from 'react';
 import { Sparkles, TrendingUp, AlertTriangle, CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
-import { DailyStats, Product, Customer } from '../types';
+import { DailyStats, Product, Customer, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface BusinessHealthCardProps {
   stats: DailyStats | null;
   products: Product[];
   customers: Customer[];
+  settings: StoreSettings;
   onNavigateToTab: (tab: string) => void;
 }
 
@@ -13,8 +15,10 @@ export const BusinessHealthCard: React.FC<BusinessHealthCardProps> = ({
   stats,
   products,
   customers,
+  settings,
   onNavigateToTab
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   // 1. Calculate Profitability Score (30 pts)
   const todayProfit = stats?.estimatedProfitToday || 0;
   const profitScore = todayProfit > 2000 ? 30 : todayProfit > 500 ? 22 : todayProfit > 0 ? 15 : 5;
@@ -68,14 +72,14 @@ export const BusinessHealthCard: React.FC<BusinessHealthCardProps> = ({
   }
   if (pendingUdhaar > 5000) {
     suggestions.push({
-      text: `₹${pendingUdhaar.toLocaleString('en-IN')} pending in Udhaar Khata. Send WhatsApp reminders today.`,
+      text: `${money(pendingUdhaar)} pending in Udhaar Khata. Send WhatsApp reminders today.`,
       actionTab: 'customers',
       actionLabel: 'Send Reminders'
     });
   }
   if (todayProfit > 0) {
     suggestions.push({
-      text: `Net profit is ₹${todayProfit.toLocaleString('en-IN')} today. Cashflow is stable.`,
+      text: `Net profit is ${money(todayProfit)} today. Cashflow is stable.`,
       actionTab: 'reports',
       actionLabel: 'View Profit'
     });

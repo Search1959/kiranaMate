@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Search, Receipt, Plus } from 'lucide-react';
-import { Sale } from '../types';
+import { Sale, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface SalesViewProps {
   sales: Sale[];
+  settings: StoreSettings;
   onOpenNewSale: () => void;
   onOpenInvoicePrint: (sale: Sale) => void;
   onRefreshData?: () => void;
@@ -11,11 +13,13 @@ interface SalesViewProps {
 
 export const SalesView: React.FC<SalesViewProps> = ({
   sales,
+  settings,
   onOpenNewSale,
   onOpenInvoicePrint
 }) => {
   const [search, setSearch] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('ALL');
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
 
   const filteredSales = sales.filter(s => {
     const matchesSearch = !search.trim() || (
@@ -36,7 +40,7 @@ export const SalesView: React.FC<SalesViewProps> = ({
             <ShoppingCart className="w-5 h-5 text-emerald-600" /> Daily Counter Sales Log
           </h2>
           <p className="text-xs text-slate-500">
-            Total Sales: <strong className="text-emerald-700">₹{(totalAmount ?? 0).toLocaleString('en-IN')}</strong> ({filteredSales.length} bills)
+            Total Sales: <strong className="text-emerald-700">{money(totalAmount)}</strong> ({filteredSales.length} bills)
           </p>
         </div>
 
@@ -88,7 +92,7 @@ export const SalesView: React.FC<SalesViewProps> = ({
 
             <div className="text-right flex items-center gap-3">
               <div>
-                <span className="text-base font-black text-slate-900 block">₹{(s.grandTotal ?? 0).toLocaleString('en-IN')}</span>
+                <span className="text-base font-black text-slate-900 block">{money(s.grandTotal)}</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
                   s.paymentMethod === 'CREDIT' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'
                 }`}>

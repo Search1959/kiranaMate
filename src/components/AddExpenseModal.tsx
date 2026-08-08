@@ -25,14 +25,16 @@ import {
   Tag,
   Receipt
 } from 'lucide-react';
-import { ExpenseCategory, PaymentMethod } from '../types';
+import { ExpenseCategory, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onExpenseSaved: () => void;
   recordedBy?: string;
+  settings: StoreSettings;
 }
 
 const EXPENSE_CATEGORIES: { label: ExpenseCategory; icon: any; color: string }[] = [
@@ -188,8 +190,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   isOpen,
   onClose,
   onExpenseSaved,
-  recordedBy = 'Shop Owner'
+  recordedBy = 'Shop Owner',
+  settings
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [activeTab, setActiveTab] = useState<'form' | 'scan'>('form');
 
   // Form State
@@ -496,7 +500,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                       >
                         <div className="flex items-center justify-between gap-1">
                           <IconComponent className="w-3.5 h-3.5 shrink-0" />
-                          <span className="font-black text-xs">₹{p.amount}</span>
+                          <span className="font-black text-xs">{money(p.amount)}</span>
                         </div>
                         <div className="font-bold text-[11px] leading-tight mt-1 line-clamp-2">
                           {p.title}
@@ -543,7 +547,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <label className="font-bold text-slate-800 flex items-center gap-1.5">
                       <DollarSign className="w-4 h-4 text-rose-600" />
-                      <span>Amount Spent (₹) *</span>
+                      <span>Amount Spent ({settings.currencySymbol}) *</span>
                     </label>
 
                     {/* Quick +Amount Chips */}
@@ -636,7 +640,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">
-                      Tax / GST Component (₹ if deductible)
+                      Tax / GST Component ({settings.currencySymbol} if deductible)
                     </label>
                     <input
                       type="number"

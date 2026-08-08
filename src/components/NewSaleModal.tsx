@@ -24,6 +24,7 @@ import {
 import { Product, Customer, PaymentMethod, PaymentStatus, Sale, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { getWhatsAppWebLink, getSmsLink, generateInvoiceWhatsAppText, copyToClipboard } from '../lib/whatsapp';
+import { formatMoney } from '../lib/currency';
 
 interface NewSaleModalProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   onSaleSuccess,
   onOpenInvoicePrint
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings?.currencySymbol, settings?.currencyCode);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(''); // empty = Walk-in
   const [manualCustomerName, setManualCustomerName] = useState<string>('Walk-in Customer');
   const [manualCustomerMobile, setManualCustomerMobile] = useState<string>('');
@@ -305,22 +307,22 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
               {lastCreatedSale.customerGstin && <p><strong>GSTIN:</strong> {lastCreatedSale.customerGstin}</p>}
               <p><strong>Payment Mode:</strong> {lastCreatedSale.paymentMethod}</p>
               {lastCreatedSale.totalTaxAmount ? (
-                <p><strong>Total Tax (GST @ {lastCreatedSale.gstRate}%):</strong> ₹{lastCreatedSale.totalTaxAmount}</p>
+                <p><strong>Total Tax (GST @ {lastCreatedSale.gstRate}%):</strong> {money(lastCreatedSale.totalTaxAmount)}</p>
               ) : null}
               <p className="text-base font-bold text-slate-900 pt-1.5 border-t border-slate-200 flex justify-between">
                 <span>Grand Total:</span>
-                <span className="text-emerald-700">₹{lastCreatedSale.grandTotal}</span>
+                <span className="text-emerald-700">{money(lastCreatedSale.grandTotal)}</span>
               </p>
               {lastCreatedSale.receivedAmount && (
                 <p className="text-xs text-slate-600 flex justify-between pt-0.5">
                   <span>Amount Received:</span>
-                  <span>₹{lastCreatedSale.receivedAmount}</span>
+                  <span>{money(lastCreatedSale.receivedAmount)}</span>
                 </p>
               )}
               {lastCreatedSale.changeAmount && (
                 <p className="text-xs text-emerald-700 font-bold flex justify-between pt-0.5">
                   <span>Change Returned:</span>
-                  <span>₹{lastCreatedSale.changeAmount}</span>
+                  <span>{money(lastCreatedSale.changeAmount)}</span>
                 </p>
               )}
             </div>
@@ -397,7 +399,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                 <option value="">Walk-in Customer (Manual Name/Phone)</option>
                 {customers.map(c => (
                   <option key={c.id} value={c.id}>
-                    {c.name} ({c.mobile}) - Udhaar: ₹{c.currentBalance}
+                    {c.name} ({c.mobile}) - Udhaar: {money(c.currentBalance)}
                   </option>
                 ))}
               </select>
@@ -472,10 +474,10 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                     >
                       <div>
                         <span className="font-bold text-slate-800 block">{p.name}</span>
-                        <span className="text-[10px] text-slate-500">Stock: {p.currentStock} {p.unit} | MRP: ₹{p.mrp}</span>
+                        <span className="text-[10px] text-slate-500">Stock: {p.currentStock} {p.unit} | MRP: {money(p.mrp)}</span>
                       </div>
                       <div className="text-right">
-                        <span className="font-extrabold text-emerald-700 block">₹{p.sellingPrice}</span>
+                        <span className="font-extrabold text-emerald-700 block">{money(p.sellingPrice)}</span>
                         <span className="text-[10px] text-emerald-600 font-bold">+ Add Item</span>
                       </div>
                     </div>
@@ -488,7 +490,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
             <div>
               <h3 className="font-bold text-slate-800 text-xs mb-2 flex items-center justify-between">
                 <span>Selected Items ({cart.length})</span>
-                <span className="text-emerald-700 font-extrabold">Raw Subtotal: ₹{rawSubtotal}</span>
+                <span className="text-emerald-700 font-extrabold">Raw Subtotal: {money(rawSubtotal)}</span>
               </h3>
 
               {cart.length === 0 ? (
@@ -506,13 +508,13 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-slate-800 truncate">{item.product.name}</p>
                         <p className="text-[10px] text-slate-500">
-                          MRP: ₹{item.mrp} | Unit: {item.product.unit}
+                          MRP: {money(item.mrp)} | Unit: {item.product.unit}
                         </p>
                       </div>
 
                       {/* Custom Unit Price Input */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-[10px] text-slate-500 font-medium">Rate: ₹</span>
+                        <span className="text-[10px] text-slate-500 font-medium">Rate: {settings?.currencySymbol || '₹'}</span>
                         <input
                           type="number"
                           step="any"
@@ -560,7 +562,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                       {/* Total Item Price & Remove Button */}
                       <div className="text-right min-w-[70px] shrink-0">
                         <span className="font-extrabold text-slate-900 block">
-                          ₹{Math.round((item.unitPrice * item.quantity) * 100) / 100}
+                          {money(Math.round((item.unitPrice * item.quantity) * 100) / 100)}
                         </span>
                         <button
                           type="button"
@@ -595,7 +597,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                     </label>
                     {applyGst && (
                       <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                        GST Total: ₹{totalTaxAmount}
+                        GST Total: {money(totalTaxAmount)}
                       </span>
                     )}
                   </div>
@@ -701,23 +703,23 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                         <div className="bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-200 text-[11px] space-y-1">
                           <div className="flex justify-between text-slate-600">
                             <span>Taxable Value:</span>
-                            <span>₹{taxableAmount}</span>
+                            <span>{money(taxableAmount)}</span>
                           </div>
                           {taxRegion === 'INTRA' ? (
                             <>
                               <div className="flex justify-between text-slate-600">
                                 <span>CGST ({activeGstRate / 2}%):</span>
-                                <span>₹{cgstAmount}</span>
+                                <span>{money(cgstAmount)}</span>
                               </div>
                               <div className="flex justify-between text-slate-600">
                                 <span>SGST ({activeGstRate / 2}%):</span>
-                                <span>₹{sgstAmount}</span>
+                                <span>{money(sgstAmount)}</span>
                               </div>
                             </>
                           ) : (
                             <div className="flex justify-between text-slate-600">
                               <span>IGST ({activeGstRate}%):</span>
-                              <span>₹{igstAmount}</span>
+                              <span>{money(igstAmount)}</span>
                             </div>
                           )}
                         </div>
@@ -728,7 +730,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
 
                 {/* Discount Row */}
                 <div className="flex items-center justify-between text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                  <span className="font-semibold text-slate-700">Special Discount (₹):</span>
+                  <span className="font-semibold text-slate-700">Special Discount ({settings?.currencySymbol || '₹'}):</span>
                   <input
                     type="number"
                     min="0"
@@ -767,11 +769,11 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                   <div className="bg-amber-50/80 p-3 rounded-2xl border border-amber-200 space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                        <Banknote className="w-4 h-4 text-amber-600" /> Cash Received (₹)
+                        <Banknote className="w-4 h-4 text-amber-600" /> Cash Received ({settings?.currencySymbol || '₹'})
                       </label>
                       {changeAmount > 0 && (
                         <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                          Return Change: ₹{changeAmount}
+                          Return Change: {money(changeAmount)}
                         </span>
                       )}
                     </div>
@@ -783,7 +785,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                         min="0"
                         value={receivedAmount}
                         onChange={(e) => setReceivedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                        placeholder={`e.g. ₹${Math.ceil(grandTotal)}`}
+                        placeholder={`e.g. ${money(Math.ceil(grandTotal))}`}
                         className="flex-1 bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                       />
                       
@@ -803,7 +805,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                             onClick={() => setReceivedAmount(amt)}
                             className="bg-white border border-amber-300 hover:bg-amber-100 text-slate-800 font-bold px-2 py-1 rounded-lg text-[10px]"
                           >
-                            ₹{amt}
+                            {money(amt)}
                           </button>
                         ))}
                       </div>
@@ -826,7 +828,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                 <div className="bg-emerald-900 text-white p-3.5 rounded-2xl flex items-center justify-between shadow-md">
                   <div>
                     <span className="text-[11px] text-emerald-300 uppercase tracking-wider font-semibold block">Grand Total</span>
-                    <span className="text-2xl font-black text-amber-300">₹{grandTotal}</span>
+                    <span className="text-2xl font-black text-amber-300">{money(grandTotal)}</span>
                   </div>
                   <button
                     onClick={handleSubmitSale}

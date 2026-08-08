@@ -17,12 +17,14 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react';
-import { Purchase, Supplier, PaymentStatus } from '../types';
+import { Purchase, Supplier, PaymentStatus, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface PurchasesViewProps {
   purchases: Purchase[];
   suppliers: Supplier[];
+  settings: StoreSettings;
   onOpenAddStock: () => void;
   onOpenScanBill: () => void;
   onRefreshData?: () => void;
@@ -31,10 +33,12 @@ interface PurchasesViewProps {
 export const PurchasesView: React.FC<PurchasesViewProps> = ({
   purchases,
   suppliers,
+  settings,
   onOpenAddStock,
   onOpenScanBill,
   onRefreshData
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [expandedPurchaseId, setExpandedPurchaseId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -169,7 +173,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
             <div><strong>Supplier:</strong> ${p.supplierName}</div>
             <div><strong>Date:</strong> ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN') : 'N/A'}</div>
             <div><strong>Payment Status:</strong> ${p.paymentStatus}</div>
-            <div><strong>Paid Amount:</strong> ₹${(p.paidAmount ?? totalAmt).toLocaleString('en-IN')}</div>
+            <div><strong>Paid Amount:</strong> ${money(p.paidAmount ?? totalAmt)}</div>
           </div>
           <table>
             <thead>
@@ -185,13 +189,13 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
                 <tr>
                   <td>${i.productName}</td>
                   <td>${i.quantity}</td>
-                  <td>₹${i.purchasePrice || i.unitPrice}</td>
-                  <td style="text-align: right;">₹${(i.totalPrice || (i.quantity * (i.purchasePrice || i.unitPrice || 0))).toLocaleString('en-IN')}</td>
+                  <td>${money(i.purchasePrice || i.unitPrice)}</td>
+                  <td style="text-align: right;">${money(i.totalPrice || (i.quantity * (i.purchasePrice || i.unitPrice || 0)))}</td>
                 </tr>
               `).join('')}
               <tr class="total-row">
                 <td colspan="3">Grand Total:</td>
-                <td style="text-align: right;">₹${totalAmt.toLocaleString('en-IN')}</td>
+                <td style="text-align: right;">${money(totalAmt)}</td>
               </tr>
             </tbody>
           </table>
@@ -235,7 +239,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
             Scan purchase bills in Hindi, Bengali, or English to instantly update inventory & create clients.
           </p>
           <div className="text-xs text-slate-400 mt-2">
-            Total Inbound Purchase Value: <strong className="text-amber-400 font-extrabold text-sm">₹{(totalPurchaseValue ?? 0).toLocaleString('en-IN')}</strong>
+            Total Inbound Purchase Value: <strong className="text-amber-400 font-extrabold text-sm">{money(totalPurchaseValue)}</strong>
           </div>
         </div>
 
@@ -337,7 +341,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
                     <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
                       <div className="text-left sm:text-right">
                         <span className="text-base font-black text-slate-900 block">
-                          ₹{(totalAmt ?? 0).toLocaleString('en-IN')}
+                          {money(totalAmt)}
                         </span>
                         <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase inline-block ${
                           p.paymentStatus === 'PAID'
@@ -401,11 +405,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
                               <div>
                                 <span className="font-semibold text-slate-800 block">{item.productName}</span>
                                 <span className="text-[10px] text-slate-500">
-                                  Qty: {item.quantity} × ₹{item.purchasePrice || item.unitPrice}
+                                  Qty: {item.quantity} × {money(item.purchasePrice || item.unitPrice)}
                                 </span>
                               </div>
                               <span className="font-bold text-slate-900">
-                                ₹{(item.totalPrice || (item.quantity * (item.purchasePrice || item.unitPrice || 0))).toLocaleString('en-IN')}
+                                {money(item.totalPrice || (item.quantity * (item.purchasePrice || item.unitPrice || 0)))}
                               </span>
                             </div>
                           ))}
@@ -454,10 +458,10 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
                   <div key={idx} className="py-2 flex items-center justify-between">
                     <div>
                       <div className="font-bold text-slate-800">{item.productName}</div>
-                      <div className="text-[10px] text-slate-500">Rate: ₹{item.purchasePrice || item.unitPrice} | Qty: {item.quantity}</div>
+                      <div className="text-[10px] text-slate-500">Rate: {money(item.purchasePrice || item.unitPrice)} | Qty: {item.quantity}</div>
                     </div>
                     <div className="font-black text-slate-900">
-                      ₹{(item.totalPrice || (item.quantity * (item.purchasePrice || item.unitPrice || 0))).toLocaleString('en-IN')}
+                      {money(item.totalPrice || (item.quantity * (item.purchasePrice || item.unitPrice || 0)))}
                     </div>
                   </div>
                 ))}
@@ -466,11 +470,11 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
               <div className="bg-blue-50 p-3.5 rounded-2xl border border-blue-100 space-y-1.5">
                 <div className="flex justify-between font-bold text-slate-700">
                   <span>Grand Total:</span>
-                  <span className="text-base font-black text-blue-900">₹{calcPurchaseTotal(viewPurchase).toLocaleString('en-IN')}</span>
+                  <span className="text-base font-black text-blue-900">{money(calcPurchaseTotal(viewPurchase))}</span>
                 </div>
                 <div className="flex justify-between text-[11px] text-slate-600">
                   <span>Paid Amount:</span>
-                  <span className="font-bold text-emerald-700">₹{(viewPurchase.paidAmount ?? calcPurchaseTotal(viewPurchase)).toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-emerald-700">{money(viewPurchase.paidAmount ?? calcPurchaseTotal(viewPurchase))}</span>
                 </div>
                 {viewPurchase.notes && (
                   <div className="text-[11px] text-slate-500 pt-1 border-t border-blue-200/60">
@@ -577,7 +581,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Paid Amount (₹)</label>
+                <label className="block text-slate-700 font-bold mb-1">Paid Amount ({settings.currencySymbol})</label>
                 <input
                   type="number"
                   value={editPaidAmount}
@@ -604,7 +608,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
                           }}
                           className="w-16 bg-slate-100 border border-slate-300 rounded-md px-1.5 py-1 text-center text-xs font-bold"
                         />
-                        <span className="text-[10px] text-slate-400">Rate: ₹</span>
+                        <span className="text-[10px] text-slate-400">Rate: {settings.currencySymbol}</span>
                         <input
                           type="number"
                           value={item.purchasePrice || item.unitPrice || 0}

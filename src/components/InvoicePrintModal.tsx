@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { X, Printer, Share2, Store, CheckCircle2, QrCode, MessageSquare, Copy, Check } from 'lucide-react';
 import { Sale, Order, StoreSettings } from '../types';
 import { getWhatsAppWebLink, getSmsLink, generateInvoiceWhatsAppText, copyToClipboard } from '../lib/whatsapp';
+import { formatMoney } from '../lib/currency';
 
 interface InvoicePrintModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   if (!isOpen || !data) return null;
+
+  const money = (v?: number | null) => formatMoney(v, settings?.currencySymbol, settings?.currencyCode);
 
   const isSale = 'saleNumber' in data;
   const invNumber = isSale ? (data as Sale).saleNumber : (data as Order).orderNumber;
@@ -101,8 +104,8 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
                       {item.gstRate ? <span className="text-[9px] text-slate-500 block font-normal">GST @ {item.gstRate}%</span> : null}
                     </td>
                     <td className="py-1.5 text-center font-bold">{item.quantity}</td>
-                    <td className="py-1.5 text-right text-slate-600">₹{item.unitPrice || item.price}</td>
-                    <td className="py-1.5 text-right font-bold text-slate-900">₹{item.totalPrice || item.total}</td>
+                    <td className="py-1.5 text-right text-slate-600">{money(item.unitPrice || item.price)}</td>
+                    <td className="py-1.5 text-right font-bold text-slate-900">{money(item.totalPrice || item.total)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -113,12 +116,12 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
           <div className="pt-2 border-t-2 border-slate-800 space-y-1 text-right text-[11px]">
             <div className="flex justify-between text-slate-600">
               <span>Subtotal:</span>
-              <span>₹{subtotal}</span>
+              <span>{money(subtotal)}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-emerald-700 font-semibold">
                 <span>Discount Saved:</span>
-                <span>- ₹{discount}</span>
+                <span>- {money(discount)}</span>
               </div>
             )}
 
@@ -128,25 +131,25 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
                 {(data as Sale).taxableAmount ? (
                   <div className="flex justify-between text-slate-600">
                     <span>Taxable Amount:</span>
-                    <span>₹{(data as Sale).taxableAmount}</span>
+                    <span>{money((data as Sale).taxableAmount)}</span>
                   </div>
                 ) : null}
                 {(data as Sale).cgstAmount && (data as Sale).cgstAmount! > 0 ? (
                   <div className="flex justify-between text-slate-600">
                     <span>CGST (Half):</span>
-                    <span>₹{(data as Sale).cgstAmount}</span>
+                    <span>{money((data as Sale).cgstAmount)}</span>
                   </div>
                 ) : null}
                 {(data as Sale).sgstAmount && (data as Sale).sgstAmount! > 0 ? (
                   <div className="flex justify-between text-slate-600">
                     <span>SGST (Half):</span>
-                    <span>₹{(data as Sale).sgstAmount}</span>
+                    <span>{money((data as Sale).sgstAmount)}</span>
                   </div>
                 ) : null}
                 {(data as Sale).igstAmount && (data as Sale).igstAmount! > 0 ? (
                   <div className="flex justify-between text-slate-600">
                     <span>IGST:</span>
-                    <span>₹{(data as Sale).igstAmount}</span>
+                    <span>{money((data as Sale).igstAmount)}</span>
                   </div>
                 ) : null}
               </>
@@ -154,19 +157,19 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({
 
             <div className="flex justify-between text-sm font-black text-slate-900 pt-1 border-t border-slate-200">
               <span>Grand Total:</span>
-              <span>₹{grandTotal}</span>
+              <span>{money(grandTotal)}</span>
             </div>
 
             {isSale && (data as Sale).receivedAmount && (data as Sale).receivedAmount! > 0 ? (
               <div className="flex justify-between text-slate-700 font-bold pt-1">
                 <span>Amount Received:</span>
-                <span>₹{(data as Sale).receivedAmount}</span>
+                <span>{money((data as Sale).receivedAmount)}</span>
               </div>
             ) : null}
             {isSale && (data as Sale).changeAmount && (data as Sale).changeAmount! > 0 ? (
               <div className="flex justify-between text-emerald-700 font-extrabold">
                 <span>Change Returned:</span>
-                <span>₹{(data as Sale).changeAmount}</span>
+                <span>{money((data as Sale).changeAmount)}</span>
               </div>
             ) : null}
 

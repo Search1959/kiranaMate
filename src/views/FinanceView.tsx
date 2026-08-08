@@ -23,7 +23,8 @@ import {
   Wallet,
   Receipt
 } from 'lucide-react';
-import { Sale, Purchase, Expense, Customer, Supplier, Product, DailyStats } from '../types';
+import { Sale, Purchase, Expense, Customer, Supplier, Product, DailyStats, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface FinanceViewProps {
   sales: Sale[];
@@ -33,6 +34,7 @@ interface FinanceViewProps {
   suppliers: Supplier[];
   products: Product[];
   stats: DailyStats | null;
+  settings: StoreSettings;
   onRefreshData: () => void;
 }
 
@@ -46,8 +48,10 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
   suppliers,
   products,
   stats,
+  settings,
   onRefreshData
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   // Date period filtering states
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('month');
 
@@ -208,24 +212,24 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
       [''],
       ['INCOME & REVENUE'],
       ['Total Sales Invoices Count', financialSummary.salesCount],
-      ['Express POS Cash Sales (₹)', financialSummary.cashSales.toFixed(2)],
-      ['UPI / Digital Payments (₹)', financialSummary.upiSales.toFixed(2)],
-      ['Card / Bank Payments (₹)', financialSummary.cardSales.toFixed(2)],
-      ['Udhaar Credit Sales (₹)', financialSummary.creditSales.toFixed(2)],
-      ['GROSS REVENUE (₹)', financialSummary.grossIncome.toFixed(2)],
+      [`Express POS Cash Sales (${settings.currencySymbol})`, financialSummary.cashSales.toFixed(2)],
+      [`UPI / Digital Payments (${settings.currencySymbol})`, financialSummary.upiSales.toFixed(2)],
+      [`Card / Bank Payments (${settings.currencySymbol})`, financialSummary.cardSales.toFixed(2)],
+      [`Udhaar Credit Sales (${settings.currencySymbol})`, financialSummary.creditSales.toFixed(2)],
+      [`GROSS REVENUE (${settings.currencySymbol})`, financialSummary.grossIncome.toFixed(2)],
       [''],
       ['COST OF GOODS SOLD & PURCHASES'],
-      ['Estimated Cost of Goods Sold (COGS) (₹)', financialSummary.estimatedCOGS.toFixed(2)],
-      ['Stock Purchase Bills (₹)', financialSummary.totalPurchasesVal.toFixed(2)],
-      ['GROSS PROFIT (₹)', financialSummary.grossProfit.toFixed(2)],
+      [`Estimated Cost of Goods Sold (COGS) (${settings.currencySymbol})`, financialSummary.estimatedCOGS.toFixed(2)],
+      [`Stock Purchase Bills (${settings.currencySymbol})`, financialSummary.totalPurchasesVal.toFixed(2)],
+      [`GROSS PROFIT (${settings.currencySymbol})`, financialSummary.grossProfit.toFixed(2)],
       ['GROSS PROFIT MARGIN (%)', `${financialSummary.grossProfitMarginPct.toFixed(2)}%`],
       [''],
       ['OPERATING EXPENSES'],
-      ...Object.entries(financialSummary.expensesByCategory).map(([cat, val]) => [`Expense: ${cat} (₹)`, (val as number).toFixed(2)]),
-      ['TOTAL OPERATING EXPENSES (₹)', financialSummary.totalOpExpenses.toFixed(2)],
+      ...Object.entries(financialSummary.expensesByCategory).map(([cat, val]) => [`Expense: ${cat} (${settings.currencySymbol})`, (val as number).toFixed(2)]),
+      [`TOTAL OPERATING EXPENSES (${settings.currencySymbol})`, financialSummary.totalOpExpenses.toFixed(2)],
       [''],
       ['NET PROFIT & MARGIN SUMMARY'],
-      ['NET PROFIT (₹)', financialSummary.netProfit.toFixed(2)],
+      [`NET PROFIT (${settings.currencySymbol})`, financialSummary.netProfit.toFixed(2)],
       ['NET PROFIT MARGIN (%)', `${financialSummary.netProfitMarginPct.toFixed(2)}%`]
     ];
 
@@ -354,7 +358,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Gross Income (Revenue)</span>
             <span className="text-2xl font-black text-slate-900 mt-1 block">
-              ₹{(financialSummary?.grossIncome ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {money(financialSummary?.grossIncome)}
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
               {financialSummary?.salesCount ?? 0} Sales Invoices
@@ -370,10 +374,10 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Expenditure</span>
             <span className="text-2xl font-black text-rose-600 mt-1 block">
-              ₹{((financialSummary?.estimatedCOGS ?? 0) + (financialSummary?.totalOpExpenses ?? 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {money((financialSummary?.estimatedCOGS ?? 0) + (financialSummary?.totalOpExpenses ?? 0))}
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
-              COGS: ₹{(financialSummary?.estimatedCOGS ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} | OpEx: ₹{(financialSummary?.totalOpExpenses ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              COGS: {money(financialSummary?.estimatedCOGS)} | OpEx: {money(financialSummary?.totalOpExpenses)}
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -386,7 +390,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div>
             <span className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider block">Net Profit</span>
             <span className={`text-2xl font-black mt-1 block ${(financialSummary?.netProfit ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-              ₹{(financialSummary?.netProfit ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {money(financialSummary?.netProfit)}
             </span>
             <span className="text-[10px] font-bold text-emerald-800 block mt-0.5">
               Net Margin: {(financialSummary?.netProfitMarginPct ?? 0).toFixed(1)}%
@@ -404,7 +408,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Customer Udhaar Pending</span>
             <span className="text-2xl font-black text-amber-600 mt-1 block">
-              ₹{(financialSummary?.customerUdhaarReceivables ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {money(financialSummary?.customerUdhaarReceivables)}
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
               Owed to store by customers
@@ -494,14 +498,14 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                   {/* SECTION 1: REVENUE / INCOME */}
                   <tr className="bg-slate-100 font-extrabold text-slate-800 text-xs">
                     <td className="py-2.5 px-4" colSpan={2}>1. REVENUE & GROSS INCOME</td>
-                    <td className="py-2.5 px-4 text-right">AMOUNT (₹)</td>
+                    <td className="py-2.5 px-4 text-right">AMOUNT ({settings.currencySymbol})</td>
                   </tr>
 
                   <tr className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">Express POS Cash Sales</td>
                     <td className="py-2.5 px-4 text-slate-400">Direct cash register payments</td>
                     <td className="py-2.5 px-4 text-right font-bold text-slate-900">
-                      ₹{(financialSummary?.cashSales ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.cashSales)}
                     </td>
                   </tr>
 
@@ -509,7 +513,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">UPI / Digital QR Code Collections</td>
                     <td className="py-2.5 px-4 text-slate-400">GPay, PhonePe, Paytm, BHIM</td>
                     <td className="py-2.5 px-4 text-right font-bold text-slate-900">
-                      ₹{(financialSummary?.upiSales ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.upiSales)}
                     </td>
                   </tr>
 
@@ -517,7 +521,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">Card & Bank Transfers</td>
                     <td className="py-2.5 px-4 text-slate-400">POS machine payments</td>
                     <td className="py-2.5 px-4 text-right font-bold text-slate-900">
-                      ₹{(financialSummary?.cardSales ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.cardSales)}
                     </td>
                   </tr>
 
@@ -525,7 +529,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">Customer Udhaar Credit Sales</td>
                     <td className="py-2.5 px-4 text-slate-400">Billed on customer Khata</td>
                     <td className="py-2.5 px-4 text-right font-bold text-slate-900">
-                      ₹{(financialSummary?.creditSales ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.creditSales)}
                     </td>
                   </tr>
 
@@ -533,21 +537,21 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-3 px-4 pl-8">TOTAL GROSS REVENUE (A)</td>
                     <td className="py-3 px-4 text-emerald-800 text-[11px]">{financialSummary?.salesCount ?? 0} Completed Receipts</td>
                     <td className="py-3 px-4 text-right text-sm text-emerald-700">
-                      ₹{(financialSummary?.grossIncome ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.grossIncome)}
                     </td>
                   </tr>
 
                   {/* SECTION 2: COST OF GOODS SOLD */}
                   <tr className="bg-slate-100 font-extrabold text-slate-800 text-xs">
                     <td className="py-2.5 px-4" colSpan={2}>2. DIRECT COST OF GOODS SOLD (COGS)</td>
-                    <td className="py-2.5 px-4 text-right">AMOUNT (₹)</td>
+                    <td className="py-2.5 px-4 text-right">AMOUNT ({settings.currencySymbol})</td>
                   </tr>
 
                   <tr className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">Cost of Items Sold (Purchase Rates)</td>
                     <td className="py-2.5 px-4 text-slate-400">Wholesale cost of goods sold</td>
                     <td className="py-2.5 px-4 text-right font-bold text-rose-600">
-                      - ₹{(financialSummary?.estimatedCOGS ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      - {money(financialSummary?.estimatedCOGS)}
                     </td>
                   </tr>
 
@@ -555,14 +559,14 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-3 px-4 pl-8">GROSS PROFIT (A - Direct Cost)</td>
                     <td className="py-3 px-4 text-slate-500 text-[11px]">Gross Profit Margin: {(financialSummary?.grossProfitMarginPct ?? 0).toFixed(1)}%</td>
                     <td className="py-3 px-4 text-right text-sm font-black text-slate-900">
-                      ₹{(financialSummary?.grossProfit ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.grossProfit)}
                     </td>
                   </tr>
 
                   {/* SECTION 3: OPERATING EXPENSES */}
                   <tr className="bg-slate-100 font-extrabold text-slate-800 text-xs">
                     <td className="py-2.5 px-4" colSpan={2}>3. STORE OPERATING EXPENSES (OpEx)</td>
-                    <td className="py-2.5 px-4 text-right">AMOUNT (₹)</td>
+                    <td className="py-2.5 px-4 text-right">AMOUNT ({settings.currencySymbol})</td>
                   </tr>
 
                   {Object.entries(financialSummary?.expensesByCategory || {}).map(([cat, amount]) => (
@@ -570,7 +574,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                       <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">{cat} Expenses</td>
                       <td className="py-2.5 px-4 text-slate-400">Recorded store expense log</td>
                       <td className="py-2.5 px-4 text-right font-bold text-rose-600">
-                        - ₹{((amount as number) ?? 0).toLocaleString('en-IN')}
+                        - {money(amount as number)}
                       </td>
                     </tr>
                   ))}
@@ -585,7 +589,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-3 px-4 pl-8">TOTAL OPERATING EXPENSES (B)</td>
                     <td className="py-3 px-4 text-rose-800 text-[11px]">{financialSummary?.expensesCount ?? 0} Expense Entries</td>
                     <td className="py-3 px-4 text-right text-sm text-rose-700">
-                      - ₹{(financialSummary?.totalOpExpenses ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      - {money(financialSummary?.totalOpExpenses)}
                     </td>
                   </tr>
 
@@ -596,7 +600,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                       Net Profit Margin: {(financialSummary?.netProfitMarginPct ?? 0).toFixed(2)}%
                     </td>
                     <td className="py-4 px-4 text-right text-base text-emerald-400">
-                      ₹{(financialSummary?.netProfit ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      {money(financialSummary?.netProfit)}
                     </td>
                   </tr>
                 </tbody>
@@ -614,7 +618,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <span className="text-[10px] font-bold text-slate-500 uppercase">POS Cash Collections</span>
                 <span className="text-xl font-black text-slate-900 block mt-1">
-                  ₹{(financialSummary?.cashSales ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.cashSales)}
                 </span>
                 <span className="text-[11px] text-slate-500">
                   {(financialSummary?.grossIncome ?? 0) > 0 ? (((financialSummary?.cashSales ?? 0) / (financialSummary?.grossIncome ?? 1)) * 100).toFixed(1) : 0}% of revenue
@@ -624,7 +628,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
                 <span className="text-[10px] font-bold text-emerald-800 uppercase">UPI / QR Code Digital</span>
                 <span className="text-xl font-black text-emerald-700 block mt-1">
-                  ₹{(financialSummary?.upiSales ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.upiSales)}
                 </span>
                 <span className="text-[11px] text-emerald-700 font-semibold">
                   {(financialSummary?.grossIncome ?? 0) > 0 ? (((financialSummary?.upiSales ?? 0) / (financialSummary?.grossIncome ?? 1)) * 100).toFixed(1) : 0}% of revenue
@@ -634,7 +638,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                 <span className="text-[10px] font-bold text-blue-800 uppercase">Card & Bank POS</span>
                 <span className="text-xl font-black text-blue-700 block mt-1">
-                  ₹{(financialSummary?.cardSales ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.cardSales)}
                 </span>
                 <span className="text-[11px] text-blue-700 font-semibold">
                   {(financialSummary?.grossIncome ?? 0) > 0 ? (((financialSummary?.cardSales ?? 0) / (financialSummary?.grossIncome ?? 1)) * 100).toFixed(1) : 0}% of revenue
@@ -644,7 +648,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                 <span className="text-[10px] font-bold text-amber-800 uppercase">Udhaar Credit Billed</span>
                 <span className="text-xl font-black text-amber-700 block mt-1">
-                  ₹{(financialSummary?.creditSales ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.creditSales)}
                 </span>
                 <span className="text-[11px] text-amber-700 font-semibold">
                   {(financialSummary?.grossIncome ?? 0) > 0 ? (((financialSummary?.creditSales ?? 0) / (financialSummary?.grossIncome ?? 1)) * 100).toFixed(1) : 0}% of revenue
@@ -665,7 +669,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                       <th className="py-2.5 px-3">Date</th>
                       <th className="py-2.5 px-3">Customer</th>
                       <th className="py-2.5 px-3">Payment Mode</th>
-                      <th className="py-2.5 px-3 text-right">Amount (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Amount ({settings.currencySymbol})</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
@@ -675,7 +679,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                         <td className="py-2 px-3 text-slate-500">{new Date(s.createdAt).toLocaleDateString('en-IN')}</td>
                         <td className="py-2 px-3 font-semibold text-slate-900">{s.customerName}</td>
                         <td className="py-2 px-3 font-bold text-xs">{s.paymentMethod}</td>
-                        <td className="py-2 px-3 text-right font-black text-emerald-700">₹{s.grandTotal}</td>
+                        <td className="py-2 px-3 text-right font-black text-emerald-700">{money(s.grandTotal)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -698,7 +702,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                   <div key={cat} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-extrabold text-slate-900 text-sm">{cat}</span>
-                      <span className="text-xs font-black text-rose-600">₹{amount.toLocaleString('en-IN')}</span>
+                      <span className="text-xs font-black text-rose-600">{money(amount)}</span>
                     </div>
 
                     <div className="w-full bg-slate-200 rounded-full h-2">
@@ -730,7 +734,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-1">
                 <span className="text-xs font-bold text-amber-800 block">Total Customer Udhaar Billed</span>
                 <span className="text-2xl font-black text-amber-900 block">
-                  ₹{(financialSummary?.customerUdhaarReceivables ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.customerUdhaarReceivables)}
                 </span>
                 <span className="text-[11px] text-amber-700 font-medium">Money to be collected from customers</span>
               </div>
@@ -738,7 +742,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               <div className="bg-rose-50 p-4 rounded-2xl border border-rose-200 space-y-1">
                 <span className="text-xs font-bold text-rose-800 block">Total Wholesale Supplier Payable</span>
                 <span className="text-2xl font-black text-rose-900 block">
-                  ₹{(financialSummary?.supplierUdhaarPayables ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.supplierUdhaarPayables)}
                 </span>
                 <span className="text-[11px] text-rose-700 font-medium">Money shop owes to vendors</span>
               </div>
@@ -748,7 +752,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                 <span className={`text-2xl font-black block ${
                   (financialSummary?.netWorkingCapital ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'
                 }`}>
-                  ₹{(financialSummary?.netWorkingCapital ?? 0).toLocaleString('en-IN')}
+                  {money(financialSummary?.netWorkingCapital)}
                 </span>
                 <span className="text-[11px] text-indigo-700 font-medium">Receivables minus Payables</span>
               </div>

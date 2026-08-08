@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Scan, X, Search, CheckCircle2, AlertCircle, Camera, Keyboard } from 'lucide-react';
-import { Product } from '../types';
+import { Product, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface BarcodeScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBarcodeDetected: (barcode: string) => void;
   products: Product[];
+  settings?: StoreSettings | null;
 }
 
 export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   isOpen,
   onClose,
   onBarcodeDetected,
-  products
+  products,
+  settings
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings?.currencySymbol, settings?.currencyCode);
   const [manualCode, setManualCode] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -156,7 +160,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
                     <span className="font-semibold text-slate-800 block">{p.name}</span>
                     <span className="text-[10px] text-slate-500 font-mono">BC: {p.barcode}</span>
                   </div>
-                  <span className="font-bold text-emerald-700">₹{p.sellingPrice}</span>
+                  <span className="font-bold text-emerald-700">{money(p.sellingPrice)}</span>
                 </button>
               ))}
             </div>

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Bot, Mic, MicOff, Send, X, Sparkles, TrendingUp, Package, Users, ShoppingCart, Search } from 'lucide-react';
-import { Product, Customer, DailyStats, Sale } from '../types';
+import { Product, Customer, DailyStats, Sale, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface AiAssistantWidgetProps {
   products: Product[];
   customers: Customer[];
   stats: DailyStats | null;
   recentSales: Sale[];
+  settings: StoreSettings;
   onNavigateTab: (tab: string) => void;
   onOpenQuickAction: (action: string) => void;
 }
@@ -25,9 +27,11 @@ export const AiAssistantWidget: React.FC<AiAssistantWidgetProps> = ({
   customers,
   stats,
   recentSales,
+  settings,
   onNavigateTab,
   onOpenQuickAction
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>('');
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -118,14 +122,14 @@ export const AiAssistantWidget: React.FC<AiAssistantWidgetProps> = ({
       }
     } else if (lower.includes('profit') || lower.includes('margin')) {
       const profit = stats?.estimatedProfitToday || 0;
-      replyText = `Today's estimated net profit is ₹${profit.toLocaleString('en-IN')} after subtracting daily expenses.`;
+      replyText = `Today's estimated net profit is ${money(profit)} after subtracting daily expenses.`;
       actionTab = 'reports';
       actionLabel = 'View Financial Reports';
     } else if (lower.includes('highest selling') || lower.includes('top selling') || lower.includes('fast moving')) {
       const sorted = [...products].sort((a, b) => (b.purchasePrice || 0) - (a.purchasePrice || 0));
       const top = sorted[0];
       replyText = top
-        ? `Your top value inventory item is '${top.name}' priced at ₹${top.sellingPrice} per ${top.unit} with ${top.currentStock} ${top.unit} in stock.`
+        ? `Your top value inventory item is '${top.name}' priced at ${money(top.sellingPrice)} per ${top.unit} with ${top.currentStock} ${top.unit} in stock.`
         : "No products cataloged yet.";
       actionTab = 'products';
       actionLabel = 'View All Products';
@@ -138,11 +142,11 @@ export const AiAssistantWidget: React.FC<AiAssistantWidgetProps> = ({
       actionLabel = 'View Dead Stock Analysis';
     } else if (lower.includes('ledger') || lower.includes('udhaar') || lower.includes('customer') || lower.includes('collect')) {
       const totalUdhaar = stats?.totalPendingUdhaar || 0;
-      replyText = `Total pending customer Udhaar Khata is ₹${totalUdhaar.toLocaleString('en-IN')}.`;
+      replyText = `Total pending customer Udhaar Khata is ${money(totalUdhaar)}.`;
       actionTab = 'customers';
       actionLabel = 'Open Customer Udhaar Ledger';
     } else if (lower.includes('sale') || lower.includes('bill') || lower.includes('sell')) {
-      replyText = `Ready to issue a new bill! Total sales today stand at ₹${(stats?.todaySalesTotal || 0).toLocaleString('en-IN')}.`;
+      replyText = `Ready to issue a new bill! Total sales today stand at ${money(stats?.todaySalesTotal)}.`;
       actionTab = 'sales';
       actionLabel = 'Open POS Counter Billing';
     } else if (lower.includes('supplier') || lower.includes('purchase')) {
@@ -150,7 +154,7 @@ export const AiAssistantWidget: React.FC<AiAssistantWidgetProps> = ({
       actionTab = 'suppliers';
       actionLabel = 'Go to Suppliers';
     } else {
-      replyText = `I analyzed '${q}'. Current inventory has ${products.length} products, today's sales are ₹${stats?.todaySalesTotal || 0}, and pending Udhaar is ₹${stats?.totalPendingUdhaar || 0}.`;
+      replyText = `I analyzed '${q}'. Current inventory has ${products.length} products, today's sales are ${money(stats?.todaySalesTotal)}, and pending Udhaar is ${money(stats?.totalPendingUdhaar)}.`;
       actionTab = 'dashboard';
       actionLabel = 'View Dashboard';
     }

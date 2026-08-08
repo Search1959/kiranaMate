@@ -15,11 +15,13 @@ import {
   Barcode,
   AlertCircle
 } from 'lucide-react';
-import { Product, KiranaCategory } from '../types';
+import { Product, KiranaCategory, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface ProductsViewProps {
   products: Product[];
+  settings: StoreSettings;
   onOpenAddProduct: (productToEdit?: Product) => void;
   onOpenAddStock: (product: Product) => void;
   onOpenBarcodeScanner: () => void;
@@ -46,12 +48,14 @@ const CATEGORIES: KiranaCategory[] = [
 
 export const ProductsView: React.FC<ProductsViewProps> = ({
   products,
+  settings,
   onOpenAddProduct,
   onOpenAddStock,
   onOpenBarcodeScanner,
   onOpenBulkImport,
   onRefreshData
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'LOW' | 'OUT'>('ALL');
@@ -301,13 +305,13 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                   <div>
                     <span className="text-[10px] text-slate-400 block">Selling Price</span>
-                    <span className="text-base font-black text-emerald-700">₹{p.sellingPrice}</span>
-                    <span className="text-[10px] text-slate-400 line-through ml-1">MRP ₹{p.mrp}</span>
+                    <span className="text-base font-black text-emerald-700">{money(p.sellingPrice)}</span>
+                    <span className="text-[10px] text-slate-400 line-through ml-1">MRP {money(p.mrp)}</span>
                   </div>
 
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block">Purchase Cost</span>
-                    <span className="text-xs font-bold text-slate-700">₹{p.purchasePrice}</span>
+                    <span className="text-xs font-bold text-slate-700">{money(p.purchasePrice)}</span>
                   </div>
                 </div>
 
@@ -333,7 +337,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                   </div>
 
                   <span className="text-slate-500 font-bold">
-                    Val: ₹{(p.currentStock * p.purchasePrice).toLocaleString('en-IN')}
+                    Val: {money(p.currentStock * p.purchasePrice)}
                   </span>
                 </div>
               </div>
@@ -413,15 +417,15 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
               <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase block">Selling Price</span>
-                  <span className="text-sm font-black text-emerald-700">₹{viewProduct.sellingPrice}</span>
+                  <span className="text-sm font-black text-emerald-700">{money(viewProduct.sellingPrice)}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase block">Purchase Price</span>
-                  <span className="text-sm font-black text-slate-700">₹{viewProduct.purchasePrice}</span>
+                  <span className="text-sm font-black text-slate-700">{money(viewProduct.purchasePrice)}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase block">MRP</span>
-                  <span className="text-sm font-black text-slate-500 line-through">₹{viewProduct.mrp}</span>
+                  <span className="text-sm font-black text-slate-500 line-through">{money(viewProduct.mrp)}</span>
                 </div>
               </div>
 

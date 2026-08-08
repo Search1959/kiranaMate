@@ -17,14 +17,16 @@ import {
   AlertCircle,
   FileText
 } from 'lucide-react';
-import { Product, Customer, Order, PaymentMethod, PaymentStatus, OrderItem } from '../types';
+import { Product, Customer, Order, PaymentMethod, PaymentStatus, OrderItem, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface NewOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
   customers: Customer[];
+  settings: StoreSettings;
   selectedCustomerForOrder?: Customer | null;
   onOpenBarcodeScanner: () => void;
   onOrderSuccess: () => void;
@@ -49,11 +51,13 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
   onClose,
   products,
   customers,
+  settings,
   selectedCustomerForOrder,
   onOpenBarcodeScanner,
   onOrderSuccess,
   onOpenInvoicePrint
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   // Customer Selection & Quick Add Mode
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [isAddingNewCustomer, setIsAddingNewCustomer] = useState(false);
@@ -579,7 +583,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
                           </span>
                         </div>
                         <span className="font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
-                          ₹{p.sellingPrice} (+ Add)
+                          {money(p.sellingPrice)} (+ Add)
                         </span>
                       </div>
                     ))
@@ -597,10 +601,10 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
                       <th className="py-2.5 px-3 min-w-[170px]">Product</th>
                       <th className="py-2.5 px-3 w-16">Unit</th>
                       <th className="py-2.5 px-3 w-20">Qty</th>
-                      <th className="py-2.5 px-3 w-24">Rate (₹)</th>
-                      <th className="py-2.5 px-3 w-20">Disc (₹)</th>
+                      <th className="py-2.5 px-3 w-24">Rate ({settings.currencySymbol})</th>
+                      <th className="py-2.5 px-3 w-20">Disc ({settings.currencySymbol})</th>
                       <th className="py-2.5 px-3 w-20">GST %</th>
-                      <th className="py-2.5 px-3 w-24 text-right">Line Total (₹)</th>
+                      <th className="py-2.5 px-3 w-24 text-right">Line Total ({settings.currencySymbol})</th>
                       <th className="py-2.5 px-3 w-10"></th>
                     </tr>
                   </thead>
@@ -622,7 +626,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
                             >
                               {products.map(p => (
                                 <option key={p.id} value={p.id}>
-                                  {p.name} (₹{p.sellingPrice})
+                                  {p.name} ({money(p.sellingPrice)})
                                 </option>
                               ))}
                             </select>
@@ -683,7 +687,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
                           </td>
 
                           <td className="p-2 text-right font-extrabold text-slate-900">
-                            ₹{item.total.toLocaleString('en-IN')}
+                            {money(item.total)}
                           </td>
 
                           <td className="p-2 text-center">
@@ -709,16 +713,16 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
               <div>
                 <span className="text-slate-400 block mb-0.5">Subtotal</span>
-                <span className="font-extrabold text-white text-sm">₹{rawSubtotal.toLocaleString('en-IN')}</span>
+                <span className="font-extrabold text-white text-sm">{money(rawSubtotal)}</span>
               </div>
 
               <div>
                 <span className="text-slate-400 block mb-0.5">GST Tax</span>
-                <span className="font-extrabold text-amber-300 text-sm">₹{totalTaxAmount.toLocaleString('en-IN')}</span>
+                <span className="font-extrabold text-amber-300 text-sm">{money(totalTaxAmount)}</span>
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-0.5">Delivery Charge (₹)</label>
+                <label className="text-slate-400 block mb-0.5">Delivery Charge ({settings.currencySymbol})</label>
                 <input
                   type="number"
                   min={0}
@@ -729,7 +733,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-0.5">Special Discount (₹)</label>
+                <label className="text-slate-400 block mb-0.5">Special Discount ({settings.currencySymbol})</label>
                 <input
                   type="number"
                   min={0}
@@ -741,13 +745,13 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
 
               <div>
                 <span className="text-slate-400 block mb-0.5">Grand Total Bill</span>
-                <span className="font-black text-amber-400 text-base">₹{grandTotal.toLocaleString('en-IN')}</span>
+                <span className="font-black text-amber-400 text-base">{money(grandTotal)}</span>
               </div>
             </div>
 
             <div className="pt-2 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <div>
-                <label className="text-slate-300 font-bold block mb-1 text-xs">Advance Paid (₹)</label>
+                <label className="text-slate-300 font-bold block mb-1 text-xs">Advance Paid ({settings.currencySymbol})</label>
                 <input
                   type="number"
                   min={0}
@@ -774,7 +778,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
               <div className="text-right">
                 <span className="text-xs text-slate-400 block">Balance Pending (Udhaar)</span>
                 <span className={`text-base font-black ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                  ₹{balanceDue.toLocaleString('en-IN')}
+                  {money(balanceDue)}
                 </span>
               </div>
             </div>

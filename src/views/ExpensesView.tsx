@@ -19,18 +19,22 @@ import {
   CreditCard,
   Repeat
 } from 'lucide-react';
-import { Expense } from '../types';
+import { Expense, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface ExpensesViewProps {
   expenses: Expense[];
+  settings: StoreSettings;
   onOpenAddExpense: () => void;
   onRefreshData?: () => void;
 }
 
 export const ExpensesView: React.FC<ExpensesViewProps> = ({
   expenses,
+  settings,
   onOpenAddExpense
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
@@ -86,26 +90,26 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Expenses Logged</div>
-          <div className="text-xl font-black text-rose-700 mt-1">₹{(totalExpense ?? 0).toLocaleString('en-IN')}</div>
+          <div className="text-xl font-black text-rose-700 mt-1">{money(totalExpense)}</div>
           <div className="text-[10px] text-slate-400 mt-0.5">{expenses.length} total entries</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Today's Expense</div>
-          <div className="text-xl font-black text-amber-600 mt-1">₹{(todayExpense ?? 0).toLocaleString('en-IN')}</div>
+          <div className="text-xl font-black text-amber-600 mt-1">{money(todayExpense)}</div>
           <div className="text-[10px] text-slate-400 mt-0.5">Logged today</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Recurring Fixed Costs</div>
-          <div className="text-xl font-black text-purple-700 mt-1">₹{(recurringExpenseTotal ?? 0).toLocaleString('en-IN')}</div>
+          <div className="text-xl font-black text-purple-700 mt-1">{money(recurringExpenseTotal)}</div>
           <div className="text-[10px] text-slate-400 mt-0.5">Rent, EB, Wi-Fi, Wages</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Average / Entry</div>
           <div className="text-xl font-black text-slate-800 mt-1">
-            ₹{expenses.length > 0 ? Math.round((totalExpense ?? 0) / expenses.length).toLocaleString('en-IN') : 0}
+            {expenses.length > 0 ? money(Math.round((totalExpense ?? 0) / expenses.length)) : money(0)}
           </div>
           <div className="text-[10px] text-slate-400 mt-0.5">Per expense transaction</div>
         </div>
@@ -220,11 +224,11 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
               <div className="text-right shrink-0">
                 <span className="text-lg font-black text-rose-700">
-                  ₹{(exp.amount ?? 0).toLocaleString('en-IN')}
+                  {money(exp.amount)}
                 </span>
                 {exp.gstAmount && exp.gstAmount > 0 ? (
                   <div className="text-[10px] font-semibold text-emerald-700">
-                    Includes ₹{exp.gstAmount} Tax/GST
+                    Includes {money(exp.gstAmount)} Tax/GST
                   </div>
                 ) : null}
               </div>

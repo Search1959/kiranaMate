@@ -20,6 +20,7 @@ import {
 import { Customer, CustomerTransaction, StoreSettings, LanguageCode } from '../types';
 import { api } from '../lib/api';
 import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
+import { formatMoney } from '../lib/currency';
 
 interface CustomersViewProps {
   customers: Customer[];
@@ -38,6 +39,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   onOpenCollectPayment,
   onOpenNewOrderForCustomer
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [search, setSearch] = useState('');
   const [selectedArea, setSelectedArea] = useState('ALL');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -243,7 +245,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
                     hasUdhaar ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-800'
                   }`}>
-                    Udhaar: ₹{balance.toLocaleString('en-IN')}
+                    Udhaar: {money(balance)}
                   </span>
                 </div>
 
@@ -336,7 +338,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
               <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between">
                 <div>
                   <span className="text-[11px] text-amber-800 font-bold uppercase tracking-wider block">Total Udhaar / Outstanding</span>
-                  <span className="text-2xl font-black text-amber-950">₹{(selectedCustomer.currentBalance ?? selectedCustomer.outstandingBalance ?? 0).toLocaleString('en-IN')}</span>
+                  <span className="text-2xl font-black text-amber-950">{money(selectedCustomer.currentBalance ?? selectedCustomer.outstandingBalance)}</span>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -394,9 +396,9 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
                         <div className="text-right">
                           <span className={`font-black text-sm block ${tx.type === 'PAYMENT_RECEIVED' ? 'text-emerald-700' : 'text-amber-700'}`}>
-                            {tx.type === 'PAYMENT_RECEIVED' ? `- ₹${(tx.amount ?? 0).toLocaleString('en-IN')}` : `+ ₹${(tx.amount ?? 0).toLocaleString('en-IN')}`}
+                            {tx.type === 'PAYMENT_RECEIVED' ? `- ${money(tx.amount)}` : `+ ${money(tx.amount)}`}
                           </span>
-                          <span className="text-[10px] text-slate-400">Bal: ₹{(tx.balanceAfter ?? 0).toLocaleString('en-IN')}</span>
+                          <span className="text-[10px] text-slate-400">Bal: {money(tx.balanceAfter)}</span>
                         </div>
                       </div>
                     ))}
@@ -468,7 +470,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
                 {!editingCustomer && (
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Opening Udhaar (₹)</label>
+                    <label className="font-bold text-slate-700 block mb-1">Opening Udhaar ({settings.currencySymbol})</label>
                     <input
                       type="number"
                       value={newOpeningBalance}

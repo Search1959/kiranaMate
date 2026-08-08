@@ -20,13 +20,15 @@ import {
   X,
   History
 } from 'lucide-react';
-import { Product, InventoryTransaction, Sale, Purchase, KiranaCategory } from '../types';
+import { Product, InventoryTransaction, Sale, Purchase, KiranaCategory, StoreSettings } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface StockLedgerViewProps {
   products: Product[];
   sales: Sale[];
   purchases: Purchase[];
   inventoryTransactions: InventoryTransaction[];
+  settings: StoreSettings;
   onRefreshData: () => void;
   onOpenAddStock: () => void;
   onOpenScanBill: () => void;
@@ -39,10 +41,12 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
   sales,
   purchases,
   inventoryTransactions,
+  settings,
   onRefreshData,
   onOpenAddStock,
   onOpenScanBill
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   // Period filter states
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('month');
   
@@ -295,13 +299,13 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
       'Category',
       'Barcode',
       'Unit',
-      'Purchase Price (₹)',
+      `Purchase Price (${settings.currencySymbol})`,
       'Opening Stock Qty',
-      'Opening Value (₹)',
+      `Opening Value (${settings.currencySymbol})`,
       'Stock In Qty (+)',
       'Stock Out Qty (-)',
       'Closing Stock Qty',
-      'Closing Valuation (₹)'
+      `Closing Valuation (${settings.currencySymbol})`
     ];
 
     const rows = itemLedgerSummaries.map(item => [
@@ -457,7 +461,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Opening Stock Value</span>
             <span className="text-xl font-black text-slate-900 mt-1 block">
-              ₹{(periodTotals?.openingVal ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {money(periodTotals?.openingVal)}
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">As of start date ({startDate})</span>
           </div>
@@ -474,7 +478,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
               +{periodTotals?.totalStockInQty ?? 0} <span className="text-xs font-normal text-slate-500">units</span>
             </span>
             <span className="text-[10px] text-emerald-700 font-bold block mt-0.5">
-              Cost: ₹{(periodTotals?.totalStockInVal ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              Cost: {money(periodTotals?.totalStockInVal)}
             </span>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
@@ -490,7 +494,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
               -{periodTotals?.totalStockOutQty ?? 0} <span className="text-xs font-normal text-slate-500">units</span>
             </span>
             <span className="text-[10px] text-rose-700 font-bold block mt-0.5">
-              Sales: ₹{(periodTotals?.totalStockOutVal ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              Sales: {money(periodTotals?.totalStockOutVal)}
             </span>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -503,7 +507,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
           <div>
             <span className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider block">Closing Stock Value</span>
             <span className="text-xl font-black text-indigo-700 mt-1 block">
-              ₹{(periodTotals?.closingVal ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              {money(periodTotals?.closingVal)}
             </span>
             <span className="text-[10px] text-indigo-600 font-extrabold block mt-0.5">
               As of end date ({endDate})
@@ -583,7 +587,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                   <th className="py-3 px-4 text-right text-emerald-700 bg-emerald-50/50">+ Stock In</th>
                   <th className="py-3 px-4 text-right text-rose-700 bg-rose-50/50">- Stock Out</th>
                   <th className="py-3 px-4 text-right bg-indigo-50/50 text-indigo-900 font-black">Closing Stock</th>
-                  <th className="py-3 px-4 text-right font-black">Closing Value (₹)</th>
+                  <th className="py-3 px-4 text-right font-black">Closing Value ({settings.currencySymbol})</th>
                   <th className="py-3 px-4 text-center">Audit</th>
                 </tr>
               </thead>
@@ -613,7 +617,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                       </td>
 
                       <td className="py-3 px-4 text-right font-bold text-slate-700">
-                        ₹{item.purchasePrice.toLocaleString('en-IN')}
+                        {money(item.purchasePrice)}
                       </td>
 
                       <td className="py-3 px-4 text-right font-extrabold text-slate-700 bg-slate-50">
@@ -642,7 +646,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                       </td>
 
                       <td className="py-3 px-4 text-right font-black text-slate-900 text-sm">
-                        ₹{item.closingValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                        {money(item.closingValue)}
                       </td>
 
                       <td className="py-3 px-4 text-center">

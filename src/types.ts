@@ -368,6 +368,7 @@ export interface StoreSettings {
   gstin?: string;
   upiId?: string; // for generating QR codes for payment
   currencySymbol: string;
+  currencyCode?: string; // ISO 4217, e.g. INR, USD, GBP — drives locale-correct digit grouping
   invoicePrefix: string;
   invoiceFooterNote: string;
   lowStockThresholdDefault: number;

@@ -19,14 +19,16 @@ import {
   Languages,
   Check
 } from 'lucide-react';
-import { Supplier, Product, ProductUnit, PaymentMethod } from '../types';
+import { Supplier, Product, ProductUnit, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface ScanPurchaseBillModalProps {
   isOpen: boolean;
   onClose: () => void;
   suppliers: Supplier[];
   products: Product[];
+  settings: StoreSettings;
   onBillProcessed: () => void;
 }
 
@@ -50,8 +52,10 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
   onClose,
   suppliers,
   products,
+  settings,
   onBillProcessed
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [step, setStep] = useState<'capture' | 'scanning' | 'review'>('capture');
   const [activeTab, setActiveTab] = useState<'camera' | 'upload'>('upload');
 
@@ -710,9 +714,9 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                           <th className="py-2.5 px-3 w-28">Category</th>
                           <th className="py-2.5 px-3 w-20">Unit</th>
                           <th className="py-2.5 px-3 w-20">Qty</th>
-                          <th className="py-2.5 px-3 w-24">Buy Price (₹)</th>
-                          <th className="py-2.5 px-3 w-24">Sell Price (₹)</th>
-                          <th className="py-2.5 px-3 w-24 text-right">Total (₹)</th>
+                          <th className="py-2.5 px-3 w-24">Buy Price ({settings.currencySymbol})</th>
+                          <th className="py-2.5 px-3 w-24">Sell Price ({settings.currencySymbol})</th>
+                          <th className="py-2.5 px-3 w-24 text-right">Total ({settings.currencySymbol})</th>
                           <th className="py-2.5 px-3 w-10"></th>
                         </tr>
                       </thead>
@@ -794,7 +798,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                               </td>
 
                               <td className="p-2 text-right font-bold text-slate-900">
-                                ₹{item.totalPrice.toLocaleString('en-IN')}
+                                {money(item.totalPrice)}
                               </td>
 
                               <td className="p-2 text-center">
@@ -820,12 +824,12 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1">Total Bill Amount</label>
                     <div className="text-xl font-extrabold text-amber-400">
-                      ₹{grandTotal.toLocaleString('en-IN')}
+                      {money(grandTotal)}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Amount Paid Now (₹)</label>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Amount Paid Now ({settings.currencySymbol})</label>
                     <input
                       type="number"
                       value={paidAmount}

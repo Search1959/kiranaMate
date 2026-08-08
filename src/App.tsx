@@ -17,6 +17,7 @@ import {
 } from './types';
 import { api, getCurrentStoreId } from './lib/api';
 import { getSectorConfig, TRADING_SECTORS } from './lib/sectorConfig';
+import { detectCurrencyFromLocale } from './lib/currency';
 
 const DEFAULT_USER: User = {
   id: 'user-demo-owner',
@@ -74,7 +75,8 @@ function getFallbackSettings(storeIdStr: string): StoreSettings {
     address: 'Industrial Estate, Main Road',
     city: 'Jaipur',
     pincode: '302001',
-    currencySymbol: '₹',
+    currencySymbol: detectCurrencyFromLocale().symbol,
+    currencyCode: detectCurrencyFromLocale().code,
     invoicePrefix: cfg.defaultSettings.invoicePrefix || 'TRD-2026-',
     invoiceFooterNote: 'Thank you for your business!',
     lowStockThresholdDefault: 10,
@@ -704,6 +706,7 @@ export default function App() {
           {activeTab === 'stock' && (
             <ProductsView
               products={products}
+              settings={activeSettings}
               onOpenAddProduct={(prod) => {
                 setEditingProductTarget(prod || null);
                 setIsAddProductOpen(true);
@@ -729,6 +732,7 @@ export default function App() {
           {activeTab === 'sales' && (
             <SalesView
               sales={sales}
+              settings={activeSettings}
               onOpenNewSale={() => setIsNewSaleOpen(true)}
               onOpenInvoicePrint={handleOpenInvoicePrint}
               onRefreshData={() => loadData(currentStoreId)}
@@ -739,6 +743,7 @@ export default function App() {
             <PurchasesView
               purchases={purchases}
               suppliers={suppliers}
+              settings={activeSettings}
               onOpenAddStock={() => setIsAddStockOpen(true)}
               onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
               onRefreshData={() => loadData(currentStoreId)}
@@ -748,6 +753,7 @@ export default function App() {
           {activeTab === 'expenses' && (
             <ExpensesView
               expenses={expenses}
+              settings={activeSettings}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
               onRefreshData={() => loadData(currentStoreId)}
             />
@@ -759,6 +765,7 @@ export default function App() {
               sales={sales}
               purchases={purchases}
               inventoryTransactions={inventoryTransactions}
+              settings={activeSettings}
               onRefreshData={() => loadData(currentStoreId)}
               onOpenAddStock={() => setIsAddStockOpen(true)}
               onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
@@ -774,6 +781,7 @@ export default function App() {
               suppliers={suppliers}
               products={products}
               stats={activeStats}
+              settings={activeSettings}
               onRefreshData={() => loadData(currentStoreId)}
             />
           )}
@@ -783,6 +791,7 @@ export default function App() {
               stats={activeStats}
               products={products}
               sales={sales}
+              settings={activeSettings}
             />
           )}
 
@@ -802,6 +811,7 @@ export default function App() {
             <SuppliersView
               suppliers={suppliers}
               purchases={purchases}
+              settings={activeSettings}
               onRefreshData={() => loadData(currentStoreId)}
               onOpenAddStock={() => setIsAddStockOpen(true)}
               onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
@@ -873,6 +883,7 @@ export default function App() {
         onClose={() => setIsBarcodeScannerOpen(false)}
         onBarcodeDetected={handleBarcodeDetected}
         products={products}
+        settings={activeSettings}
       />
 
       <NewSaleModal
@@ -891,6 +902,7 @@ export default function App() {
         onClose={() => setIsNewOrderOpen(false)}
         products={products}
         customers={customers}
+        settings={activeSettings}
         selectedCustomerForOrder={paymentCustomerTarget}
         onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
         onOrderSuccess={() => loadData(currentStoreId)}
@@ -911,6 +923,7 @@ export default function App() {
         onClose={() => setIsAddProductOpen(false)}
         productToEdit={editingProductTarget}
         suppliers={suppliers}
+        settings={activeSettings}
         onOpenBarcodeScanner={() => setIsBarcodeScannerOpen(true)}
         scannedBarcode={lastScannedBarcode}
         onProductSaved={() => loadData(currentStoreId)}
@@ -922,6 +935,7 @@ export default function App() {
         onClose={() => setIsAddStockOpen(false)}
         products={products}
         suppliers={suppliers}
+        settings={activeSettings}
         selectedProductForStock={stockProductTarget}
         onStockAdded={() => loadData(currentStoreId)}
       />
@@ -931,6 +945,7 @@ export default function App() {
         onClose={() => setIsAddExpenseOpen(false)}
         onExpenseSaved={() => loadData(currentStoreId)}
         recordedBy={currentUser.name}
+        settings={activeSettings}
       />
 
       <InvoicePrintModal
@@ -951,6 +966,7 @@ export default function App() {
         onClose={() => setIsScanPurchaseBillOpen(false)}
         suppliers={suppliers}
         products={products}
+        settings={activeSettings}
         onBillProcessed={() => loadData(currentStoreId)}
       />
 
@@ -976,6 +992,7 @@ export default function App() {
           customers={customers}
           stats={stats}
           recentSales={sales}
+          settings={activeSettings}
           onNavigateTab={setActiveTab}
           onOpenQuickAction={(action) => {
             if (action === 'new_sale') setIsNewSaleOpen(true);

@@ -1,4 +1,5 @@
 import { Customer, Order, Sale, StoreSettings, LanguageCode } from '../types';
+import { formatMoney } from './currency';
 
 export function sanitizeMobile(mobile: string): string {
   const cleaned = mobile.replace(/\D/g, '');
@@ -13,7 +14,7 @@ export function generateUdhaarReminderText(
   lang: LanguageCode = 'en'
 ): string {
   const balance = customer?.currentBalance ?? customer?.outstandingBalance ?? 0;
-  const amountStr = `₹${balance.toLocaleString('en-IN')}`;
+  const amountStr = formatMoney(balance, settings?.currencySymbol, settings?.currencyCode);
   const storeName = settings?.storeName || 'Our Store';
   const phone = settings?.phone || '';
   const upiId = settings?.upiId || phone;
@@ -35,9 +36,9 @@ export function generateOrderConfirmationText(
   settings: StoreSettings,
   lang: LanguageCode = 'en'
 ): string {
-  const itemsText = (order?.items || []).map(i => `• ${i.productName} x ${i.quantity} = ₹${i.total ?? 0}`).join('\n');
+  const itemsText = (order?.items || []).map(i => `• ${i.productName} x ${i.quantity} = ${formatMoney(i.total, settings?.currencySymbol, settings?.currencyCode)}`).join('\n');
   const totalVal = order?.total ?? 0;
-  const totalStr = `₹${totalVal.toLocaleString('en-IN')}`;
+  const totalStr = formatMoney(totalVal, settings?.currencySymbol, settings?.currencyCode);
   const storeName = settings?.storeName || 'Our Store';
 
   if (lang === 'hi') {
@@ -69,16 +70,17 @@ export function generateOrderStatusWhatsAppText(
   const statusStr = statusLabels[order?.orderStatus] || order?.orderStatus || 'Pending';
   const storeName = settings?.storeName || 'Our Store';
   const phone = settings?.phone || '';
+  const totalStr = formatMoney(order?.total, settings?.currencySymbol, settings?.currencyCode);
 
   if (lang === 'hi') {
-    return `नमस्ते ${order?.customerName || 'ग्राहक'} जी,\n\n${storeName} से आपके ऑर्डर #${order?.orderNumber || ''} की अपडेट:\n\nऑर्डर स्थिति: ${statusStr}\nकुल राशि: ₹${order?.total ?? 0}\n\nसंपर्क: ${phone}\nधन्यवाद!`;
+    return `नमस्ते ${order?.customerName || 'ग्राहक'} जी,\n\n${storeName} से आपके ऑर्डर #${order?.orderNumber || ''} की अपडेट:\n\nऑर्डर स्थिति: ${statusStr}\nकुल राशि: ${totalStr}\n\nसंपर्क: ${phone}\nधन्यवाद!`;
   }
 
   if (lang === 'bn') {
-    return `নমস্কার ${order?.customerName || 'গ্রাহক'},\n\n${storeName} থেকে আপনার অর্ডার #${order?.orderNumber || ''}-এর আপডেট:\n\nঅর্ডারের অবস্থা: ${statusStr}\nমোট পরিমাণ: ₹${order?.total ?? 0}\n\nযোগাযোগ: ${phone}\nধন্যবাদ!`;
+    return `নমস্কার ${order?.customerName || 'গ্রাহক'},\n\n${storeName} থেকে আপনার অর্ডার #${order?.orderNumber || ''}-এর আপডেট:\n\nঅর্ডারের অবস্থা: ${statusStr}\nমোট পরিমাণ: ${totalStr}\n\nযোগাযোগ: ${phone}\nধন্যবাদ!`;
   }
 
-  return `Hello ${order?.customerName || 'Customer'},\n\nUpdate on your Order #${order?.orderNumber || ''} from ${storeName}:\n\nStatus: ${statusStr}\nTotal Amount: ₹${order?.total ?? 0}\n\nContact: ${phone}\nThank you!`;
+  return `Hello ${order?.customerName || 'Customer'},\n\nUpdate on your Order #${order?.orderNumber || ''} from ${storeName}:\n\nStatus: ${statusStr}\nTotal Amount: ${totalStr}\n\nContact: ${phone}\nThank you!`;
 }
 
 export function generateInvoiceWhatsAppText(
@@ -86,13 +88,12 @@ export function generateInvoiceWhatsAppText(
   settings: StoreSettings,
   lang: LanguageCode = 'en'
 ): string {
-  const formatAmt = (num: number) =>
-    num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const formatAmt = (num?: number | null) => formatMoney(num, settings?.currencySymbol, settings?.currencyCode);
 
   const itemsText = (sale?.items || [])
     .map(i => {
       const itemGst = i.gstRate ? ` [GST ${i.gstRate}%]` : '';
-      return `• ${i.productName}${itemGst} (${i.quantity}) = ₹${formatAmt(i.totalPrice ?? 0)}`;
+      return `• ${i.productName}${itemGst} (${i.quantity}) = ${formatMoney(i.totalPrice, settings?.currencySymbol, settings?.currencyCode)}`;
     })
     .join('\n');
 
@@ -107,34 +108,34 @@ export function generateInvoiceWhatsAppText(
   const breakdownLines: string[] = [];
 
   if (subtotal > 0 && (discount > 0 || totalTaxAmount > 0)) {
-    breakdownLines.push(`Subtotal: ₹${formatAmt(subtotal)}`);
+    breakdownLines.push(`Subtotal: ${formatAmt(subtotal)}`);
   }
 
   if (discount > 0) {
-    breakdownLines.push(`Discount: -₹${formatAmt(discount)}`);
+    breakdownLines.push(`Discount: -${formatAmt(discount)}`);
   }
 
   if (totalTaxAmount > 0) {
     if (sale.cgstAmount && sale.sgstAmount && sale.cgstAmount > 0) {
       const halfRate = (gstRate / 2).toString();
-      breakdownLines.push(`CGST (${halfRate}%): +₹${formatAmt(sale.cgstAmount)}`);
-      breakdownLines.push(`SGST (${halfRate}%): +₹${formatAmt(sale.sgstAmount)}`);
+      breakdownLines.push(`CGST (${halfRate}%): +${formatAmt(sale.cgstAmount)}`);
+      breakdownLines.push(`SGST (${halfRate}%): +${formatAmt(sale.sgstAmount)}`);
     } else if (sale.igstAmount && sale.igstAmount > 0) {
-      breakdownLines.push(`IGST (${gstRate}%): +₹${formatAmt(sale.igstAmount)}`);
+      breakdownLines.push(`IGST (${gstRate}%): +${formatAmt(sale.igstAmount)}`);
     } else {
-      breakdownLines.push(`GST Charged (${gstRate}%): +₹${formatAmt(totalTaxAmount)}`);
+      breakdownLines.push(`GST Charged (${gstRate}%): +${formatAmt(totalTaxAmount)}`);
     }
   }
 
   if (sale.receivedAmount && sale.receivedAmount > 0) {
-    breakdownLines.push(`Received Amount: ₹${formatAmt(sale.receivedAmount)}`);
+    breakdownLines.push(`Received Amount: ${formatAmt(sale.receivedAmount)}`);
   }
   if (sale.changeAmount && sale.changeAmount > 0) {
-    breakdownLines.push(`Change Returned: ₹${formatAmt(sale.changeAmount)}`);
+    breakdownLines.push(`Change Returned: ${formatAmt(sale.changeAmount)}`);
   }
 
   const breakdownText = breakdownLines.length > 0 ? breakdownLines.join('\n') + '\n' : '';
-  const totalStr = `₹${formatAmt(grandTotal)}`;
+  const totalStr = formatAmt(grandTotal);
 
   if (lang === 'hi') {
     return `नमस्ते ${sale?.customerName || 'ग्राहक'} जी,\n\n${storeName} से खरीदारी का बिल #${sale?.saleNumber || ''}:\n\n${itemsText}\n\n${breakdownText}कुल राशि (Grand Total): ${totalStr}\nभुगतान प्रकार: ${sale?.paymentMethod || ''}\n\nधन्यवाद! फिर पधारें।`;

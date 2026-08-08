@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { TRADING_SECTORS } from '../lib/sectorConfig';
 import { serviceStore } from '../lib/serviceStore';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
+import { CURRENCIES, getCurrencyByCode, getCurrencyBySymbol } from '../lib/currency';
 
 interface SettingsViewProps {
   settings: StoreSettings;
@@ -33,6 +34,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [gstin, setGstin] = useState(settings.gstin || '');
   const [tagline, setTagline] = useState(settings.tagline);
   const [sector, setSector] = useState<TradingSector>(settings.sector || 'KIRANA_FMCG');
+  const [currencyCode, setCurrencyCode] = useState<string>(
+    settings.currencyCode || getCurrencyBySymbol(settings.currencySymbol).code
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -42,6 +46,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setSavedSuccess(false);
 
     try {
+      const currency = getCurrencyByCode(currencyCode);
       await api.updateSettings({
         storeName,
         ownerName,
@@ -50,7 +55,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         city,
         gstin,
         tagline,
-        sector
+        sector,
+        currencyCode: currency.code,
+        currencySymbol: currency.symbol
       });
       onRefreshData();
       setSavedSuccess(true);
@@ -209,6 +216,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block mb-1">Currency</label>
+          <select
+            value={currencyCode}
+            onChange={(e) => setCurrencyCode(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.symbol} — {c.name} ({c.code})
+              </option>
+            ))}
+          </select>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Auto-detected from your browser when this store was created. All bills, reports and WhatsApp messages use this currency — change it here if it guessed wrong.
+          </p>
         </div>
 
         <div>

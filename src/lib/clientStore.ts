@@ -19,6 +19,7 @@ import {
 } from '../types';
 import { generateSectorSeedData } from '../server/seedData';
 import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
+import { detectCurrencyFromLocale } from './currency';
 
 interface StoreData {
   settings: StoreSettings;
@@ -1317,6 +1318,11 @@ export const clientStore = {
     const sectorKey = payload.sector || 'KIRANA_FMCG';
     const sectorConfig = getSectorConfig(sectorKey);
 
+    // Auto-detect currency from this browser's own locale — e.g. a visitor
+    // signing up from the US gets USD by default. Set once at registration;
+    // change it later in Settings if it guessed wrong.
+    const detectedCurrency = detectCurrencyFromLocale();
+
     const newSettings: StoreSettings = {
       storeName: payload.shopName,
       tagline: sectorConfig.defaultSettings?.tagline || sectorConfig.tagline || 'Quality Commercial Trading',
@@ -1325,7 +1331,8 @@ export const clientStore = {
       address: 'Shop No. 1, Main Market Commercial Complex',
       city: 'Commercial Area',
       pincode: '400001',
-      currencySymbol: '₹',
+      currencySymbol: detectedCurrency.symbol,
+      currencyCode: detectedCurrency.code,
       invoicePrefix: sectorConfig.defaultSettings?.invoicePrefix || 'INV-',
       invoiceFooterNote: `Thank you for doing business with ${payload.shopName}! GST Tax Invoice.`,
       lowStockThresholdDefault: 5,

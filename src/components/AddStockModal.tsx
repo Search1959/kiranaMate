@@ -13,14 +13,16 @@ import {
   DollarSign,
   AlertCircle
 } from 'lucide-react';
-import { Product, Supplier, PaymentMethod, PaymentStatus, ProductUnit } from '../types';
+import { Product, Supplier, PaymentMethod, PaymentStatus, ProductUnit, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { formatMoney } from '../lib/currency';
 
 interface AddStockModalProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
   suppliers?: Supplier[];
+  settings: StoreSettings;
   selectedProductForStock?: Product | null;
   onStockAdded: () => void;
 }
@@ -43,9 +45,11 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
   onClose,
   products,
   suppliers = [],
+  settings,
   selectedProductForStock,
   onStockAdded
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [activeTab, setActiveTab] = useState<'invoice' | 'quick'>('invoice');
 
   // Supplier & Invoice details
@@ -519,10 +523,10 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
                           <th className="py-2.5 px-3 min-w-[170px]">Product Name</th>
                           <th className="py-2.5 px-3 w-16">Unit</th>
                           <th className="py-2.5 px-3 w-20">Qty</th>
-                          <th className="py-2.5 px-3 w-24">Buy Rate (₹)</th>
+                          <th className="py-2.5 px-3 w-24">Buy Rate ({settings.currencySymbol})</th>
                           <th className="py-2.5 px-3 w-20">GST %</th>
-                          <th className="py-2.5 px-3 w-24">Sell Price (₹)</th>
-                          <th className="py-2.5 px-3 w-24 text-right">Total (₹)</th>
+                          <th className="py-2.5 px-3 w-24">Sell Price ({settings.currencySymbol})</th>
+                          <th className="py-2.5 px-3 w-24 text-right">Total ({settings.currencySymbol})</th>
                           <th className="py-2.5 px-3 w-10"></th>
                         </tr>
                       </thead>
@@ -603,7 +607,7 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
                               </td>
 
                               <td className="p-2 text-right font-extrabold text-slate-900">
-                                ₹{item.totalPrice.toLocaleString('en-IN')}
+                                {money(item.totalPrice)}
                               </td>
 
                               <td className="p-2 text-center">
@@ -629,16 +633,16 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
                     <span className="text-slate-400 block mb-0.5">Item Subtotal</span>
-                    <span className="font-extrabold text-white text-sm">₹{rawSubtotal.toLocaleString('en-IN')}</span>
+                    <span className="font-extrabold text-white text-sm">{money(rawSubtotal)}</span>
                   </div>
 
                   <div>
                     <span className="text-slate-400 block mb-0.5">Total GST Tax</span>
-                    <span className="font-extrabold text-amber-300 text-sm">₹{totalTaxAmount.toLocaleString('en-IN')}</span>
+                    <span className="font-extrabold text-amber-300 text-sm">{money(totalTaxAmount)}</span>
                   </div>
 
                   <div>
-                    <label className="text-slate-400 block mb-0.5">Freight Charges (₹)</label>
+                    <label className="text-slate-400 block mb-0.5">Freight Charges ({settings.currencySymbol})</label>
                     <input
                       type="number"
                       min={0}
@@ -650,13 +654,13 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
 
                   <div>
                     <span className="text-slate-400 block mb-0.5">Grand Total Bill</span>
-                    <span className="font-black text-amber-400 text-base">₹{grandTotal.toLocaleString('en-IN')}</span>
+                    <span className="font-black text-amber-400 text-base">{money(grandTotal)}</span>
                   </div>
                 </div>
 
                 <div className="pt-2 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
                   <div>
-                    <label className="text-slate-300 font-bold block mb-1">Amount Paid Now (₹)</label>
+                    <label className="text-slate-300 font-bold block mb-1">Amount Paid Now ({settings.currencySymbol})</label>
                     <input
                       type="number"
                       min={0}
@@ -683,7 +687,7 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
                   <div className="text-right">
                     <span className="text-xs text-slate-400 block">Balance Due (Added to Udhaar)</span>
                     <span className={`text-base font-black ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                      ₹{balanceDue.toLocaleString('en-IN')}
+                      {money(balanceDue)}
                     </span>
                   </div>
                 </div>

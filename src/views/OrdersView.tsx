@@ -14,6 +14,7 @@ import {
 import { Order, OrderStatus, StoreSettings, LanguageCode } from '../types';
 import { api } from '../lib/api';
 import { getWhatsAppWebLink, getSmsLink, generateOrderStatusWhatsAppText } from '../lib/whatsapp';
+import { formatMoney } from '../lib/currency';
 
 interface OrdersViewProps {
   orders: Order[];
@@ -32,6 +33,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   onOpenNewOrder,
   onOpenInvoicePrint
 }) => {
+  const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -126,7 +128,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
               </div>
 
               <div className="text-right">
-                <span className="text-base font-black text-slate-900 block">₹{(order.total ?? 0).toLocaleString('en-IN')}</span>
+                <span className="text-base font-black text-slate-900 block">{money(order.total)}</span>
                 <select
                   value={order.orderStatus}
                   onChange={(e) => handleUpdateStatus(order.id, e.target.value as OrderStatus)}
@@ -152,7 +154,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
               {order.items.map((item, idx) => (
                 <div key={idx} className="py-1 first:pt-0 last:pb-0 flex justify-between">
                   <span>{item.quantity}x {item.productName}</span>
-                  <span className="font-bold text-slate-800">₹{item.total}</span>
+                  <span className="font-bold text-slate-800">{money(item.total)}</span>
                 </div>
               ))}
             </div>
