@@ -1,704 +1,704 @@
 {
   "stores": {
     "store-demo": {
-      "sales": [
-        {
-          "notes": "Express Counter POS Sale",
-          "subtotal": 840,
-          "grandTotal": 840,
-          "items": [
-            {
-              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-              "totalPrice": 840,
-              "quantity": 2,
-              "productId": "p-101",
-              "unitPrice": 420,
-              "mrp": 445
-            }
-          ],
-          "saleNumber": "KRN-2026-0001",
-          "createdAt": "2026-08-06T12:35:09.987Z",
-          "customerName": "Sharma Traders",
-          "id": "sal-1",
-          "paymentStatus": "PAID",
-          "paymentMethod": "CASH",
-          "discount": 0,
-          "customerMobile": "9829111222"
-        },
-        {
-          "grandTotal": 690,
-          "discount": 0,
-          "saleNumber": "KRN-2026-0002",
-          "customerName": "Rahul Enterprise",
-          "createdAt": "2026-08-06T12:35:09.987Z",
-          "subtotal": 690,
-          "notes": "UPI Counter Sale",
-          "items": [
-            {
-              "mrp": 155,
-              "productName": "Fortune Kachi Ghani Mustard Oil 1L",
-              "totalPrice": 690,
-              "unitPrice": 138,
-              "productId": "p-102",
-              "quantity": 5
-            }
-          ],
-          "paymentStatus": "PAID",
-          "paymentMethod": "UPI",
-          "id": "sal-2",
-          "customerMobile": "9876500112"
-        },
-        {
-          "customerId": "cust-2",
-          "paymentStatus": "PENDING",
-          "paymentMethod": "CREDIT",
-          "subtotal": 420,
-          "items": [
-            {
-              "totalPrice": 420,
-              "mrp": 445,
-              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-              "quantity": 1,
-              "unitPrice": 420,
-              "productId": "p-101"
-            }
-          ],
-          "id": "sale-1786060704804",
-          "customerMobile": "9829222333",
-          "createdAt": "2026-08-06T23:58:24.804Z",
-          "customerName": "Verma Enterprises",
-          "saleNumber": "SL-704804",
-          "discount": 0,
-          "grandTotal": 420
-        },
-        {
-          "subtotal": 520,
-          "createdAt": "2026-08-07T00:00:30.929Z",
-          "grandTotal": 520,
-          "id": "sale-1786060830929",
-          "saleNumber": "SL-830929",
-          "paymentStatus": "PENDING",
-          "paymentMethod": "CREDIT",
-          "customerName": "Verma Enterprises",
-          "discount": 0,
-          "customerId": "cust-2",
-          "customerMobile": "9536130393",
-          "items": [
-            {
-              "mrp": 560,
-              "productName": "India Gate Dubar Basmati Rice 5kg",
-              "totalPrice": 520,
-              "quantity": 1,
-              "unitPrice": 520,
-              "productId": "p-104"
-            }
-          ]
-        },
-        {
-          "customerId": "cust-2",
-          "discount": 0,
-          "customerName": "Verma Enterprises",
-          "createdAt": "2026-08-07T00:02:40.407Z",
-          "paymentMethod": "CREDIT",
-          "paymentStatus": "PENDING",
-          "subtotal": 1260,
-          "id": "sale-1786060960407",
-          "saleNumber": "SL-960407",
-          "customerMobile": "9836130393",
-          "grandTotal": 1260,
-          "items": [
-            {
-              "totalPrice": 1260,
-              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-              "productId": "p-101",
-              "unitPrice": 420,
-              "quantity": 3,
-              "mrp": 445
-            }
-          ]
-        },
-        {
-          "customerMobile": "9836130393",
-          "grandTotal": 470.4,
-          "igstAmount": 0,
-          "customerName": "Verma Enterprises",
-          "paymentMethod": "CREDIT",
-          "paymentStatus": "PENDING",
-          "discount": 0,
-          "cgstAmount": 11.2,
-          "taxableAmount": 448,
-          "gstRate": 5,
-          "subtotal": 448,
-          "sgstAmount": 11.2,
-          "taxType": "EXCLUSIVE",
-          "saleNumber": "SL-928514",
-          "totalTaxAmount": 22.4,
-          "items": [
-            {
-              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-              "totalPrice": 420,
-              "productId": "p-101",
-              "unitPrice": 420,
-              "gstRate": 5,
-              "quantity": 1,
-              "mrp": 445
-            },
-            {
-              "gstRate": 5,
-              "quantity": 1,
-              "mrp": 28,
-              "totalPrice": 28,
-              "productName": "Tata Salt Vacuum Evaporated 1kg",
-              "productId": "p-103",
-              "unitPrice": 28
-            }
-          ],
-          "customerId": "cust-2",
-          "createdAt": "2026-08-07T00:18:48.514Z",
-          "id": "sale-1786061928514"
-        },
-        {
-          "totalTaxAmount": 16,
-          "createdAt": "2026-08-07T00:30:51.419Z",
-          "customerId": "cust-3",
-          "saleNumber": "SL-651419",
-          "discount": 200,
-          "sgstAmount": 8,
-          "gstRate": 5,
-          "customerName": "Singhal & Sons",
-          "items": [
-            {
-              "totalPrice": 520,
-              "unitPrice": 520,
-              "productId": "p-104",
-              "mrp": 560,
-              "gstRate": 5,
-              "productName": "India Gate Dubar Basmati Rice 5kg",
-              "quantity": 1
-            }
-          ],
-          "subtotal": 520,
-          "taxType": "EXCLUSIVE",
-          "cgstAmount": 8,
-          "grandTotal": 336,
-          "taxableAmount": 320,
-          "igstAmount": 0,
-          "paymentMethod": "CREDIT",
-          "paymentStatus": "PENDING",
-          "customerMobile": "7603064791",
-          "id": "sale-1786062651419"
-        }
-      ],
-      "customers": [
-        {
-          "area": "Civil Lines",
-          "mobile": "9829111222",
-          "updatedAt": "2026-08-01",
-          "notes": "Regular buyer on credit ledger",
-          "openingBalance": 0,
-          "name": "Sharma Traders",
-          "trustRating": "A",
-          "currentBalance": 3450,
-          "createdAt": "2026-01-15",
-          "creditLimit": 15000,
-          "id": "cust-1",
-          "outstandingBalance": 3450,
-          "address": "House No. 42, Civil Lines"
-        },
-        {
-          "name": "Verma Enterprises",
-          "createdAt": "2026-01-20",
-          "address": "Block B, Officers Colony",
-          "openingBalance": 0,
-          "area": "Officers Colony",
-          "notes": "Clear payment via UPI",
-          "mobile": "9836130393",
-          "creditLimit": 10000,
-          "currentBalance": 2670.4,
-          "updatedAt": "2026-08-07T00:18:48.514Z",
-          "trustRating": "A",
-          "outstandingBalance": 0,
-          "id": "cust-2"
-        },
-        {
-          "notes": "Pays weekly",
-          "creditLimit": 8000,
-          "updatedAt": "2026-08-07T00:30:51.419Z",
-          "trustRating": "B",
-          "currentBalance": 1586,
-          "area": "Shanti Heights",
-          "outstandingBalance": 1250,
-          "createdAt": "2026-02-01",
-          "openingBalance": 0,
-          "address": "Flat 102, Shanti Heights",
-          "mobile": "7603064791",
-          "name": "Singhal & Sons",
-          "id": "cust-3"
-        }
-      ],
-      "inventoryTransactions": [
-        {
-          "createdAt": "2026-08-01 14:00:00",
-          "createdBy": "Ramesh Gupta",
-          "stockAfter": 50,
-          "type": "STOCK_IN_PURCHASE",
-          "notes": "Initial inventory setup",
-          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-          "referenceId": "PUR-2026-01",
-          "productId": "p-101",
-          "quantityChange": 50,
-          "id": "inv-1"
-        },
-        {
-          "referenceId": "SL-704804",
-          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-          "quantityChange": -1,
-          "stockAfter": 24,
-          "createdBy": "Shop Owner",
-          "createdAt": "2026-08-06T23:58:24.804Z",
-          "productId": "p-101",
-          "type": "STOCK_OUT_SALE",
-          "id": "inv-sale-1786060704804"
-        },
-        {
-          "type": "STOCK_OUT_SALE",
-          "id": "inv-sale-1786060830929",
-          "quantityChange": -1,
-          "createdAt": "2026-08-07T00:00:30.929Z",
-          "createdBy": "Shop Owner",
-          "productId": "p-104",
-          "productName": "India Gate Dubar Basmati Rice 5kg",
-          "referenceId": "SL-830929",
-          "stockAfter": 14
-        },
-        {
-          "stockAfter": 21,
-          "productId": "p-101",
-          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-          "referenceId": "SL-960407",
-          "id": "inv-sale-1786060960407",
-          "createdBy": "Shop Owner",
-          "quantityChange": -3,
-          "createdAt": "2026-08-07T00:02:40.407Z",
-          "type": "STOCK_OUT_SALE"
-        },
-        {
-          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
-          "referenceId": "SL-928514",
-          "stockAfter": 20,
-          "type": "STOCK_OUT_SALE",
-          "id": "inv-sale-1786061928514",
-          "createdAt": "2026-08-07T00:18:48.514Z",
-          "quantityChange": -1,
-          "createdBy": "Shop Owner",
-          "productId": "p-101"
-        },
-        {
-          "stockAfter": 89,
-          "type": "STOCK_OUT_SALE",
-          "productName": "Tata Salt Vacuum Evaporated 1kg",
-          "referenceId": "SL-928514",
-          "quantityChange": -1,
-          "id": "inv-sale-1786061928514",
-          "createdBy": "Shop Owner",
-          "createdAt": "2026-08-07T00:18:48.514Z",
-          "productId": "p-103"
-        },
-        {
-          "productId": "p-104",
-          "createdAt": "2026-08-07T00:30:51.419Z",
-          "createdBy": "Shop Owner",
-          "stockAfter": 13,
-          "productName": "India Gate Dubar Basmati Rice 5kg",
-          "referenceId": "SL-651419",
-          "quantityChange": -1,
-          "id": "inv-sale-1786062651419",
-          "type": "STOCK_OUT_SALE"
-        }
-      ],
       "orders": [],
-      "settings": {
-        "tagline": "Your Trusted Neighborhood Grocer • Fast Delivery & Fresh Stock",
-        "defaultLanguage": "en",
-        "upiId": "guptatraders@upi",
-        "invoiceFooterNote": "Thank you for doing business with Gupta Kirana & FMCG Wholesale! GST Tax Invoice.",
-        "gstin": "08ABCDE1234F1ZH",
-        "city": "Jaipur, Rajasthan",
-        "ownerName": "Ramesh Gupta",
-        "currencyCode": "USD",
-        "invoicePrefix": "KRN-2026-",
-        "storeName": "Dr. Umesh",
-        "taxLabel": "GSTIN / Tax ID",
-        "alternatePhone": "9812345678",
-        "phone": "9876543210",
-        "lowStockThresholdDefault": 10,
-        "currencySymbol": "$",
-        "pincode": "302016",
-        "phoneCountryCode": "+91",
-        "sector": "KIRANA_FMCG",
-        "address": "Shop No. 12, Main Market Commercial Complex"
-      },
+      "updatedAt": "2026-08-08T05:39:13.690Z",
       "suppliers": [
         {
-          "name": "Fortune & Adani Wilmar Wholesalers",
-          "outstandingBalance": 12500,
-          "contactPerson": "Vikram Sharma",
           "mobile": "9829011223",
-          "id": "sup-1",
-          "createdAt": "2026-01-10",
+          "address": "Industrial Transport Area",
           "gstin": "08AABC10001Z0",
+          "contactPerson": "Vikram Sharma",
+          "createdAt": "2026-01-10",
+          "outstandingBalance": 12500,
+          "name": "Fortune & Adani Wilmar Wholesalers",
           "city": "Jaipur",
-          "address": "Industrial Transport Area"
+          "id": "sup-1"
         },
         {
+          "contactPerson": "Sunil Agrawal",
+          "createdAt": "2026-01-10",
           "outstandingBalance": 8400,
           "gstin": "08AABC10011Z1",
-          "mobile": "9829022334",
           "address": "Industrial Transport Area",
+          "mobile": "9829022334",
           "id": "sup-2",
           "name": "ITC Foods Wholesale Depot",
-          "createdAt": "2026-01-10",
-          "contactPerson": "Sunil Agrawal",
           "city": "Jaipur"
         },
         {
-          "outstandingBalance": 0,
           "createdAt": "2026-01-10",
-          "gstin": "08AABC10021Z2",
-          "name": "Parle & Britannia Agencies",
-          "id": "sup-3",
           "contactPerson": "Manoj Jain",
+          "gstin": "08AABC10021Z2",
           "address": "Industrial Transport Area",
-          "city": "Jaipur",
-          "mobile": "9829033445"
+          "id": "sup-3",
+          "mobile": "9829033445",
+          "name": "Parle & Britannia Agencies",
+          "outstandingBalance": 0,
+          "city": "Jaipur"
         },
         {
-          "address": "Industrial Transport Area",
-          "gstin": "08AABC10031Z3",
           "name": "HUL & Personal Care Depot",
-          "id": "sup-4",
-          "outstandingBalance": 18200,
+          "city": "Jaipur",
           "contactPerson": "Rajesh Verma",
-          "mobile": "9829044556",
           "createdAt": "2026-01-10",
-          "city": "Jaipur"
+          "gstin": "08AABC10031Z3",
+          "outstandingBalance": 18200,
+          "address": "Industrial Transport Area",
+          "mobile": "9829044556",
+          "id": "sup-4"
         }
       ],
-      "purchases": [],
       "users": [
         {
           "isDemoUser": true,
-          "storeId": "store-demo",
-          "mobile": "9999999999",
           "name": "System Administrator",
-          "id": "user-admin",
-          "permissions": {
-            "canManageSettings": true,
-            "canEditProducts": true,
-            "canCreateOrders": true,
-            "canDeleteRecords": true,
-            "canCollectPayments": true,
-            "canViewReports": true
-          },
-          "username": "admin",
           "role": "admin",
-          "storeName": "Demo Kirana Supermarket"
+          "storeName": "Demo Kirana Supermarket",
+          "permissions": {
+            "canDeleteRecords": true,
+            "canManageSettings": true,
+            "canCreateOrders": true,
+            "canViewReports": true,
+            "canCollectPayments": true,
+            "canEditProducts": true
+          },
+          "mobile": "9999999999",
+          "username": "admin",
+          "id": "user-admin",
+          "storeId": "store-demo"
         },
         {
-          "storeName": "Gupta Kirana & General Store",
-          "name": "Ramesh Gupta (Demo Owner)",
           "isDemoUser": true,
-          "id": "user-1",
-          "mobile": "9876543210",
-          "role": "owner",
           "storeId": "store-demo",
+          "id": "user-1",
+          "username": "owner",
+          "storeName": "Gupta Kirana & General Store",
           "permissions": {
-            "canEditProducts": true,
-            "canCreateOrders": true,
             "canCollectPayments": true,
             "canDeleteRecords": true,
             "canViewReports": true,
-            "canManageSettings": true
-          },
-          "username": "owner"
-        },
-        {
-          "permissions": {
-            "canCollectPayments": true,
-            "canDeleteRecords": false,
-            "canViewReports": false,
-            "canManageSettings": false,
             "canEditProducts": true,
+            "canManageSettings": true,
             "canCreateOrders": true
           },
-          "username": "staff",
-          "storeName": "Gupta Kirana & General Store",
-          "role": "staff",
-          "mobile": "9811223344",
+          "role": "owner",
+          "mobile": "9876543210",
+          "name": "Ramesh Gupta (Demo Owner)"
+        },
+        {
           "name": "Suresh Kumar (Demo Staff)",
-          "id": "user-2",
+          "role": "staff",
+          "isDemoUser": true,
           "storeId": "store-demo",
-          "isDemoUser": true
-        }
-      ],
-      "products": [
-        {
-          "barcode": "8901000000000",
-          "sku": "KIR-101",
-          "currentStock": 20,
-          "purchasePrice": 380,
-          "category": "Atta & Flours",
-          "brand": "Aashirvaad",
-          "supplierId": "sup-1",
-          "unit": "pkt",
-          "updatedAt": "2026-08-07T00:18:48.514Z",
-          "gstPercent": 5,
-          "mrp": 445,
-          "id": "p-101",
-          "sellingPrice": 420,
-          "name": "Aashirvaad Shudh Chakki Atta 10kg",
-          "createdAt": "2026-01-01",
-          "minStock": 8,
-          "status": "ACTIVE"
-        },
-        {
-          "barcode": "8901000000001",
-          "sku": "KIR-102",
-          "currentStock": 40,
-          "createdAt": "2026-01-01",
-          "name": "Fortune Kachi Ghani Mustard Oil 1L",
-          "brand": "Fortune",
-          "supplierId": "sup-2",
-          "mrp": 155,
-          "purchasePrice": 122,
-          "gstPercent": 5,
-          "id": "p-102",
-          "minStock": 10,
-          "sellingPrice": 138,
-          "status": "ACTIVE",
-          "updatedAt": "2026-08-01",
-          "category": "Edible Oils & Ghee",
-          "unit": "pouch"
-        },
-        {
-          "brand": "Tata",
-          "minStock": 20,
-          "name": "Tata Salt Vacuum Evaporated 1kg",
-          "createdAt": "2026-01-01",
-          "sellingPrice": 28,
-          "category": "Spices & Masalas",
-          "sku": "KIR-103",
-          "barcode": "8901000000002",
-          "id": "p-103",
-          "gstPercent": 5,
-          "supplierId": "sup-3",
-          "currentStock": 89,
-          "updatedAt": "2026-08-07T00:18:48.514Z",
-          "status": "ACTIVE",
-          "purchasePrice": 22,
-          "unit": "pkt",
-          "mrp": 28
-        },
-        {
-          "unit": "pkt",
-          "updatedAt": "2026-08-07T00:30:51.419Z",
-          "gstPercent": 5,
-          "supplierId": "sup-4",
-          "mrp": 560,
-          "category": "Rice & Grains",
-          "sku": "KIR-104",
-          "currentStock": 13,
-          "purchasePrice": 460,
-          "barcode": "8901000000003",
-          "status": "ACTIVE",
-          "minStock": 5,
-          "createdAt": "2026-01-01",
-          "id": "p-104",
-          "brand": "India Gate",
-          "name": "India Gate Dubar Basmati Rice 5kg",
-          "sellingPrice": 520
-        },
-        {
-          "id": "p-105",
-          "sku": "KIR-105",
-          "category": "Snacks & Namkeen",
-          "unit": "pkt",
-          "purchasePrice": 46,
-          "barcode": "8901000000004",
-          "createdAt": "2026-01-01",
-          "status": "ACTIVE",
-          "brand": "Nestle",
-          "mrp": 60,
-          "currentStock": 50,
-          "minStock": 12,
-          "gstPercent": 5,
-          "supplierId": "sup-1",
-          "updatedAt": "2026-08-01",
-          "sellingPrice": 56,
-          "name": "Maggi 2-Min Masala Noodles (4-Pack)"
-        }
-      ],
-      "expenses": [
-        {
-          "paymentMethod": "BANK",
-          "createdAt": "2026-08-01 10:00:00",
-          "recordedBy": "Ramesh Gupta",
-          "amount": 12000,
-          "id": "exp-1",
-          "category": "Shop Rent",
-          "date": "2026-08-01",
-          "description": "Monthly shop rent"
+          "username": "staff",
+          "id": "user-2",
+          "storeName": "Gupta Kirana & General Store",
+          "mobile": "9811223344",
+          "permissions": {
+            "canEditProducts": true,
+            "canCreateOrders": true,
+            "canViewReports": false,
+            "canDeleteRecords": false,
+            "canManageSettings": false,
+            "canCollectPayments": true
+          }
         }
       ],
       "customerTransactions": [
         {
-          "amount": 3450,
-          "createdAt": "2026-08-01 11:30:00",
-          "createdBy": "Ramesh Gupta",
           "balanceAfter": 3450,
-          "id": "tx-1",
           "notes": "Credit purchase bill #101",
+          "createdBy": "Ramesh Gupta",
           "type": "CREDIT_SALE",
-          "customerId": "cust-1"
+          "id": "tx-1",
+          "amount": 3450,
+          "customerId": "cust-1",
+          "createdAt": "2026-08-01 11:30:00"
         },
         {
-          "balanceAfter": 420,
-          "createdBy": "Shop Owner",
           "createdAt": "2026-08-06T23:58:24.804Z",
-          "customerId": "cust-2",
-          "notes": "Express Sale #SL-704804 on Udhaar",
-          "type": "CREDIT_SALE",
-          "id": "tx-sale-1786060704804",
           "referenceId": "SL-704804",
-          "amount": 420
+          "notes": "Express Sale #SL-704804 on Udhaar",
+          "amount": 420,
+          "balanceAfter": 420,
+          "customerId": "cust-2",
+          "createdBy": "Shop Owner",
+          "type": "CREDIT_SALE",
+          "id": "tx-sale-1786060704804"
         },
         {
+          "createdAt": "2026-08-07T00:00:30.929Z",
+          "referenceId": "SL-830929",
+          "customerId": "cust-2",
+          "type": "CREDIT_SALE",
           "balanceAfter": 940,
           "notes": "Express Sale #SL-830929 on Udhaar",
-          "amount": 520,
-          "createdAt": "2026-08-07T00:00:30.929Z",
           "createdBy": "Shop Owner",
-          "id": "tx-sale-1786060830929",
-          "type": "CREDIT_SALE",
-          "referenceId": "SL-830929",
-          "customerId": "cust-2"
+          "amount": 520,
+          "id": "tx-sale-1786060830929"
         },
         {
-          "balanceAfter": 2200,
-          "amount": 1260,
-          "type": "CREDIT_SALE",
-          "id": "tx-sale-1786060960407",
-          "customerId": "cust-2",
-          "createdAt": "2026-08-07T00:02:40.407Z",
-          "referenceId": "SL-960407",
           "createdBy": "Shop Owner",
-          "notes": "Express Sale #SL-960407 on Udhaar"
+          "id": "tx-sale-1786060960407",
+          "referenceId": "SL-960407",
+          "notes": "Express Sale #SL-960407 on Udhaar",
+          "balanceAfter": 2200,
+          "customerId": "cust-2",
+          "amount": 1260,
+          "createdAt": "2026-08-07T00:02:40.407Z",
+          "type": "CREDIT_SALE"
+        },
+        {
+          "notes": "Express Sale #SL-928514 on Udhaar",
+          "createdBy": "Shop Owner",
+          "type": "CREDIT_SALE",
+          "balanceAfter": 2670.4,
+          "customerId": "cust-2",
+          "amount": 470.4,
+          "id": "tx-sale-1786061928514",
+          "referenceId": "SL-928514",
+          "createdAt": "2026-08-07T00:18:48.514Z"
+        },
+        {
+          "id": "tx-sale-1786062651419",
+          "customerId": "cust-3",
+          "createdAt": "2026-08-07T00:30:51.419Z",
+          "amount": 336,
+          "balanceAfter": 1586,
+          "createdBy": "Shop Owner",
+          "referenceId": "SL-651419",
+          "type": "CREDIT_SALE",
+          "notes": "Express Sale #SL-651419 on Udhaar"
+        }
+      ],
+      "inventoryTransactions": [
+        {
+          "stockAfter": 50,
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "referenceId": "PUR-2026-01",
+          "createdBy": "Ramesh Gupta",
+          "type": "STOCK_IN_PURCHASE",
+          "quantityChange": 50,
+          "productId": "p-101",
+          "createdAt": "2026-08-01 14:00:00",
+          "notes": "Initial inventory setup",
+          "id": "inv-1"
+        },
+        {
+          "type": "STOCK_OUT_SALE",
+          "createdAt": "2026-08-06T23:58:24.804Z",
+          "quantityChange": -1,
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "stockAfter": 24,
+          "productId": "p-101",
+          "referenceId": "SL-704804",
+          "createdBy": "Shop Owner",
+          "id": "inv-sale-1786060704804"
+        },
+        {
+          "type": "STOCK_OUT_SALE",
+          "stockAfter": 14,
+          "productId": "p-104",
+          "createdAt": "2026-08-07T00:00:30.929Z",
+          "id": "inv-sale-1786060830929",
+          "quantityChange": -1,
+          "createdBy": "Shop Owner",
+          "referenceId": "SL-830929",
+          "productName": "India Gate Dubar Basmati Rice 5kg"
+        },
+        {
+          "id": "inv-sale-1786060960407",
+          "referenceId": "SL-960407",
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "createdBy": "Shop Owner",
+          "type": "STOCK_OUT_SALE",
+          "stockAfter": 21,
+          "productId": "p-101",
+          "createdAt": "2026-08-07T00:02:40.407Z",
+          "quantityChange": -3
+        },
+        {
+          "stockAfter": 20,
+          "createdAt": "2026-08-07T00:18:48.514Z",
+          "id": "inv-sale-1786061928514",
+          "productId": "p-101",
+          "createdBy": "Shop Owner",
+          "quantityChange": -1,
+          "type": "STOCK_OUT_SALE",
+          "referenceId": "SL-928514",
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg"
         },
         {
           "createdAt": "2026-08-07T00:18:48.514Z",
-          "createdBy": "Shop Owner",
-          "id": "tx-sale-1786061928514",
-          "notes": "Express Sale #SL-928514 on Udhaar",
+          "productId": "p-103",
+          "productName": "Tata Salt Vacuum Evaporated 1kg",
+          "id": "inv-sale-1786061928514",
           "referenceId": "SL-928514",
-          "balanceAfter": 2670.4,
-          "amount": 470.4,
-          "type": "CREDIT_SALE",
-          "customerId": "cust-2"
+          "quantityChange": -1,
+          "createdBy": "Shop Owner",
+          "type": "STOCK_OUT_SALE",
+          "stockAfter": 89
         },
         {
-          "type": "CREDIT_SALE",
-          "id": "tx-sale-1786062651419",
-          "customerId": "cust-3",
-          "balanceAfter": 1586,
-          "amount": 336,
           "referenceId": "SL-651419",
-          "notes": "Express Sale #SL-651419 on Udhaar",
+          "productName": "India Gate Dubar Basmati Rice 5kg",
+          "stockAfter": 13,
+          "productId": "p-104",
           "createdAt": "2026-08-07T00:30:51.419Z",
-          "createdBy": "Shop Owner"
+          "id": "inv-sale-1786062651419",
+          "createdBy": "Shop Owner",
+          "type": "STOCK_OUT_SALE",
+          "quantityChange": -1
+        }
+      ],
+      "settings": {
+        "lowStockThresholdDefault": 10,
+        "invoiceFooterNote": "Thank you for doing business with Gupta Kirana & FMCG Wholesale! GST Tax Invoice.",
+        "ownerName": "Ramesh Gupta",
+        "city": "Jaipur, Rajasthan",
+        "currencyCode": "USD",
+        "tagline": "Your Trusted Neighborhood Grocer • Fast Delivery & Fresh Stock",
+        "currencySymbol": "$",
+        "storeName": "Dr. Umesh",
+        "defaultLanguage": "en",
+        "sector": "KIRANA_FMCG",
+        "phone": "9876543210",
+        "upiId": "guptatraders@upi",
+        "gstin": "08ABCDE1234F1ZH",
+        "address": "Shop No. 12, Main Market Commercial Complex",
+        "phoneCountryCode": "+91",
+        "alternatePhone": "9812345678",
+        "taxLabel": "GSTIN / Tax ID",
+        "invoicePrefix": "KRN-2026-",
+        "pincode": "302016"
+      },
+      "customers": [
+        {
+          "name": "Sharma Traders",
+          "updatedAt": "2026-08-01",
+          "outstandingBalance": 3450,
+          "trustRating": "A",
+          "openingBalance": 0,
+          "mobile": "9829111222",
+          "creditLimit": 15000,
+          "address": "House No. 42, Civil Lines",
+          "createdAt": "2026-01-15",
+          "currentBalance": 3450,
+          "area": "Civil Lines",
+          "notes": "Regular buyer on credit ledger",
+          "id": "cust-1"
+        },
+        {
+          "address": "Block B, Officers Colony",
+          "updatedAt": "2026-08-07T00:18:48.514Z",
+          "currentBalance": 2670.4,
+          "id": "cust-2",
+          "mobile": "9836130393",
+          "name": "Verma Enterprises",
+          "creditLimit": 10000,
+          "trustRating": "A",
+          "outstandingBalance": 0,
+          "createdAt": "2026-01-20",
+          "openingBalance": 0,
+          "area": "Officers Colony",
+          "notes": "Clear payment via UPI"
+        },
+        {
+          "address": "Flat 102, Shanti Heights",
+          "creditLimit": 8000,
+          "outstandingBalance": 1250,
+          "updatedAt": "2026-08-07T00:30:51.419Z",
+          "area": "Shanti Heights",
+          "notes": "Pays weekly",
+          "currentBalance": 1586,
+          "trustRating": "B",
+          "mobile": "7603064791",
+          "id": "cust-3",
+          "openingBalance": 0,
+          "createdAt": "2026-02-01",
+          "name": "Singhal & Sons"
+        }
+      ],
+      "products": [
+        {
+          "supplierId": "sup-1",
+          "createdAt": "2026-01-01",
+          "unit": "pkt",
+          "sellingPrice": 420,
+          "barcode": "8901000000000",
+          "updatedAt": "2026-08-07T00:18:48.514Z",
+          "minStock": 8,
+          "category": "Atta & Flours",
+          "mrp": 445,
+          "gstPercent": 5,
+          "name": "Aashirvaad Shudh Chakki Atta 10kg",
+          "brand": "Aashirvaad",
+          "sku": "KIR-101",
+          "status": "ACTIVE",
+          "currentStock": 20,
+          "purchasePrice": 380,
+          "id": "p-101"
+        },
+        {
+          "sku": "KIR-102",
+          "mrp": 155,
+          "supplierId": "sup-2",
+          "sellingPrice": 138,
+          "updatedAt": "2026-08-01",
+          "barcode": "8901000000001",
+          "unit": "pouch",
+          "createdAt": "2026-01-01",
+          "minStock": 10,
+          "category": "Edible Oils & Ghee",
+          "currentStock": 40,
+          "brand": "Fortune",
+          "gstPercent": 5,
+          "status": "ACTIVE",
+          "name": "Fortune Kachi Ghani Mustard Oil 1L",
+          "id": "p-102",
+          "purchasePrice": 122
+        },
+        {
+          "purchasePrice": 22,
+          "sku": "KIR-103",
+          "mrp": 28,
+          "gstPercent": 5,
+          "minStock": 20,
+          "category": "Spices & Masalas",
+          "updatedAt": "2026-08-07T00:18:48.514Z",
+          "status": "ACTIVE",
+          "name": "Tata Salt Vacuum Evaporated 1kg",
+          "sellingPrice": 28,
+          "barcode": "8901000000002",
+          "id": "p-103",
+          "currentStock": 89,
+          "brand": "Tata",
+          "unit": "pkt",
+          "supplierId": "sup-3",
+          "createdAt": "2026-01-01"
+        },
+        {
+          "id": "p-104",
+          "updatedAt": "2026-08-07T00:30:51.419Z",
+          "barcode": "8901000000003",
+          "currentStock": 13,
+          "name": "India Gate Dubar Basmati Rice 5kg",
+          "category": "Rice & Grains",
+          "minStock": 5,
+          "supplierId": "sup-4",
+          "sellingPrice": 520,
+          "gstPercent": 5,
+          "purchasePrice": 460,
+          "status": "ACTIVE",
+          "sku": "KIR-104",
+          "unit": "pkt",
+          "mrp": 560,
+          "createdAt": "2026-01-01",
+          "brand": "India Gate"
+        },
+        {
+          "supplierId": "sup-1",
+          "category": "Snacks & Namkeen",
+          "minStock": 12,
+          "purchasePrice": 46,
+          "brand": "Nestle",
+          "status": "ACTIVE",
+          "updatedAt": "2026-08-01",
+          "currentStock": 50,
+          "barcode": "8901000000004",
+          "unit": "pkt",
+          "mrp": 60,
+          "sku": "KIR-105",
+          "id": "p-105",
+          "sellingPrice": 56,
+          "createdAt": "2026-01-01",
+          "gstPercent": 5,
+          "name": "Maggi 2-Min Masala Noodles (4-Pack)"
+        }
+      ],
+      "sales": [
+        {
+          "saleNumber": "KRN-2026-0001",
+          "subtotal": 840,
+          "paymentMethod": "CASH",
+          "grandTotal": 840,
+          "customerMobile": "9829111222",
+          "paymentStatus": "PAID",
+          "discount": 0,
+          "customerName": "Sharma Traders",
+          "items": [
+            {
+              "mrp": 445,
+              "unitPrice": 420,
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "productId": "p-101",
+              "quantity": 2,
+              "totalPrice": 840
+            }
+          ],
+          "id": "sal-1",
+          "notes": "Express Counter POS Sale",
+          "createdAt": "2026-08-06T12:35:09.987Z"
+        },
+        {
+          "id": "sal-2",
+          "items": [
+            {
+              "mrp": 155,
+              "quantity": 5,
+              "totalPrice": 690,
+              "productId": "p-102",
+              "unitPrice": 138,
+              "productName": "Fortune Kachi Ghani Mustard Oil 1L"
+            }
+          ],
+          "subtotal": 690,
+          "grandTotal": 690,
+          "createdAt": "2026-08-06T12:35:09.987Z",
+          "notes": "UPI Counter Sale",
+          "customerName": "Rahul Enterprise",
+          "saleNumber": "KRN-2026-0002",
+          "customerMobile": "9876500112",
+          "paymentStatus": "PAID",
+          "discount": 0,
+          "paymentMethod": "UPI"
+        },
+        {
+          "discount": 0,
+          "createdAt": "2026-08-06T23:58:24.804Z",
+          "customerName": "Verma Enterprises",
+          "customerMobile": "9829222333",
+          "items": [
+            {
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "productId": "p-101",
+              "totalPrice": 420,
+              "unitPrice": 420,
+              "mrp": 445,
+              "quantity": 1
+            }
+          ],
+          "grandTotal": 420,
+          "id": "sale-1786060704804",
+          "customerId": "cust-2",
+          "subtotal": 420,
+          "saleNumber": "SL-704804",
+          "paymentMethod": "CREDIT",
+          "paymentStatus": "PENDING"
+        },
+        {
+          "saleNumber": "SL-830929",
+          "discount": 0,
+          "customerMobile": "9536130393",
+          "grandTotal": 520,
+          "customerId": "cust-2",
+          "customerName": "Verma Enterprises",
+          "id": "sale-1786060830929",
+          "paymentStatus": "PENDING",
+          "createdAt": "2026-08-07T00:00:30.929Z",
+          "items": [
+            {
+              "mrp": 560,
+              "quantity": 1,
+              "productName": "India Gate Dubar Basmati Rice 5kg",
+              "totalPrice": 520,
+              "unitPrice": 520,
+              "productId": "p-104"
+            }
+          ],
+          "subtotal": 520,
+          "paymentMethod": "CREDIT"
+        },
+        {
+          "customerName": "Verma Enterprises",
+          "discount": 0,
+          "customerMobile": "9836130393",
+          "id": "sale-1786060960407",
+          "grandTotal": 1260,
+          "createdAt": "2026-08-07T00:02:40.407Z",
+          "customerId": "cust-2",
+          "paymentMethod": "CREDIT",
+          "subtotal": 1260,
+          "items": [
+            {
+              "unitPrice": 420,
+              "quantity": 3,
+              "totalPrice": 1260,
+              "productId": "p-101",
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "mrp": 445
+            }
+          ],
+          "saleNumber": "SL-960407",
+          "paymentStatus": "PENDING"
+        },
+        {
+          "customerMobile": "9836130393",
+          "grandTotal": 470.4,
+          "id": "sale-1786061928514",
+          "createdAt": "2026-08-07T00:18:48.514Z",
+          "customerId": "cust-2",
+          "discount": 0,
+          "items": [
+            {
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "quantity": 1,
+              "unitPrice": 420,
+              "totalPrice": 420,
+              "productId": "p-101",
+              "mrp": 445,
+              "gstRate": 5
+            },
+            {
+              "gstRate": 5,
+              "productName": "Tata Salt Vacuum Evaporated 1kg",
+              "mrp": 28,
+              "quantity": 1,
+              "totalPrice": 28,
+              "unitPrice": 28,
+              "productId": "p-103"
+            }
+          ],
+          "cgstAmount": 11.2,
+          "paymentMethod": "CREDIT",
+          "gstRate": 5,
+          "subtotal": 448,
+          "taxableAmount": 448,
+          "igstAmount": 0,
+          "totalTaxAmount": 22.4,
+          "sgstAmount": 11.2,
+          "saleNumber": "SL-928514",
+          "paymentStatus": "PENDING",
+          "customerName": "Verma Enterprises",
+          "taxType": "EXCLUSIVE"
+        },
+        {
+          "customerName": "Singhal & Sons",
+          "paymentMethod": "CREDIT",
+          "subtotal": 520,
+          "sgstAmount": 8,
+          "saleNumber": "SL-651419",
+          "totalTaxAmount": 16,
+          "discount": 200,
+          "igstAmount": 0,
+          "items": [
+            {
+              "quantity": 1,
+              "productName": "India Gate Dubar Basmati Rice 5kg",
+              "totalPrice": 520,
+              "unitPrice": 520,
+              "gstRate": 5,
+              "mrp": 560,
+              "productId": "p-104"
+            }
+          ],
+          "taxType": "EXCLUSIVE",
+          "id": "sale-1786062651419",
+          "paymentStatus": "PENDING",
+          "cgstAmount": 8,
+          "createdAt": "2026-08-07T00:30:51.419Z",
+          "gstRate": 5,
+          "taxableAmount": 320,
+          "grandTotal": 336,
+          "customerMobile": "7603064791",
+          "customerId": "cust-3"
         }
       ],
       "notifications": [
         {
-          "message": "Amul Taaza Milk 500ml is running low (Only 4 pouches left)!",
-          "createdAt": "2026-08-06T12:35:09.988Z",
           "id": "notif-1",
-          "referenceId": "p-146",
-          "title": "Low Stock Alert",
-          "type": "LOW_STOCK",
-          "isRead": false
-        },
-        {
-          "message": "Britannia Whole Wheat Bread 400g is OUT OF STOCK!",
-          "id": "notif-2",
-          "referenceId": "p-149",
           "isRead": false,
-          "title": "Out of Stock Alert",
+          "referenceId": "p-146",
           "createdAt": "2026-08-06T12:35:09.988Z",
-          "type": "OUT_OF_STOCK"
+          "type": "LOW_STOCK",
+          "title": "Low Stock Alert",
+          "message": "Amul Taaza Milk 500ml is running low (Only 4 pouches left)!"
         },
         {
-          "referenceId": "cust-1",
-          "title": "Udhaar Reminder Due",
-          "type": "OVERDUE_PAYMENT",
+          "referenceId": "p-149",
+          "title": "Out of Stock Alert",
+          "isRead": false,
+          "message": "Britannia Whole Wheat Bread 400g is OUT OF STOCK!",
           "createdAt": "2026-08-06T12:35:09.988Z",
-          "id": "notif-3",
+          "type": "OUT_OF_STOCK",
+          "id": "notif-2"
+        },
+        {
           "message": "Rahul Sharma has pending Udhaar of ₹1,450. Send WhatsApp reminder.",
-          "isRead": false
+          "type": "OVERDUE_PAYMENT",
+          "id": "notif-3",
+          "createdAt": "2026-08-06T12:35:09.988Z",
+          "isRead": false,
+          "referenceId": "cust-1",
+          "title": "Udhaar Reminder Due"
         }
       ],
-      "updatedAt": "2026-08-08T04:11:21.629Z"
+      "expenses": [
+        {
+          "amount": 12000,
+          "id": "exp-1",
+          "category": "Shop Rent",
+          "recordedBy": "Ramesh Gupta",
+          "createdAt": "2026-08-01 10:00:00",
+          "paymentMethod": "BANK",
+          "description": "Monthly shop rent",
+          "date": "2026-08-01"
+        }
+      ],
+      "purchases": []
     },
     "store-demo-steel": {
+      "customerTransactions": [],
+      "orders": [],
+      "notifications": [],
+      "products": [],
+      "inventoryTransactions": [],
+      "purchases": [],
       "settings": {
-        "tagline": "Authorized Distributor • TMT Fe500D, Steel Coils, Structural Beams & Pipes",
-        "phone": "9876543210",
-        "sector": "METALS_STEEL",
+        "address": "Shop No. 12, Main Market Commercial Complex",
+        "storeName": "Apex Steel & Metal Traders",
+        "invoicePrefix": "STL-2026-",
         "invoiceFooterNote": "Thank you for doing business with Apex Steel & Metal Traders! GST Tax Invoice.",
         "alternatePhone": "9812345678",
-        "lowStockThresholdDefault": 10,
-        "upiId": "guptatraders@upi",
-        "storeName": "Apex Steel & Metal Traders",
-        "gstin": "08ABCDE1234F1ZH",
-        "currencySymbol": "₹",
-        "pincode": "302016",
-        "ownerName": "Shop Owner",
-        "city": "Jaipur, Rajasthan",
         "defaultLanguage": "en",
-        "address": "Shop No. 12, Main Market Commercial Complex",
-        "invoicePrefix": "STL-2026-"
+        "upiId": "guptatraders@upi",
+        "pincode": "302016",
+        "phone": "9876543210",
+        "ownerName": "Shop Owner",
+        "lowStockThresholdDefault": 10,
+        "gstin": "08ABCDE1234F1ZH",
+        "tagline": "Authorized Distributor • TMT Fe500D, Steel Coils, Structural Beams & Pipes",
+        "currencySymbol": "₹",
+        "city": "Jaipur, Rajasthan",
+        "sector": "METALS_STEEL"
       },
-      "customers": [],
-      "notifications": [],
+      "suppliers": [],
       "users": [
         {
-          "name": "Demo Manager (Apex Steel & Metal Traders)",
-          "id": "user-owner-store-demo-steel",
-          "storeSector": "METALS_STEEL",
-          "storeId": "store-demo-steel",
-          "isDemoUser": true,
           "role": "owner",
+          "name": "Demo Manager (Apex Steel & Metal Traders)",
+          "isDemoUser": true,
+          "storeName": "Apex Steel & Metal Traders",
           "mobile": "9876543210",
+          "storeSector": "METALS_STEEL",
           "permissions": {
+            "canCollectPayments": true,
+            "canManageSettings": true,
             "canDeleteRecords": true,
             "canViewReports": true,
-            "canManageSettings": true,
-            "canCollectPayments": true,
             "canEditProducts": true,
             "canCreateOrders": true
           },
+          "id": "user-owner-store-demo-steel",
           "username": "owner-store-demo-steel",
-          "storeName": "Apex Steel & Metal Traders"
+          "storeId": "store-demo-steel"
         }
       ],
+      "updatedAt": "2026-08-08T05:39:13.691Z",
       "sales": [],
-      "purchases": [],
-      "suppliers": [],
-      "inventoryTransactions": [],
-      "orders": [],
-      "customerTransactions": [],
-      "updatedAt": "2026-08-08T04:09:50.053Z",
       "expenses": [],
-      "products": []
+      "customers": []
     }
   }
 }
