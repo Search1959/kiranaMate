@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# bun.lock is the canonical lockfile for this project (AI Studio uses bun)
+package-lock.json
+
+# Firebase Admin SDK service account keys — never commit these
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+firebase-service-account*.json

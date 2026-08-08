@@ -1,86 +1,1299 @@
 {
   "stores": {
     "store-demo": {
+      "suppliers": [
+        {
+          "city": "Jaipur",
+          "contactPerson": "Vikram Sharma",
+          "id": "sup-1",
+          "mobile": "9829011223",
+          "address": "Industrial Transport Area",
+          "createdAt": "2026-01-10",
+          "outstandingBalance": 12500,
+          "gstin": "08AABC10001Z0",
+          "name": "Fortune & Adani Wilmar Wholesalers"
+        },
+        {
+          "name": "ITC Foods Wholesale Depot",
+          "id": "sup-2",
+          "mobile": "9829022334",
+          "gstin": "08AABC10011Z1",
+          "address": "Industrial Transport Area",
+          "createdAt": "2026-01-10",
+          "outstandingBalance": 8400,
+          "city": "Jaipur",
+          "contactPerson": "Sunil Agrawal"
+        },
+        {
+          "createdAt": "2026-01-10",
+          "mobile": "9829033445",
+          "city": "Jaipur",
+          "outstandingBalance": 0,
+          "gstin": "08AABC10021Z2",
+          "contactPerson": "Manoj Jain",
+          "name": "Parle & Britannia Agencies",
+          "address": "Industrial Transport Area",
+          "id": "sup-3"
+        },
+        {
+          "gstin": "08AABC10031Z3",
+          "createdAt": "2026-01-10",
+          "mobile": "9829044556",
+          "address": "Industrial Transport Area",
+          "city": "Jaipur",
+          "name": "HUL & Personal Care Depot",
+          "id": "sup-4",
+          "contactPerson": "Rajesh Verma",
+          "outstandingBalance": 18200
+        }
+      ],
+      "expenses": [
+        {
+          "id": "exp-1",
+          "recordedBy": "Ramesh Gupta",
+          "amount": 12000,
+          "description": "Monthly shop rent",
+          "createdAt": "2026-08-01 10:00:00",
+          "date": "2026-08-01",
+          "category": "Shop Rent",
+          "paymentMethod": "BANK"
+        }
+      ],
+      "customers": [
+        {
+          "openingBalance": 0,
+          "id": "cust-1",
+          "mobile": "9829111222",
+          "notes": "Regular buyer on credit ledger",
+          "name": "Sharma Traders",
+          "createdAt": "2026-01-15",
+          "trustRating": "A",
+          "currentBalance": 3450,
+          "address": "House No. 42, Civil Lines",
+          "outstandingBalance": 3450,
+          "creditLimit": 15000,
+          "area": "Civil Lines",
+          "updatedAt": "2026-08-01"
+        },
+        {
+          "id": "cust-2",
+          "updatedAt": "2026-08-07T00:18:48.514Z",
+          "creditLimit": 10000,
+          "name": "Verma Enterprises",
+          "outstandingBalance": 0,
+          "currentBalance": 2670.4,
+          "address": "Block B, Officers Colony",
+          "openingBalance": 0,
+          "area": "Officers Colony",
+          "createdAt": "2026-01-20",
+          "notes": "Clear payment via UPI",
+          "mobile": "9836130393",
+          "trustRating": "A"
+        },
+        {
+          "address": "Flat 102, Shanti Heights",
+          "area": "Shanti Heights",
+          "openingBalance": 0,
+          "createdAt": "2026-02-01",
+          "trustRating": "B",
+          "mobile": "7603064791",
+          "currentBalance": 1586,
+          "id": "cust-3",
+          "creditLimit": 8000,
+          "name": "Singhal & Sons",
+          "outstandingBalance": 1250,
+          "notes": "Pays weekly",
+          "updatedAt": "2026-08-07T00:30:51.419Z"
+        }
+      ],
+      "notifications": [
+        {
+          "id": "notif-1",
+          "isRead": false,
+          "title": "Low Stock Alert",
+          "type": "LOW_STOCK",
+          "referenceId": "p-146",
+          "createdAt": "2026-08-06T12:35:09.988Z",
+          "message": "Amul Taaza Milk 500ml is running low (Only 4 pouches left)!"
+        },
+        {
+          "id": "notif-2",
+          "message": "Britannia Whole Wheat Bread 400g is OUT OF STOCK!",
+          "type": "OUT_OF_STOCK",
+          "isRead": false,
+          "createdAt": "2026-08-06T12:35:09.988Z",
+          "title": "Out of Stock Alert",
+          "referenceId": "p-149"
+        },
+        {
+          "id": "notif-3",
+          "title": "Udhaar Reminder Due",
+          "createdAt": "2026-08-06T12:35:09.988Z",
+          "isRead": false,
+          "referenceId": "cust-1",
+          "type": "OVERDUE_PAYMENT",
+          "message": "Rahul Sharma has pending Udhaar of ₹1,450. Send WhatsApp reminder."
+        }
+      ],
+      "sales": [
+        {
+          "createdAt": "2026-08-06T12:35:09.987Z",
+          "subtotal": 840,
+          "items": [
+            {
+              "unitPrice": 420,
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "totalPrice": 840,
+              "productId": "p-101",
+              "mrp": 445,
+              "quantity": 2
+            }
+          ],
+          "notes": "Express Counter POS Sale",
+          "paymentStatus": "PAID",
+          "id": "sal-1",
+          "customerMobile": "9829111222",
+          "customerName": "Sharma Traders",
+          "grandTotal": 840,
+          "discount": 0,
+          "saleNumber": "KRN-2026-0001",
+          "paymentMethod": "CASH"
+        },
+        {
+          "discount": 0,
+          "paymentMethod": "UPI",
+          "customerMobile": "9876500112",
+          "saleNumber": "KRN-2026-0002",
+          "paymentStatus": "PAID",
+          "grandTotal": 690,
+          "notes": "UPI Counter Sale",
+          "customerName": "Rahul Enterprise",
+          "items": [
+            {
+              "productId": "p-102",
+              "quantity": 5,
+              "totalPrice": 690,
+              "productName": "Fortune Kachi Ghani Mustard Oil 1L",
+              "unitPrice": 138,
+              "mrp": 155
+            }
+          ],
+          "subtotal": 690,
+          "id": "sal-2",
+          "createdAt": "2026-08-06T12:35:09.987Z"
+        },
+        {
+          "customerMobile": "9829222333",
+          "customerName": "Verma Enterprises",
+          "grandTotal": 420,
+          "saleNumber": "SL-704804",
+          "createdAt": "2026-08-06T23:58:24.804Z",
+          "discount": 0,
+          "id": "sale-1786060704804",
+          "subtotal": 420,
+          "paymentMethod": "CREDIT",
+          "items": [
+            {
+              "unitPrice": 420,
+              "totalPrice": 420,
+              "quantity": 1,
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "productId": "p-101",
+              "mrp": 445
+            }
+          ],
+          "paymentStatus": "PENDING",
+          "customerId": "cust-2"
+        },
+        {
+          "items": [
+            {
+              "unitPrice": 520,
+              "totalPrice": 520,
+              "mrp": 560,
+              "quantity": 1,
+              "productName": "India Gate Dubar Basmati Rice 5kg",
+              "productId": "p-104"
+            }
+          ],
+          "id": "sale-1786060830929",
+          "discount": 0,
+          "createdAt": "2026-08-07T00:00:30.929Z",
+          "grandTotal": 520,
+          "saleNumber": "SL-830929",
+          "customerId": "cust-2",
+          "subtotal": 520,
+          "paymentStatus": "PENDING",
+          "customerMobile": "9536130393",
+          "customerName": "Verma Enterprises",
+          "paymentMethod": "CREDIT"
+        },
+        {
+          "paymentStatus": "PENDING",
+          "discount": 0,
+          "customerName": "Verma Enterprises",
+          "saleNumber": "SL-960407",
+          "paymentMethod": "CREDIT",
+          "grandTotal": 1260,
+          "createdAt": "2026-08-07T00:02:40.407Z",
+          "customerMobile": "9836130393",
+          "items": [
+            {
+              "totalPrice": 1260,
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+              "unitPrice": 420,
+              "quantity": 3,
+              "mrp": 445,
+              "productId": "p-101"
+            }
+          ],
+          "customerId": "cust-2",
+          "id": "sale-1786060960407",
+          "subtotal": 1260
+        },
+        {
+          "customerMobile": "9836130393",
+          "taxType": "EXCLUSIVE",
+          "cgstAmount": 11.2,
+          "igstAmount": 0,
+          "paymentMethod": "CREDIT",
+          "createdAt": "2026-08-07T00:18:48.514Z",
+          "gstRate": 5,
+          "subtotal": 448,
+          "grandTotal": 470.4,
+          "customerId": "cust-2",
+          "paymentStatus": "PENDING",
+          "discount": 0,
+          "taxableAmount": 448,
+          "customerName": "Verma Enterprises",
+          "sgstAmount": 11.2,
+          "saleNumber": "SL-928514",
+          "items": [
+            {
+              "mrp": 445,
+              "productId": "p-101",
+              "totalPrice": 420,
+              "quantity": 1,
+              "gstRate": 5,
+              "unitPrice": 420,
+              "productName": "Aashirvaad Shudh Chakki Atta 10kg"
+            },
+            {
+              "gstRate": 5,
+              "totalPrice": 28,
+              "productName": "Tata Salt Vacuum Evaporated 1kg",
+              "mrp": 28,
+              "unitPrice": 28,
+              "quantity": 1,
+              "productId": "p-103"
+            }
+          ],
+          "id": "sale-1786061928514",
+          "totalTaxAmount": 22.4
+        },
+        {
+          "sgstAmount": 8,
+          "discount": 200,
+          "saleNumber": "SL-651419",
+          "customerMobile": "7603064791",
+          "paymentMethod": "CREDIT",
+          "items": [
+            {
+              "productName": "India Gate Dubar Basmati Rice 5kg",
+              "totalPrice": 520,
+              "productId": "p-104",
+              "mrp": 560,
+              "gstRate": 5,
+              "unitPrice": 520,
+              "quantity": 1
+            }
+          ],
+          "customerId": "cust-3",
+          "createdAt": "2026-08-07T00:30:51.419Z",
+          "gstRate": 5,
+          "paymentStatus": "PENDING",
+          "customerName": "Singhal & Sons",
+          "grandTotal": 336,
+          "taxableAmount": 320,
+          "id": "sale-1786062651419",
+          "taxType": "EXCLUSIVE",
+          "cgstAmount": 8,
+          "totalTaxAmount": 16,
+          "subtotal": 520,
+          "igstAmount": 0
+        }
+      ],
+      "customerTransactions": [
+        {
+          "type": "CREDIT_SALE",
+          "createdBy": "Ramesh Gupta",
+          "amount": 3450,
+          "balanceAfter": 3450,
+          "createdAt": "2026-08-01 11:30:00",
+          "customerId": "cust-1",
+          "id": "tx-1",
+          "notes": "Credit purchase bill #101"
+        },
+        {
+          "type": "CREDIT_SALE",
+          "amount": 420,
+          "id": "tx-sale-1786060704804",
+          "createdAt": "2026-08-06T23:58:24.804Z",
+          "notes": "Express Sale #SL-704804 on Udhaar",
+          "balanceAfter": 420,
+          "customerId": "cust-2",
+          "createdBy": "Shop Owner",
+          "referenceId": "SL-704804"
+        },
+        {
+          "notes": "Express Sale #SL-830929 on Udhaar",
+          "id": "tx-sale-1786060830929",
+          "customerId": "cust-2",
+          "createdBy": "Shop Owner",
+          "referenceId": "SL-830929",
+          "amount": 520,
+          "type": "CREDIT_SALE",
+          "createdAt": "2026-08-07T00:00:30.929Z",
+          "balanceAfter": 940
+        },
+        {
+          "amount": 1260,
+          "customerId": "cust-2",
+          "createdBy": "Shop Owner",
+          "notes": "Express Sale #SL-960407 on Udhaar",
+          "type": "CREDIT_SALE",
+          "referenceId": "SL-960407",
+          "id": "tx-sale-1786060960407",
+          "createdAt": "2026-08-07T00:02:40.407Z",
+          "balanceAfter": 2200
+        },
+        {
+          "amount": 470.4,
+          "type": "CREDIT_SALE",
+          "referenceId": "SL-928514",
+          "createdAt": "2026-08-07T00:18:48.514Z",
+          "notes": "Express Sale #SL-928514 on Udhaar",
+          "id": "tx-sale-1786061928514",
+          "balanceAfter": 2670.4,
+          "customerId": "cust-2",
+          "createdBy": "Shop Owner"
+        },
+        {
+          "type": "CREDIT_SALE",
+          "amount": 336,
+          "createdAt": "2026-08-07T00:30:51.419Z",
+          "customerId": "cust-3",
+          "notes": "Express Sale #SL-651419 on Udhaar",
+          "id": "tx-sale-1786062651419",
+          "createdBy": "Shop Owner",
+          "referenceId": "SL-651419",
+          "balanceAfter": 1586
+        }
+      ],
       "users": [
         {
-          "id": "user-admin",
-          "name": "System Administrator",
-          "username": "admin",
-          "role": "admin",
+          "storeId": "store-demo",
           "mobile": "9999999999",
-          "storeId": "store-demo",
-          "storeName": "KiranaMate Store",
-          "isDemoUser": false,
+          "name": "System Administrator",
+          "storeName": "Demo Kirana Supermarket",
           "permissions": {
-            "canViewReports": true,
-            "canEditProducts": true,
-            "canDeleteRecords": true,
-            "canCollectPayments": true,
             "canCreateOrders": true,
-            "canManageSettings": true
-          }
+            "canDeleteRecords": true,
+            "canViewReports": true,
+            "canCollectPayments": true,
+            "canManageSettings": true,
+            "canEditProducts": true
+          },
+          "id": "user-admin",
+          "username": "admin",
+          "isDemoUser": true,
+          "role": "admin"
         },
         {
-          "id": "user-1",
-          "name": "Shop Owner",
-          "username": "owner",
+          "storeName": "Gupta Kirana & General Store",
           "role": "owner",
-          "mobile": "9876543210",
-          "storeId": "store-demo",
-          "storeName": "KiranaMate Store",
-          "isDemoUser": false,
+          "username": "owner",
           "permissions": {
             "canViewReports": true,
             "canEditProducts": true,
+            "canManageSettings": true,
             "canDeleteRecords": true,
             "canCollectPayments": true,
-            "canCreateOrders": true,
-            "canManageSettings": true
-          }
+            "canCreateOrders": true
+          },
+          "isDemoUser": true,
+          "mobile": "9876543210",
+          "id": "user-1",
+          "storeId": "store-demo",
+          "name": "Ramesh Gupta (Demo Owner)"
         },
         {
-          "id": "user-2",
-          "name": "Shop Staff",
-          "username": "staff",
-          "role": "staff",
-          "mobile": "9811223344",
-          "storeId": "store-demo",
-          "storeName": "KiranaMate Store",
-          "isDemoUser": false,
           "permissions": {
             "canViewReports": false,
-            "canEditProducts": true,
-            "canDeleteRecords": false,
             "canCollectPayments": true,
             "canCreateOrders": true,
-            "canManageSettings": false
+            "canEditProducts": true,
+            "canManageSettings": false,
+            "canDeleteRecords": false
+          },
+          "storeName": "Gupta Kirana & General Store",
+          "storeId": "store-demo",
+          "role": "staff",
+          "id": "user-2",
+          "name": "Suresh Kumar (Demo Staff)",
+          "username": "staff",
+          "isDemoUser": true,
+          "mobile": "9811223344"
+        }
+      ],
+      "settings": {
+        "sector": "KIRANA_FMCG",
+        "upiId": "guptatraders@upi",
+        "address": "Shop No. 12, Main Market Commercial Complex",
+        "currencyCode": "USD",
+        "invoicePrefix": "KRN-2026-",
+        "currencySymbol": "$",
+        "storeName": "Dr. Umesh",
+        "defaultLanguage": "en",
+        "gstin": "08ABCDE1234F1ZH",
+        "tagline": "Your Trusted Neighborhood Grocer • Fast Delivery & Fresh Stock",
+        "pincode": "302016",
+        "lowStockThresholdDefault": 10,
+        "alternatePhone": "9812345678",
+        "taxLabel": "GSTIN / Tax ID",
+        "invoiceFooterNote": "Thank you for doing business with Gupta Kirana & FMCG Wholesale! GST Tax Invoice.",
+        "phoneCountryCode": "+91",
+        "phone": "9876543210",
+        "city": "Jaipur, Rajasthan",
+        "ownerName": "Ramesh Gupta"
+      },
+      "purchases": [],
+      "products": [
+        {
+          "status": "ACTIVE",
+          "category": "Atta & Flours",
+          "id": "p-101",
+          "gstPercent": 5,
+          "name": "Aashirvaad Shudh Chakki Atta 10kg",
+          "sellingPrice": 420,
+          "unit": "pkt",
+          "brand": "Aashirvaad",
+          "updatedAt": "2026-08-07T00:18:48.514Z",
+          "minStock": 8,
+          "purchasePrice": 380,
+          "mrp": 445,
+          "sku": "KIR-101",
+          "createdAt": "2026-01-01",
+          "supplierId": "sup-1",
+          "barcode": "8901000000000",
+          "currentStock": 20
+        },
+        {
+          "name": "Fortune Kachi Ghani Mustard Oil 1L",
+          "brand": "Fortune",
+          "id": "p-102",
+          "supplierId": "sup-2",
+          "unit": "pouch",
+          "purchasePrice": 122,
+          "sellingPrice": 138,
+          "minStock": 10,
+          "updatedAt": "2026-08-01",
+          "mrp": 155,
+          "sku": "KIR-102",
+          "status": "ACTIVE",
+          "barcode": "8901000000001",
+          "createdAt": "2026-01-01",
+          "gstPercent": 5,
+          "currentStock": 40,
+          "category": "Edible Oils & Ghee"
+        },
+        {
+          "status": "ACTIVE",
+          "mrp": 28,
+          "category": "Spices & Masalas",
+          "sellingPrice": 28,
+          "purchasePrice": 22,
+          "sku": "KIR-103",
+          "gstPercent": 5,
+          "name": "Tata Salt Vacuum Evaporated 1kg",
+          "updatedAt": "2026-08-07T00:18:48.514Z",
+          "unit": "pkt",
+          "brand": "Tata",
+          "minStock": 20,
+          "id": "p-103",
+          "supplierId": "sup-3",
+          "currentStock": 89,
+          "barcode": "8901000000002",
+          "createdAt": "2026-01-01"
+        },
+        {
+          "category": "Rice & Grains",
+          "currentStock": 13,
+          "supplierId": "sup-4",
+          "purchasePrice": 460,
+          "barcode": "8901000000003",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-01",
+          "mrp": 560,
+          "name": "India Gate Dubar Basmati Rice 5kg",
+          "id": "p-104",
+          "minStock": 5,
+          "sellingPrice": 520,
+          "sku": "KIR-104",
+          "unit": "pkt",
+          "gstPercent": 5,
+          "brand": "India Gate",
+          "updatedAt": "2026-08-07T00:30:51.419Z"
+        },
+        {
+          "gstPercent": 5,
+          "minStock": 12,
+          "status": "ACTIVE",
+          "brand": "Nestle",
+          "currentStock": 50,
+          "updatedAt": "2026-08-01",
+          "id": "p-105",
+          "barcode": "8901000000004",
+          "category": "Snacks & Namkeen",
+          "unit": "pkt",
+          "createdAt": "2026-01-01",
+          "mrp": 60,
+          "supplierId": "sup-1",
+          "name": "Maggi 2-Min Masala Noodles (4-Pack)",
+          "purchasePrice": 46,
+          "sku": "KIR-105",
+          "sellingPrice": 56
+        }
+      ],
+      "inventoryTransactions": [
+        {
+          "createdAt": "2026-08-01 14:00:00",
+          "type": "STOCK_IN_PURCHASE",
+          "stockAfter": 50,
+          "productId": "p-101",
+          "id": "inv-1",
+          "referenceId": "PUR-2026-01",
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "quantityChange": 50,
+          "createdBy": "Ramesh Gupta",
+          "notes": "Initial inventory setup"
+        },
+        {
+          "id": "inv-sale-1786060704804",
+          "createdBy": "Shop Owner",
+          "stockAfter": 24,
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "referenceId": "SL-704804",
+          "productId": "p-101",
+          "createdAt": "2026-08-06T23:58:24.804Z",
+          "type": "STOCK_OUT_SALE",
+          "quantityChange": -1
+        },
+        {
+          "productName": "India Gate Dubar Basmati Rice 5kg",
+          "referenceId": "SL-830929",
+          "type": "STOCK_OUT_SALE",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-08-07T00:00:30.929Z",
+          "productId": "p-104",
+          "id": "inv-sale-1786060830929",
+          "quantityChange": -1,
+          "stockAfter": 14
+        },
+        {
+          "createdAt": "2026-08-07T00:02:40.407Z",
+          "referenceId": "SL-960407",
+          "productId": "p-101",
+          "id": "inv-sale-1786060960407",
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "type": "STOCK_OUT_SALE",
+          "stockAfter": 21,
+          "quantityChange": -3,
+          "createdBy": "Shop Owner"
+        },
+        {
+          "quantityChange": -1,
+          "type": "STOCK_OUT_SALE",
+          "createdBy": "Shop Owner",
+          "id": "inv-sale-1786061928514",
+          "createdAt": "2026-08-07T00:18:48.514Z",
+          "productName": "Aashirvaad Shudh Chakki Atta 10kg",
+          "productId": "p-101",
+          "stockAfter": 20,
+          "referenceId": "SL-928514"
+        },
+        {
+          "createdAt": "2026-08-07T00:18:48.514Z",
+          "productId": "p-103",
+          "id": "inv-sale-1786061928514",
+          "type": "STOCK_OUT_SALE",
+          "quantityChange": -1,
+          "stockAfter": 89,
+          "referenceId": "SL-928514",
+          "productName": "Tata Salt Vacuum Evaporated 1kg",
+          "createdBy": "Shop Owner"
+        },
+        {
+          "id": "inv-sale-1786062651419",
+          "productId": "p-104",
+          "productName": "India Gate Dubar Basmati Rice 5kg",
+          "createdAt": "2026-08-07T00:30:51.419Z",
+          "referenceId": "SL-651419",
+          "stockAfter": 13,
+          "quantityChange": -1,
+          "type": "STOCK_OUT_SALE",
+          "createdBy": "Shop Owner"
+        }
+      ],
+      "updatedAt": "2026-08-08T04:09:50.036Z",
+      "orders": []
+    },
+    "store-demo-steel": {
+      "users": [
+        {
+          "id": "user-owner-store-demo-steel",
+          "name": "Demo Manager (Apex Steel & Metal Traders)",
+          "username": "owner-store-demo-steel",
+          "role": "owner",
+          "mobile": "9876543210",
+          "storeId": "store-demo-steel",
+          "storeName": "Apex Steel & Metal Traders",
+          "storeSector": "METALS_STEEL",
+          "isDemoUser": true,
+          "permissions": {
+            "canViewReports": true,
+            "canEditProducts": true,
+            "canDeleteRecords": true,
+            "canCollectPayments": true,
+            "canCreateOrders": true,
+            "canManageSettings": true
           }
         }
       ],
-      "customers": [],
-      "customerTransactions": [],
-      "products": [],
-      "suppliers": [],
+      "customers": [
+        {
+          "id": "cust-1",
+          "name": "Rahul Sharma",
+          "mobile": "9811022334",
+          "area": "Model Town",
+          "address": "Model Town, Jaipur, Rajasthan",
+          "openingBalance": 1200,
+          "currentBalance": 1200,
+          "outstandingBalance": 1200,
+          "creditLimit": 5000,
+          "trustRating": "Good",
+          "createdAt": "2026-06-19T05:46:00.000Z",
+          "updatedAt": "2026-08-06T05:51:00.000Z"
+        },
+        {
+          "id": "cust-2",
+          "name": "Priya Verma",
+          "mobile": "9822033445",
+          "area": "Civil Lines",
+          "address": "Civil Lines, Jaipur, Rajasthan",
+          "openingBalance": 0,
+          "currentBalance": 0,
+          "outstandingBalance": 0,
+          "creditLimit": 8000,
+          "trustRating": "Good",
+          "createdAt": "2026-06-19T05:53:00.000Z",
+          "updatedAt": "2026-08-06T06:14:00.000Z"
+        },
+        {
+          "id": "cust-3",
+          "name": "Amit Traders",
+          "mobile": "9833044556",
+          "area": "Industrial Area",
+          "address": "Industrial Area, Jaipur, Rajasthan",
+          "openingBalance": 4200,
+          "currentBalance": 4200,
+          "outstandingBalance": 4200,
+          "creditLimit": 15000,
+          "trustRating": "Good",
+          "createdAt": "2026-06-19T05:48:00.000Z",
+          "updatedAt": "2026-08-06T06:02:00.000Z"
+        },
+        {
+          "id": "cust-4",
+          "name": "Sunita Devi",
+          "mobile": "9844055667",
+          "area": "Station Road",
+          "address": "Station Road, Jaipur, Rajasthan",
+          "openingBalance": 850,
+          "currentBalance": 850,
+          "outstandingBalance": 850,
+          "creditLimit": 3000,
+          "trustRating": "Good",
+          "createdAt": "2026-06-19T05:39:00.000Z",
+          "updatedAt": "2026-08-06T05:46:00.000Z"
+        },
+        {
+          "id": "cust-5",
+          "name": "Mohd. Irfan",
+          "mobile": "9855066778",
+          "area": "Old Bazaar",
+          "address": "Old Bazaar, Jaipur, Rajasthan",
+          "openingBalance": 0,
+          "currentBalance": 0,
+          "outstandingBalance": 0,
+          "creditLimit": 6000,
+          "trustRating": "Good",
+          "createdAt": "2026-06-19T06:20:00.000Z",
+          "updatedAt": "2026-08-06T05:58:00.000Z"
+        }
+      ],
+      "customerTransactions": [
+        {
+          "id": "ctxn-1",
+          "customerId": "cust-1",
+          "type": "OPENING_BALANCE",
+          "amount": 1200,
+          "balanceAfter": 1200,
+          "notes": "Udhaar carried forward",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-07-19T06:29:00.000Z"
+        },
+        {
+          "id": "ctxn-2",
+          "customerId": "cust-3",
+          "type": "OPENING_BALANCE",
+          "amount": 4200,
+          "balanceAfter": 4200,
+          "notes": "Udhaar carried forward",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-07-19T05:42:00.000Z"
+        },
+        {
+          "id": "ctxn-3",
+          "customerId": "cust-4",
+          "type": "OPENING_BALANCE",
+          "amount": 850,
+          "balanceAfter": 850,
+          "notes": "Udhaar carried forward",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-07-19T06:26:00.000Z"
+        }
+      ],
+      "products": [
+        {
+          "id": "p-1",
+          "name": "Tata Tiscon Fe500D TMT Bar 12mm",
+          "sku": "MET-100",
+          "barcode": "89012000001000",
+          "category": "TMT Rebars & Construction Steel",
+          "brand": "Tata Steel",
+          "unit": "MT",
+          "purchasePrice": 52000,
+          "sellingPrice": 56500,
+          "mrp": 58000,
+          "currentStock": 45,
+          "minStock": 10,
+          "supplierId": "sup-1",
+          "gstPercent": 18,
+          "status": "ACTIVE",
+          "createdAt": "2026-06-24T05:55:00.000Z",
+          "updatedAt": "2026-08-07T06:25:00.000Z"
+        },
+        {
+          "id": "p-2",
+          "name": "JSW Neosteel Fe550D TMT Bar 16mm",
+          "sku": "MET-101",
+          "barcode": "89012000001001",
+          "category": "TMT Rebars & Construction Steel",
+          "brand": "JSW Steel",
+          "unit": "MT",
+          "purchasePrice": 51500,
+          "sellingPrice": 55800,
+          "mrp": 57500,
+          "currentStock": 30,
+          "minStock": 8,
+          "supplierId": "sup-2",
+          "gstPercent": 18,
+          "status": "ACTIVE",
+          "createdAt": "2026-06-24T06:10:00.000Z",
+          "updatedAt": "2026-08-07T06:24:00.000Z"
+        },
+        {
+          "id": "p-3",
+          "name": "Hot Rolled (HR) Steel Sheet Coil 2.5mm",
+          "sku": "MET-102",
+          "barcode": "89012000001002",
+          "category": "Hot & Cold Rolled Coils/Sheets",
+          "brand": "SAIL",
+          "unit": "MT",
+          "purchasePrice": 54000,
+          "sellingPrice": 58900,
+          "mrp": 61000,
+          "currentStock": 18,
+          "minStock": 5,
+          "supplierId": "sup-3",
+          "gstPercent": 18,
+          "status": "ACTIVE",
+          "createdAt": "2026-06-24T05:43:00.000Z",
+          "updatedAt": "2026-08-07T05:44:00.000Z"
+        },
+        {
+          "id": "p-4",
+          "name": "Galvanized Iron (GI) Pipe 2 Inch Class B",
+          "sku": "MET-103",
+          "barcode": "89012000001003",
+          "category": "GI & MS Steel Pipes",
+          "brand": "Jindal Star",
+          "unit": "Length",
+          "purchasePrice": 1850,
+          "sellingPrice": 2150,
+          "mrp": 2300,
+          "currentStock": 120,
+          "minStock": 25,
+          "supplierId": "sup-4",
+          "gstPercent": 18,
+          "status": "ACTIVE",
+          "createdAt": "2026-06-24T06:27:00.000Z",
+          "updatedAt": "2026-08-07T06:06:00.000Z"
+        },
+        {
+          "id": "p-5",
+          "name": "Electrolytic Copper Wire Rod 8mm (99.9% Pure)",
+          "sku": "MET-104",
+          "barcode": "89012000001004",
+          "category": "Non-Ferrous Metals (Copper/Brass/Aluminum)",
+          "brand": "Hindalco",
+          "unit": "Kg",
+          "purchasePrice": 780,
+          "sellingPrice": 840,
+          "mrp": 870,
+          "currentStock": 850,
+          "minStock": 150,
+          "supplierId": "sup-1",
+          "gstPercent": 18,
+          "status": "ACTIVE",
+          "createdAt": "2026-06-24T06:19:00.000Z",
+          "updatedAt": "2026-08-07T06:27:00.000Z"
+        },
+        {
+          "id": "p-6",
+          "name": "MS Equal Angle Steel 50x50x5mm",
+          "sku": "MET-105",
+          "barcode": "89012000001005",
+          "category": "Structural Steel (I-Beam/Angle/Channel)",
+          "brand": "Kamdhenu",
+          "unit": "MT",
+          "purchasePrice": 49500,
+          "sellingPrice": 53800,
+          "mrp": 55000,
+          "currentStock": 22,
+          "minStock": 5,
+          "supplierId": "sup-2",
+          "gstPercent": 18,
+          "status": "ACTIVE",
+          "createdAt": "2026-06-24T05:42:00.000Z",
+          "updatedAt": "2026-08-07T05:57:00.000Z"
+        }
+      ],
+      "suppliers": [
+        {
+          "id": "sup-1",
+          "name": "Tata Steel BSL Distribution",
+          "contactPerson": "Harpreet Singh",
+          "mobile": "9810012345",
+          "address": "Ludhiana Trade Hub",
+          "city": "Ludhiana",
+          "outstandingBalance": 420000,
+          "createdAt": "2026-06-09T05:58:00.000Z"
+        },
+        {
+          "id": "sup-2",
+          "name": "JSW Steel Stockists Ltd.",
+          "contactPerson": "Anand Kulkarni",
+          "mobile": "9822023456",
+          "address": "Mumbai Trade Hub",
+          "city": "Mumbai",
+          "outstandingBalance": 280000,
+          "createdAt": "2026-06-09T05:42:00.000Z"
+        },
+        {
+          "id": "sup-3",
+          "name": "Jindal Panther TMT Depot",
+          "contactPerson": "Pravin Mittal",
+          "mobile": "9833034567",
+          "address": "Raigarh Trade Hub",
+          "city": "Raigarh",
+          "outstandingBalance": 150000,
+          "createdAt": "2026-06-09T05:49:00.000Z"
+        },
+        {
+          "id": "sup-4",
+          "name": "Hindalco Copper & Aluminum Alloys",
+          "contactPerson": "Ramesh Shah",
+          "mobile": "9844045678",
+          "address": "Ahmedabad Trade Hub",
+          "city": "Ahmedabad",
+          "outstandingBalance": 85000,
+          "createdAt": "2026-06-09T06:15:00.000Z"
+        }
+      ],
       "purchases": [],
-      "orders": [],
-      "sales": [],
-      "expenses": [],
-      "inventoryTransactions": [],
+      "orders": [
+        {
+          "id": "order-1",
+          "orderNumber": "STL-2026-ORD-1",
+          "customerId": "cust-1",
+          "customerName": "Rahul Sharma",
+          "customerMobile": "9811022334",
+          "customerAddress": "Model Town, Jaipur, Rajasthan",
+          "items": [
+            {
+              "productId": "p-1",
+              "productName": "Tata Tiscon Fe500D TMT Bar 12mm",
+              "unit": "MT",
+              "quantity": 2,
+              "price": 56500,
+              "mrp": 58000,
+              "total": 113000
+            }
+          ],
+          "subtotal": 113000,
+          "discount": 0,
+          "tax": 0,
+          "deliveryCharge": 0,
+          "total": 113000,
+          "paymentStatus": "PENDING",
+          "paidAmount": 0,
+          "orderStatus": "OUT_FOR_DELIVERY",
+          "createdAt": "2026-08-08T04:13:00.000Z",
+          "updatedAt": "2026-08-08T04:30:00.000Z"
+        }
+      ],
+      "sales": [
+        {
+          "id": "sale-1",
+          "saleNumber": "STL-2026-1000",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-1",
+              "productName": "Tata Tiscon Fe500D TMT Bar 12mm",
+              "quantity": 1,
+              "unitPrice": 56500,
+              "mrp": 58000,
+              "totalPrice": 56500,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 56500,
+          "discount": 0,
+          "grandTotal": 56500,
+          "paymentMethod": "CASH",
+          "paymentStatus": "PAID",
+          "receivedAmount": 56500,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-02T06:23:00.000Z"
+        },
+        {
+          "id": "sale-2",
+          "saleNumber": "STL-2026-1001",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-2",
+              "productName": "JSW Neosteel Fe550D TMT Bar 16mm",
+              "quantity": 2,
+              "unitPrice": 55800,
+              "mrp": 57500,
+              "totalPrice": 111600,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 111600,
+          "discount": 0,
+          "grandTotal": 111600,
+          "paymentMethod": "UPI",
+          "paymentStatus": "PAID",
+          "receivedAmount": 111600,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-03T05:43:00.000Z"
+        },
+        {
+          "id": "sale-3",
+          "saleNumber": "STL-2026-1002",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-3",
+              "productName": "Hot Rolled (HR) Steel Sheet Coil 2.5mm",
+              "quantity": 3,
+              "unitPrice": 58900,
+              "mrp": 61000,
+              "totalPrice": 176700,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 176700,
+          "discount": 0,
+          "grandTotal": 176700,
+          "paymentMethod": "CASH",
+          "paymentStatus": "PAID",
+          "receivedAmount": 176700,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-04T05:41:00.000Z"
+        },
+        {
+          "id": "sale-4",
+          "saleNumber": "STL-2026-1003",
+          "customerId": "cust-4",
+          "customerName": "Sunita Devi",
+          "customerMobile": "9844055667",
+          "items": [
+            {
+              "productId": "p-4",
+              "productName": "Galvanized Iron (GI) Pipe 2 Inch Class B",
+              "quantity": 1,
+              "unitPrice": 2150,
+              "mrp": 2300,
+              "totalPrice": 2150,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 2150,
+          "discount": 0,
+          "grandTotal": 2150,
+          "paymentMethod": "CREDIT",
+          "paymentStatus": "PENDING",
+          "receivedAmount": 0,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-05T05:52:00.000Z"
+        },
+        {
+          "id": "sale-5",
+          "saleNumber": "STL-2026-1004",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-5",
+              "productName": "Electrolytic Copper Wire Rod 8mm (99.9% Pure)",
+              "quantity": 2,
+              "unitPrice": 840,
+              "mrp": 870,
+              "totalPrice": 1680,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 1680,
+          "discount": 0,
+          "grandTotal": 1680,
+          "paymentMethod": "UPI",
+          "paymentStatus": "PAID",
+          "receivedAmount": 1680,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-06T06:25:00.000Z"
+        },
+        {
+          "id": "sale-6",
+          "saleNumber": "STL-2026-1005",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-6",
+              "productName": "MS Equal Angle Steel 50x50x5mm",
+              "quantity": 3,
+              "unitPrice": 53800,
+              "mrp": 55000,
+              "totalPrice": 161400,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 161400,
+          "discount": 0,
+          "grandTotal": 161400,
+          "paymentMethod": "CASH",
+          "paymentStatus": "PAID",
+          "receivedAmount": 161400,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-07T05:41:00.000Z"
+        },
+        {
+          "id": "sale-7",
+          "saleNumber": "STL-2026-1006",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-1",
+              "productName": "Tata Tiscon Fe500D TMT Bar 12mm",
+              "quantity": 1,
+              "unitPrice": 56500,
+              "mrp": 58000,
+              "totalPrice": 56500,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 56500,
+          "discount": 0,
+          "grandTotal": 56500,
+          "paymentMethod": "UPI",
+          "paymentStatus": "PAID",
+          "receivedAmount": 56500,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-07T05:36:00.000Z"
+        },
+        {
+          "id": "sale-8",
+          "saleNumber": "STL-2026-1007",
+          "customerName": "Walk-in Customer",
+          "items": [
+            {
+              "productId": "p-2",
+              "productName": "JSW Neosteel Fe550D TMT Bar 16mm",
+              "quantity": 2,
+              "unitPrice": 55800,
+              "mrp": 57500,
+              "totalPrice": 111600,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 111600,
+          "discount": 0,
+          "grandTotal": 111600,
+          "paymentMethod": "CASH",
+          "paymentStatus": "PAID",
+          "receivedAmount": 111600,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-08T06:29:00.000Z"
+        },
+        {
+          "id": "sale-9",
+          "saleNumber": "STL-2026-1008",
+          "customerId": "cust-4",
+          "customerName": "Sunita Devi",
+          "customerMobile": "9844055667",
+          "items": [
+            {
+              "productId": "p-3",
+              "productName": "Hot Rolled (HR) Steel Sheet Coil 2.5mm",
+              "quantity": 3,
+              "unitPrice": 58900,
+              "mrp": 61000,
+              "totalPrice": 176700,
+              "gstRate": 18
+            }
+          ],
+          "subtotal": 176700,
+          "discount": 0,
+          "grandTotal": 176700,
+          "paymentMethod": "CREDIT",
+          "paymentStatus": "PENDING",
+          "receivedAmount": 0,
+          "createdByName": "Shop Owner",
+          "createdAt": "2026-08-08T06:11:00.000Z"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "exp-1",
+          "category": "Rent",
+          "amount": 12000,
+          "date": "2026-07-24",
+          "description": "Monthly shop rent",
+          "paymentMethod": "BANK",
+          "recordedBy": "Shop Owner",
+          "createdAt": "2026-07-24T06:24:00.000Z"
+        },
+        {
+          "id": "exp-2",
+          "category": "Electricity",
+          "amount": 2400,
+          "date": "2026-07-31",
+          "description": "Electricity bill",
+          "paymentMethod": "UPI",
+          "recordedBy": "Shop Owner",
+          "createdAt": "2026-07-31T06:16:00.000Z"
+        }
+      ],
+      "inventoryTransactions": [
+        {
+          "id": "inv-1",
+          "productId": "p-1",
+          "productName": "Tata Tiscon Fe500D TMT Bar 12mm",
+          "type": "INITIAL_STOCK",
+          "quantityChange": 45,
+          "stockAfter": 45,
+          "notes": "Opening stock at store setup",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-06-24T05:55:00.000Z"
+        },
+        {
+          "id": "inv-2",
+          "productId": "p-2",
+          "productName": "JSW Neosteel Fe550D TMT Bar 16mm",
+          "type": "INITIAL_STOCK",
+          "quantityChange": 30,
+          "stockAfter": 30,
+          "notes": "Opening stock at store setup",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-06-24T06:10:00.000Z"
+        },
+        {
+          "id": "inv-3",
+          "productId": "p-3",
+          "productName": "Hot Rolled (HR) Steel Sheet Coil 2.5mm",
+          "type": "INITIAL_STOCK",
+          "quantityChange": 18,
+          "stockAfter": 18,
+          "notes": "Opening stock at store setup",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-06-24T05:43:00.000Z"
+        },
+        {
+          "id": "inv-4",
+          "productId": "p-4",
+          "productName": "Galvanized Iron (GI) Pipe 2 Inch Class B",
+          "type": "INITIAL_STOCK",
+          "quantityChange": 120,
+          "stockAfter": 120,
+          "notes": "Opening stock at store setup",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-06-24T06:27:00.000Z"
+        },
+        {
+          "id": "inv-5",
+          "productId": "p-5",
+          "productName": "Electrolytic Copper Wire Rod 8mm (99.9% Pure)",
+          "type": "INITIAL_STOCK",
+          "quantityChange": 850,
+          "stockAfter": 850,
+          "notes": "Opening stock at store setup",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-06-24T06:19:00.000Z"
+        },
+        {
+          "id": "inv-6",
+          "productId": "p-6",
+          "productName": "MS Equal Angle Steel 50x50x5mm",
+          "type": "INITIAL_STOCK",
+          "quantityChange": 22,
+          "stockAfter": 22,
+          "notes": "Opening stock at store setup",
+          "createdBy": "Shop Owner",
+          "createdAt": "2026-06-24T05:42:00.000Z"
+        }
+      ],
       "notifications": [],
       "settings": {
-        "storeName": "KiranaMate General Store",
-        "tagline": "Store & Inventory Management",
+        "storeName": "Apex Steel & Metal Traders",
+        "tagline": "Authorized Distributor • TMT Fe500D, Steel Coils, Structural Beams & Pipes",
         "ownerName": "Shop Owner",
         "phone": "9876543210",
-        "address": "Main Market",
-        "city": "Jaipur",
-        "pincode": "302001",
+        "alternatePhone": "9812345678",
+        "address": "Shop No. 12, Main Market Commercial Complex",
+        "city": "Jaipur, Rajasthan",
+        "pincode": "302016",
+        "gstin": "08ABCDE1234F1ZH",
+        "upiId": "guptatraders@upi",
         "currencySymbol": "₹",
-        "invoicePrefix": "INV-2026-",
-        "invoiceFooterNote": "Thank you for shopping with us!",
+        "invoicePrefix": "STL-2026-",
+        "invoiceFooterNote": "Thank you for doing business with Apex Steel & Metal Traders! GST Tax Invoice.",
         "lowStockThresholdDefault": 10,
         "defaultLanguage": "en",
-        "sector": "KIRANA_FMCG"
+        "sector": "METALS_STEEL"
       }
     }
   }
