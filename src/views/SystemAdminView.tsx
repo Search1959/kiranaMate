@@ -27,6 +27,8 @@ import {
 import { AdminAccountItem, UserRole, TradingSector } from '../types';
 import { api } from '../lib/api';
 import { TRADING_SECTORS } from '../lib/sectorConfig';
+import { cloudListAllServiceAccounts, cloudFetchCompanyData, cloudDeleteAccount, cloudAdminUpdateAccount } from '../lib/serviceCloud';
+import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 
 interface SystemAdminViewProps {
   onSwitchStore?: (storeId: string) => void;
@@ -78,9 +80,40 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
     setLoading(true);
     try {
       const res = await api.getAdminAccounts();
-      if (res && res.accounts) {
-        setAccounts(res.accounts);
+      const tradingAccounts: AdminAccountItem[] = (res && res.accounts) || [];
+
+      // Merge in Service ERP companies from every hosting/browser — same
+      // registry, same "auto sync a new signup" guarantee as Trading ERP.
+      const serviceAccounts: AdminAccountItem[] = [];
+      try {
+        const svcDirectory = await cloudListAllServiceAccounts();
+        for (const entry of svcDirectory) {
+          const companyData = await cloudFetchCompanyData(entry.companyId);
+          const cfg = getServiceSectorConfig(entry.sector);
+          serviceAccounts.push({
+            id: entry.companyId,
+            userId: entry.companyId,
+            name: entry.ownerName,
+            username: entry.username,
+            password: entry.password || '123456',
+            role: entry.role || 'owner',
+            mobile: entry.mobile || '9876543210',
+            storeId: entry.companyId,
+            storeName: entry.businessName,
+            sectorLabel: cfg.name,
+            productCount: companyData?.services?.length || 0,
+            salesCount: companyData?.invoices?.length || 0,
+            customerCount: companyData?.customers?.length || 0,
+            createdAt: entry.createdAt,
+            isDemo: false,
+            workspaceType: 'service'
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load Service ERP accounts:', err);
       }
+
+      setAccounts([...tradingAccounts, ...serviceAccounts]);
     } catch (err) {
       console.error('Failed to load admin accounts:', err);
     } finally {
@@ -128,7 +161,16 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
     e.preventDefault();
     setActionLoading(true);
     try {
-      await api.updateAdminAccount(editForm);
+      if (editingAccount?.workspaceType === 'service') {
+        await cloudAdminUpdateAccount(editForm.username, {
+          businessName: editForm.storeName,
+          ownerName: editForm.name,
+          mobile: editForm.mobile,
+          password: editForm.password
+        });
+      } else {
+        await api.updateAdminAccount(editForm);
+      }
       showToast(`Account '${editForm.username}' updated successfully!`);
       setEditingAccount(null);
       fetchAccounts();
@@ -143,7 +185,11 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
     if (!deletingAccount) return;
     setActionLoading(true);
     try {
-      await api.deleteAdminAccount(deletingAccount.storeId, deletingAccount.userId || deletingAccount.id);
+      if (deletingAccount.workspaceType === 'service') {
+        await cloudDeleteAccount(deletingAccount.username, deletingAccount.storeId);
+      } else {
+        await api.deleteAdminAccount(deletingAccount.storeId, deletingAccount.userId || deletingAccount.id);
+      }
       showToast(`Account '${deletingAccount.username}' deleted.`);
       setDeletingAccount(null);
       fetchAccounts();
@@ -369,9 +415,16 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                       {/* Store & Sector */}
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-white text-xs">{acc.storeName}</div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
-                            {sectorConfig?.name || acc.storeSector || 'General'}
+                            {acc.sectorLabel || sectorConfig?.name || acc.storeSector || 'General'}
+                          </span>
+                          <span className={`text-[9px] px-1.5 py-0.2 rounded border font-bold uppercase ${
+                            acc.workspaceType === 'service'
+                              ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          }`}>
+                            {acc.workspaceType === 'service' ? 'Service ERP' : 'Trading ERP'}
                           </span>
                           {acc.isDemo && (
                             <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
@@ -440,7 +493,9 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                       {/* Volume Stats */}
                       <td className="py-3.5 px-4 text-center">
                         <span className="text-[10px] bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 text-slate-300 font-medium">
-                          {acc.productCount} Prods | {acc.salesCount} Sales
+                          {acc.workspaceType === 'service'
+                            ? `${acc.productCount} Services | ${acc.salesCount} Invoices`
+                            : `${acc.productCount} Prods | ${acc.salesCount} Sales`}
                         </span>
                       </td>
 
@@ -547,8 +602,10 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                   <span className="text-white font-bold">{viewingAccount.mobile || '9876543210'}</span>
                 </div>
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block font-semibold">Trading Sector</span>
-                  <span className="text-blue-400 font-bold">{viewingAccount.storeSector || 'General'}</span>
+                  <span className="text-[10px] text-slate-400 block font-semibold">
+                    {viewingAccount.workspaceType === 'service' ? 'Service Sector' : 'Trading Sector'}
+                  </span>
+                  <span className="text-blue-400 font-bold">{viewingAccount.sectorLabel || viewingAccount.storeSector || 'General'}</span>
                 </div>
               </div>
 
@@ -571,7 +628,7 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
             </div>
 
             <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-between items-center">
-              {onSwitchStore && (
+              {onSwitchStore && viewingAccount.workspaceType !== 'service' && (
                 <button
                   onClick={() => {
                     onSwitchStore(viewingAccount.storeId);
@@ -632,10 +689,16 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                 <input
                   type="text"
                   required
+                  readOnly={editingAccount?.workspaceType === 'service'}
                   value={editForm.username}
                   onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-300 font-mono focus:outline-none focus:border-amber-500"
+                  className={`w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-300 font-mono focus:outline-none focus:border-amber-500 ${
+                    editingAccount?.workspaceType === 'service' ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
                 />
+                {editingAccount?.workspaceType === 'service' && (
+                  <p className="text-[10px] text-slate-500 mt-1">Username can't be changed — it's the account's lookup key.</p>
+                )}
               </div>
 
               <div>
@@ -668,21 +731,27 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                   <label className="block text-[11px] font-semibold text-slate-300 mb-1">
                     Account Role
                   </label>
-                  <select
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
-                  >
-                    <option value="owner">Owner</option>
-                    <option value="staff">Staff</option>
-                    <option value="admin">System Admin</option>
-                  </select>
+                  {editingAccount?.workspaceType === 'service' ? (
+                    <div className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-400">
+                      {editForm.role} <span className="text-slate-600">(fixed)</span>
+                    </div>
+                  ) : (
+                    <select
+                      value={editForm.role}
+                      onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                    >
+                      <option value="owner">Owner</option>
+                      <option value="staff">Staff</option>
+                      <option value="admin">System Admin</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                  Store / Shop Name *
+                  {editingAccount?.workspaceType === 'service' ? 'Business / Company Name *' : 'Store / Shop Name *'}
                 </label>
                 <input
                   type="text"
@@ -693,20 +762,31 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                  Trading Sector
-                </label>
-                <select
-                  value={editForm.storeSector}
-                  onChange={(e) => setEditForm({ ...editForm, storeSector: e.target.value as TradingSector })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
-                >
-                  {TRADING_SECTORS.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
+              {editingAccount?.workspaceType === 'service' ? (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                    Service Sector
+                  </label>
+                  <div className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-400">
+                    {editingAccount.sectorLabel} <span className="text-slate-600">(change from the company's own Settings)</span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                    Trading Sector
+                  </label>
+                  <select
+                    value={editForm.storeSector}
+                    onChange={(e) => setEditForm({ ...editForm, storeSector: e.target.value as TradingSector })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                  >
+                    {TRADING_SECTORS.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="pt-3 flex gap-2 justify-end border-t border-slate-800">
                 <button

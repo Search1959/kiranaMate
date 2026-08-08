@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
 import { ServiceSector } from '../types';
 import { ServiceStoreData } from './serviceStore';
 
@@ -178,5 +178,72 @@ export async function cloudUpdateAccountProfile(username: string, updates: { bus
     await setDoc(doc(db, 'serviceAccounts', username.trim().toLowerCase()), updates, { merge: true });
   } catch (err) {
     console.error('Failed to update service account profile in cloud:', err);
+  }
+}
+
+/** Full admin-panel update of a company's account record (credentials + profile). Best-effort. */
+export async function cloudAdminUpdateAccount(username: string, updates: Partial<CloudServiceAccount>): Promise<void> {
+  const db = getCloudFirestore();
+  if (!db) return;
+  try {
+    const cleanUsername = username.trim().toLowerCase();
+    await setDoc(doc(db, 'serviceAccounts', cleanUsername), updates, { merge: true });
+    if (updates.businessName !== undefined || updates.ownerName !== undefined) {
+      const accountSnap = await getDoc(doc(db, 'serviceAccounts', cleanUsername));
+      const companyId = accountSnap.exists() ? (accountSnap.data() as CloudServiceAccount).companyId : undefined;
+      if (companyId) {
+        const patch: any = {};
+        if (updates.businessName !== undefined) patch.businessName = updates.businessName;
+        if (updates.ownerName !== undefined) patch.ownerName = updates.ownerName;
+        await setDoc(doc(db, 'serviceCompanies', companyId), patch, { merge: true });
+      }
+    }
+  } catch (err) {
+    console.error(`Failed to admin-update service account [${username}] in cloud:`, err);
+  }
+}
+
+/**
+ * Lists every registered Service ERP company across every hosting/browser —
+ * this is what makes the System Admin registry "auto sync" a new Service
+ * signup regardless of where it happened. Best-effort: returns [] if the
+ * cloud is unreachable.
+ */
+export async function cloudListAllServiceAccounts(): Promise<CloudServiceAccount[]> {
+  const db = getCloudFirestore();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'serviceAccounts'));
+    return snap.docs.map(d => d.data() as CloudServiceAccount);
+  } catch (err) {
+    console.error('Failed to list service accounts from cloud:', err);
+    return [];
+  }
+}
+
+/** Best-effort read of a company's live data (for admin "data volume" counts). */
+export async function cloudFetchCompanyData(companyId: string): Promise<ServiceStoreData | null> {
+  const db = getCloudFirestore();
+  if (!db) return null;
+  try {
+    const snap = await getDoc(doc(db, 'serviceCompanies', companyId));
+    return snap.exists() ? (snap.data() as ServiceStoreData) : null;
+  } catch (err) {
+    console.error(`Failed to fetch service company [${companyId}] from cloud:`, err);
+    return null;
+  }
+}
+
+/** Best-effort — never throws, safe to fire-and-forget. */
+export async function cloudDeleteAccount(username: string, companyId?: string): Promise<void> {
+  const db = getCloudFirestore();
+  if (!db) return;
+  try {
+    await deleteDoc(doc(db, 'serviceAccounts', username.trim().toLowerCase()));
+    if (companyId) {
+      await deleteDoc(doc(db, 'serviceCompanies', companyId));
+    }
+  } catch (err) {
+    console.error(`Failed to delete service account [${username}] from cloud:`, err);
   }
 }

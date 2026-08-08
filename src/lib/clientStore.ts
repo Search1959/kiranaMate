@@ -20,7 +20,7 @@ import {
 import { generateSectorSeedData } from '../server/seedData';
 import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
 import { detectCurrencyFromLocale } from './currency';
-import { cloudFetchStore, cloudSaveStore, cloudLookupUsername, cloudRegisterUsername } from './tradingCloud';
+import { cloudFetchStore, cloudSaveStore, cloudLookupUsername, cloudRegisterUsername, cloudListAllTradingAccounts, cloudDeleteStore, cloudDeleteUsername } from './tradingCloud';
 
 interface StoreData {
   settings: StoreSettings;
@@ -1435,7 +1435,7 @@ export const clientStore = {
     return { success: true, user: newUser, storeId: newStoreId };
   },
 
-  getAdminAccounts(): { accounts: AdminAccountItem[] } {
+  async getAdminAccounts(): Promise<{ accounts: AdminAccountItem[] }> {
     const list: AdminAccountItem[] = [];
     const seenUsernames = new Set<string>();
 
@@ -1478,6 +1478,40 @@ export const clientStore = {
           // ignore
         }
       }
+    }
+
+    // 1.5. Cloud directory — accounts self-registered on ANY hosting/browser,
+    //      not just this one. This is what makes the registry "auto sync" a
+    //      brand-new signup regardless of where it happened.
+    try {
+      const cloudAccounts = await cloudListAllTradingAccounts();
+      for (const { username: cloudUsername, storeId: cloudStoreId } of cloudAccounts) {
+        if (seenUsernames.has(cloudUsername.toLowerCase()) || !cloudStoreId) continue;
+        const data = await cloudFetchStore(cloudStoreId);
+        if (!data || !data.users) continue;
+        const u = data.users.find((usr: User) => usr.username.toLowerCase() === cloudUsername.toLowerCase()) || data.users[0];
+        if (!u) continue;
+        seenUsernames.add(cloudUsername.toLowerCase());
+        list.push({
+          id: u.id,
+          userId: u.id,
+          name: u.name || 'Store Manager',
+          username: u.username,
+          password: u.password || '123456',
+          role: u.role || 'owner',
+          mobile: u.mobile || '9876543210',
+          storeId: cloudStoreId,
+          storeName: data.settings?.storeName || 'Registered Store',
+          storeSector: data.settings?.sector || 'GENERAL_TRADING',
+          productCount: data.products ? data.products.length : 0,
+          salesCount: data.sales ? data.sales.length : 0,
+          customerCount: data.customers ? data.customers.length : 0,
+          createdAt: u.createdAt || new Date().toISOString(),
+          isDemo: false
+        });
+      }
+    } catch (err) {
+      console.error('Failed to merge cloud trading accounts into admin registry:', err);
     }
 
     // 2. Pre-defined accounts if not seen yet
@@ -1529,7 +1563,7 @@ export const clientStore = {
     return { accounts: list };
   },
 
-  updateAdminAccount(payload: {
+  async updateAdminAccount(payload: {
     userId: string;
     storeId: string;
     name: string;
@@ -1539,7 +1573,11 @@ export const clientStore = {
     role: UserRole;
     storeName: string;
     storeSector?: TradingSector;
-  }): { success: boolean; account: AdminAccountItem } {
+  }): Promise<{ success: boolean; account: AdminAccountItem }> {
+    // The admin viewing this may be on a browser that's never touched this
+    // store before — pull the real cloud copy first so an edit can't
+    // silently overwrite real data with a blank local seed.
+    await hydrateStoreFromCloud(payload.storeId);
     const data = getStoreData(payload.storeId);
     let user = data.users.find(u => u.id === payload.userId || u.username.toLowerCase() === payload.username.toLowerCase());
 
@@ -1601,13 +1639,19 @@ export const clientStore = {
     };
   },
 
-  deleteAdminAccount(storeId: string, userId: string): { success: boolean } {
+  async deleteAdminAccount(storeId: string, userId: string): Promise<{ success: boolean }> {
+    // Same reasoning as updateAdminAccount: hydrate the real cloud copy
+    // first, so deleting/pruning a user can't act on a blank local seed.
+    await hydrateStoreFromCloud(storeId);
     const data = getStoreData(storeId);
+    const removedUser = data.users.find(u => u.id === userId || u.username === userId);
     data.users = data.users.filter(u => u.id !== userId && u.username !== userId);
 
     if (data.users.length === 0 && !storeId.startsWith('store-demo')) {
       localStorage.removeItem(`${LOCAL_STORAGE_PREFIX}${storeId}`);
       localStorage.removeItem(`${LEGACY_LOCAL_STORAGE_PREFIX}${storeId}`);
+      cloudDeleteStore(storeId); // best-effort, fire-and-forget
+      if (removedUser?.username) cloudDeleteUsername(removedUser.username.trim().toLowerCase());
     } else {
       saveStoreData(storeId, data);
     }

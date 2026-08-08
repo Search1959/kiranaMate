@@ -29,8 +29,10 @@ interface ServiceAuthModalProps {
   onAuthSuccess: (user: UserType, sector: ServiceSector) => void;
 }
 
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '123456';
+// Same System Admin identity as Trading ERP's AuthModal, so one credential
+// pair works across the whole platform.
+const ADMIN_USERNAME = 'apex7tech@gmail.com';
+const ADMIN_PASSWORD = 'Search@1959';
 
 function buildUser(overrides: Partial<UserType> & Pick<UserType, 'name' | 'username' | 'role'>): UserType {
   return {
@@ -197,7 +199,8 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
     setSuccessMsg('');
 
     const cleanUsername = adminUsername.trim().toLowerCase();
-    if (cleanUsername !== ADMIN_USERNAME || adminPassword.trim() !== ADMIN_PASSWORD) {
+    const isAdminUser = cleanUsername === ADMIN_USERNAME || cleanUsername === 'admin';
+    if (!isAdminUser || adminPassword.trim() !== ADMIN_PASSWORD) {
       setErrorMsg('Invalid System Admin credentials. Please verify your User ID and Password.');
       return;
     }

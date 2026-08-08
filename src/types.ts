@@ -70,6 +70,10 @@ export interface AdminAccountItem {
   customerCount: number;
   createdAt?: string;
   isDemo?: boolean;
+  /** Which unified workspace this account belongs to — defaults to 'trading' when absent. */
+  workspaceType?: 'trading' | 'service';
+  /** Precomputed sector display name — used for 'service' rows, whose sector isn't a TradingSector. */
+  sectorLabel?: string;
 }
 
 export interface Customer {

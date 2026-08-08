@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
 
 /**
  * Client-side (browser) Firestore access for Trading ERP stores.
@@ -87,5 +87,44 @@ export async function cloudRegisterUsername(username: string, storeId: string): 
     await setDoc(doc(db, 'tradingAccounts', username), { storeId, createdAt: new Date().toISOString() });
   } catch (err) {
     console.error(`Failed to register trading account [${username}] in cloud:`, err);
+  }
+}
+
+/**
+ * Lists every self-registered account across every hosting/browser — this is
+ * what makes the System Admin registry "auto sync" a new signup regardless
+ * of where it happened. Best-effort: returns [] if the cloud is unreachable.
+ */
+export async function cloudListAllTradingAccounts(): Promise<{ username: string; storeId: string }[]> {
+  const db = getCloudFirestore();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'tradingAccounts'));
+    return snap.docs.map(d => ({ username: d.id, storeId: (d.data() as any).storeId }));
+  } catch (err) {
+    console.error('Failed to list trading accounts from cloud:', err);
+    return [];
+  }
+}
+
+/** Best-effort — never throws, safe to fire-and-forget. */
+export async function cloudDeleteStore(storeId: string): Promise<void> {
+  const db = getCloudFirestore();
+  if (!db) return;
+  try {
+    await deleteDoc(doc(db, 'stores', storeId));
+  } catch (err) {
+    console.error(`Failed to delete store [${storeId}] from cloud:`, err);
+  }
+}
+
+/** Best-effort — never throws, safe to fire-and-forget. */
+export async function cloudDeleteUsername(username: string): Promise<void> {
+  const db = getCloudFirestore();
+  if (!db) return;
+  try {
+    await deleteDoc(doc(db, 'tradingAccounts', username));
+  } catch (err) {
+    console.error(`Failed to delete trading account [${username}] from cloud:`, err);
   }
 }
