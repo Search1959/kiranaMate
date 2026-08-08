@@ -101,7 +101,7 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
     </>
   );
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -112,7 +112,7 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
 
     try {
       setLoading(true);
-      const res = serviceStore.registerCompany({
+      const res = await serviceStore.registerCompany({
         businessName,
         ownerName,
         mobile: regMobile.trim() || '9876543210',
@@ -135,13 +135,13 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
     }
   };
 
-  const handleQuickSignUp = () => {
+  const handleQuickSignUp = async () => {
     setErrorMsg('');
     setSuccessMsg('');
     try {
       setLoading(true);
       const randomId = Math.floor(1000 + Math.random() * 9000);
-      const res = serviceStore.registerCompany({
+      const res = await serviceStore.registerCompany({
         businessName: `Clean ${sectorLabel(regSector)} #${randomId}`,
         ownerName: 'Business Owner',
         mobile: '9876543210',
@@ -164,7 +164,7 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
     }
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -176,7 +176,7 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
 
     try {
       setLoading(true);
-      const res = serviceStore.loginCompany(loginUsername.trim(), loginPassword.trim() || '123456');
+      const res = await serviceStore.loginCompany(loginUsername.trim(), loginPassword.trim() || '123456');
       setSuccessMsg(`Welcome back, ${res.ownerName}! Landing on ${sectorLabel(res.sector)} Dashboard.`);
 
       const user = buildUser({ name: res.ownerName, username: loginUsername.trim().toLowerCase(), role: res.role });

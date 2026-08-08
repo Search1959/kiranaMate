@@ -15,6 +15,7 @@ import {
   PaymentMethod
 } from '../types';
 import { getServiceSectorConfig, SERVICE_SECTORS } from './serviceSectorConfig';
+import { cloudRegisterCompany, cloudLoginCompany, cloudSaveCompanyData, cloudUpdateAccountProfile, CloudUnavailableError } from './serviceCloud';
 
 const SERVICE_STORE_KEY = 'trademate_service_store_v1';
 const ACTIVE_SERVICE_SECTOR_KEY = 'trademate_active_service_sector';
@@ -25,6 +26,7 @@ export interface ServiceStoreData {
   activeSector: ServiceSector;
   /** Present only for a real registered company (absent for the shared per-sector demo datasets). */
   companyId?: string;
+  username?: string;
   businessName?: string;
   ownerName?: string;
   services: ServiceItem[];
@@ -348,6 +350,13 @@ export class ServiceStoreManager {
     } catch (err) {
       console.error("Error writing service store to localStorage", err);
     }
+
+    // Real companies also get a best-effort background push to Firestore, so
+    // the same account sees the same data from any browser/device — not just
+    // this one. Fire-and-forget: never blocks the UI, never throws.
+    if (this.data.companyId) {
+      cloudSaveCompanyData(this.data.companyId, this.data);
+    }
   }
 
   // Active Sector Switching
@@ -399,22 +408,100 @@ export class ServiceStoreManager {
       saveServiceAccounts(accounts);
     }
 
-    this.saveToStorage();
+    this.saveToStorage(); // also pushes the data blob to the cloud
+    if (this.data.username) {
+      cloudUpdateAccountProfile(this.data.username, updates);
+    }
   }
 
   // --- Multi-tenant company accounts (Sign Up / Login) ---
+  // Cloud (Firestore) is the source of truth, so an account works from any
+  // browser/device. If Firestore genuinely can't be reached, these fall back
+  // to the local-only directory so the app keeps working offline.
 
-  registerCompany(payload: {
+  async registerCompany(payload: {
     businessName: string;
     ownerName: string;
     mobile: string;
     username: string;
     password: string;
     sector: ServiceSector;
-  }): { companyId: string; sector: ServiceSector } {
+  }): Promise<{ companyId: string; sector: ServiceSector }> {
     const cleanUsername = payload.username.trim().toLowerCase();
     if (!cleanUsername) throw new Error('Please enter a username.');
 
+    try {
+      const res = await cloudRegisterCompany(payload);
+      this.data = {
+        activeSector: res.sector,
+        companyId: res.companyId,
+        username: cleanUsername,
+        businessName: payload.businessName,
+        ownerName: payload.ownerName,
+        services: [], appointments: [], jobCards: [], staff: [], packages: [],
+        customers: [], invoices: [], quotations: [], payments: []
+      };
+      this.saveToStorage();
+      this.cacheAccountLocally(res.companyId, cleanUsername, payload);
+      return res;
+    } catch (err) {
+      if (!(err instanceof CloudUnavailableError)) throw err; // real validation error (e.g. duplicate username) — surface it
+      console.warn('Service ERP cloud unavailable, registering locally only.');
+      return this.registerCompanyLocal(payload, cleanUsername);
+    }
+  }
+
+  async loginCompany(username: string, password: string): Promise<{
+    companyId: string;
+    sector: ServiceSector;
+    businessName: string;
+    ownerName: string;
+    role: 'owner' | 'staff' | 'admin';
+  }> {
+    const cleanUsername = username.trim().toLowerCase();
+
+    try {
+      const res = await cloudLoginCompany(cleanUsername, password);
+      const data: ServiceStoreData = res.data || generateSeedServiceData(res.sector);
+      data.companyId = res.companyId;
+      data.username = cleanUsername;
+      data.businessName = res.businessName;
+      data.ownerName = res.ownerName;
+      this.data = data;
+      this.saveToStorage();
+      return res;
+    } catch (err) {
+      if (!(err instanceof CloudUnavailableError)) throw err; // real auth error (not found / wrong password) — surface it
+      console.warn('Service ERP cloud unavailable, checking local-only directory.');
+      return this.loginCompanyLocal(cleanUsername, password);
+    }
+  }
+
+  private cacheAccountLocally(companyId: string, username: string, payload: { businessName: string; ownerName: string; mobile: string; password: string; sector: ServiceSector }) {
+    const accounts = loadServiceAccounts();
+    if (!accounts.some(a => a.username === username)) {
+      accounts.push({
+        companyId,
+        username,
+        password: payload.password.trim() || '123456',
+        businessName: payload.businessName,
+        ownerName: payload.ownerName,
+        mobile: payload.mobile || '9876543210',
+        sector: payload.sector,
+        role: 'owner'
+      });
+      saveServiceAccounts(accounts);
+    }
+  }
+
+  private registerCompanyLocal(payload: {
+    businessName: string;
+    ownerName: string;
+    mobile: string;
+    username: string;
+    password: string;
+    sector: ServiceSector;
+  }, cleanUsername: string): { companyId: string; sector: ServiceSector } {
     const accounts = loadServiceAccounts();
     if (accounts.some(a => a.username === cleanUsername)) {
       throw new Error('This username is already registered. Please login instead, or choose another username.');
@@ -433,9 +520,10 @@ export class ServiceStoreManager {
     });
     saveServiceAccounts(accounts);
 
-    const emptyData: ServiceStoreData = {
+    this.data = {
       activeSector: payload.sector,
       companyId,
+      username: cleanUsername,
       businessName: payload.businessName,
       ownerName: payload.ownerName,
       services: [],
@@ -448,21 +536,18 @@ export class ServiceStoreManager {
       quotations: [],
       payments: []
     };
-
-    this.data = emptyData;
     this.saveToStorage();
 
     return { companyId, sector: payload.sector };
   }
 
-  loginCompany(username: string, password: string): {
+  private loginCompanyLocal(cleanUsername: string, password: string): {
     companyId: string;
     sector: ServiceSector;
     businessName: string;
     ownerName: string;
     role: 'owner' | 'staff' | 'admin';
   } {
-    const cleanUsername = username.trim().toLowerCase();
     const accounts = loadServiceAccounts();
     const found = accounts.find(a => a.username === cleanUsername);
 
@@ -476,6 +561,7 @@ export class ServiceStoreManager {
     const raw = localStorage.getItem(`${SERVICE_STORE_KEY}_${found.companyId}`);
     this.data = raw ? JSON.parse(raw) : generateSeedServiceData(found.sector);
     this.data.companyId = found.companyId;
+    this.data.username = cleanUsername;
     this.data.businessName = found.businessName;
     this.data.ownerName = found.ownerName;
     this.saveToStorage();
