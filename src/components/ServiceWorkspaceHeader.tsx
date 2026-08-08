@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { serviceStore } from '../lib/serviceStore';
 import { getServiceSectorConfig, SERVICE_SECTORS } from '../lib/serviceSectorConfig';
-import { clientStore } from '../lib/clientStore';
 import { ServiceSector } from '../types';
 
 interface ServiceWorkspaceHeaderProps {
@@ -26,8 +25,8 @@ export const ServiceWorkspaceHeader: React.FC<ServiceWorkspaceHeaderProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const cfg = getServiceSectorConfig(currentSector);
-  const storeSettings = clientStore.getSettings();
-  const companyName = storeSettings?.storeName || cfg.name;
+  const companyMeta = serviceStore.getCompanyMeta();
+  const companyName = companyMeta.businessName || cfg.name;
 
   const handleSelectSector = (s: ServiceSector) => {
     serviceStore.setActiveSector(s);

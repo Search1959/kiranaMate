@@ -105,6 +105,7 @@ import { BulkProductImportModal } from './components/BulkProductImportModal';
 import { ScanPurchaseBillModal } from './components/ScanPurchaseBillModal';
 import { SectorDemoModal } from './components/SectorDemoModal';
 import { ServiceSectorModal } from './components/ServiceSectorModal';
+import { ServiceAuthModal } from './components/ServiceAuthModal';
 import { AiAssistantWidget } from './components/AiAssistantWidget';
 
 // Views
@@ -150,6 +151,10 @@ export default function App() {
   // Auth Modal
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'admin'>('register');
+
+  // Service ERP Business Access Modal
+  const [isServiceAuthModalOpen, setIsServiceAuthModalOpen] = useState(false);
+  const [serviceAuthModalMode, setServiceAuthModalMode] = useState<'login' | 'register' | 'admin'>('register');
 
   // Authentication & Users
   const [users, setUsers] = useState<User[]>([]);
@@ -380,6 +385,19 @@ export default function App() {
     setIsAuthModalOpen(true);
   };
 
+  const handleOpenServiceAuthModal = (mode: 'login' | 'register' | 'admin' = 'register') => {
+    setServiceAuthModalMode(mode);
+    setIsServiceAuthModalOpen(true);
+  };
+
+  const handleServiceAuthSuccess = (user: User, sector: ServiceSector) => {
+    setCurrentUser(user);
+    localStorage.setItem('trademate_session_user', JSON.stringify(user));
+    localStorage.setItem('trademate_active_workspace', 'service');
+    setViewMode('app');
+    setActiveTab('service_dashboard');
+  };
+
   const handleStartDemo = async (role: 'owner' | 'staff' | 'admin') => {
     setIsLoading(true);
     try {
@@ -552,7 +570,7 @@ export default function App() {
           onLanguageChange={setLang}
           onSelectSectorDemo={handleSelectSectorDemo}
           onOpenSectorModal={() => setIsSectorModalOpen(true)}
-          onOpenServiceSectorModal={() => setIsServiceSectorModalOpen(true)}
+          onOpenServiceSectorModal={() => handleOpenServiceAuthModal('register')}
         />
 
         {/* Multi-Sector Trading Demo Selector Modal */}
@@ -563,24 +581,24 @@ export default function App() {
           onSelectSectorDemo={handleSelectSectorDemo}
         />
 
-        {/* Service ERP Directory Modal */}
-        <ServiceSectorModal
-          isOpen={isServiceSectorModalOpen}
-          onClose={() => setIsServiceSectorModalOpen(false)}
-          onSelectSector={handleSelectServiceSector}
-        />
-
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           initialMode={authModalMode}
           onAuthSuccess={handleAuthSuccess}
         />
+
+        <ServiceAuthModal
+          isOpen={isServiceAuthModalOpen}
+          onClose={() => setIsServiceAuthModalOpen(false)}
+          initialMode={serviceAuthModalMode}
+          onAuthSuccess={handleServiceAuthSuccess}
+        />
       </>
     );
   }
 
-  // IF SERVICE ERP LOGIN VIEW IS ACTIVE
+  // IF SERVICE ERP LOGIN VIEW IS ACTIVE (legacy per-sector directory flow, kept for direct links)
   if (viewMode === 'service_login') {
     return (
       <>
@@ -649,7 +667,7 @@ export default function App() {
         onOpenScanBill={() => setIsScanPurchaseBillOpen(true)}
         onOpenCollectPayment={() => handleOpenCollectPayment()}
         activeTab={activeTab}
-        onOpenServiceSectorModal={() => setIsServiceSectorModalOpen(true)}
+        onOpenServiceSectorModal={() => handleOpenServiceAuthModal('register')}
       />
 
       {/* Main Container Layout */}
@@ -665,7 +683,7 @@ export default function App() {
           onLogout={handleGoToLanding}
           onOpenSectorModal={() => setIsSectorModalOpen(true)}
           activeSectorId={activeSettings.sector}
-          onOpenServiceSectorModal={() => setIsServiceSectorModalOpen(true)}
+          onOpenServiceSectorModal={() => handleOpenServiceAuthModal('register')}
         />
 
         {/* View Router Main Screen */}
@@ -978,11 +996,19 @@ export default function App() {
         onSelectSectorDemo={handleSelectSectorDemo}
       />
 
-      {/* Universal Service ERP Sector Selector Modal */}
+      {/* Universal Service ERP Sector Selector Modal (legacy, no longer opened from any button) */}
       <ServiceSectorModal
         isOpen={isServiceSectorModalOpen}
         onClose={() => setIsServiceSectorModalOpen(false)}
         onSelectSector={handleSelectServiceSector}
+      />
+
+      {/* Service ERP Business Access — Sign Up / Login / Admin */}
+      <ServiceAuthModal
+        isOpen={isServiceAuthModalOpen}
+        onClose={() => setIsServiceAuthModalOpen(false)}
+        initialMode={serviceAuthModalMode}
+        onAuthSuccess={handleServiceAuthSuccess}
       />
 
       {/* AI Assistant & Voice Commands Floating Widget */}

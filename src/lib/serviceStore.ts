@@ -18,9 +18,15 @@ import { getServiceSectorConfig, SERVICE_SECTORS } from './serviceSectorConfig';
 
 const SERVICE_STORE_KEY = 'trademate_service_store_v1';
 const ACTIVE_SERVICE_SECTOR_KEY = 'trademate_active_service_sector';
+const ACTIVE_SERVICE_COMPANY_KEY = 'trademate_active_service_company';
+const SERVICE_ACCOUNTS_KEY = 'trademate_service_accounts';
 
 export interface ServiceStoreData {
   activeSector: ServiceSector;
+  /** Present only for a real registered company (absent for the shared per-sector demo datasets). */
+  companyId?: string;
+  businessName?: string;
+  ownerName?: string;
   services: ServiceItem[];
   appointments: Appointment[];
   jobCards: JobCard[];
@@ -30,6 +36,39 @@ export interface ServiceStoreData {
   invoices: ServiceInvoice[];
   quotations: ServiceQuotation[];
   payments: ServicePayment[];
+}
+
+/**
+ * Directory of real registered Service ERP companies (separate from the
+ * shared per-sector demo datasets). Entirely client-side, mirroring how
+ * clientStore.ts handles Trading ERP accounts when there's no backend.
+ */
+export interface ServiceAccountEntry {
+  companyId: string;
+  username: string;
+  password: string;
+  businessName: string;
+  ownerName: string;
+  mobile: string;
+  sector: ServiceSector;
+  role: 'owner' | 'staff' | 'admin';
+}
+
+function loadServiceAccounts(): ServiceAccountEntry[] {
+  try {
+    const raw = localStorage.getItem(SERVICE_ACCOUNTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveServiceAccounts(accounts: ServiceAccountEntry[]) {
+  try {
+    localStorage.setItem(SERVICE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  } catch (err) {
+    console.error('Error writing service accounts directory', err);
+  }
 }
 
 export function generateSeedServiceData(sector: ServiceSector): ServiceStoreData {
@@ -277,6 +316,15 @@ export class ServiceStoreManager {
 
   private loadFromStorage(): ServiceStoreData {
     try {
+      // A real registered company takes priority over the shared per-sector demo.
+      const companyId = localStorage.getItem(ACTIVE_SERVICE_COMPANY_KEY);
+      if (companyId) {
+        const raw = localStorage.getItem(`${SERVICE_STORE_KEY}_${companyId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.services) return parsed;
+        }
+      }
       const activeSector = (localStorage.getItem(ACTIVE_SERVICE_SECTOR_KEY) as ServiceSector) || 'SALON';
       const raw = localStorage.getItem(`${SERVICE_STORE_KEY}_${activeSector}`);
       if (raw) {
@@ -291,8 +339,12 @@ export class ServiceStoreManager {
 
   private saveToStorage() {
     try {
+      const key = this.data.companyId || this.data.activeSector;
+      if (this.data.companyId) {
+        localStorage.setItem(ACTIVE_SERVICE_COMPANY_KEY, this.data.companyId);
+      }
       localStorage.setItem(ACTIVE_SERVICE_SECTOR_KEY, this.data.activeSector);
-      localStorage.setItem(`${SERVICE_STORE_KEY}_${this.data.activeSector}`, JSON.stringify(this.data));
+      localStorage.setItem(`${SERVICE_STORE_KEY}_${key}`, JSON.stringify(this.data));
     } catch (err) {
       console.error("Error writing service store to localStorage", err);
     }
@@ -303,9 +355,11 @@ export class ServiceStoreManager {
     return this.data.activeSector;
   }
 
+  /** Switches to a shared per-sector demo dataset — leaves any logged-in company. */
   setActiveSector(sector: ServiceSector) {
-    if (this.data.activeSector === sector) return;
+    if (this.data.activeSector === sector && !this.data.companyId) return;
     try {
+      localStorage.removeItem(ACTIVE_SERVICE_COMPANY_KEY);
       localStorage.setItem(ACTIVE_SERVICE_SECTOR_KEY, sector);
       const raw = localStorage.getItem(`${SERVICE_STORE_KEY}_${sector}`);
       if (raw) {
@@ -321,6 +375,118 @@ export class ServiceStoreManager {
 
   getData(): ServiceStoreData {
     return this.data;
+  }
+
+  getCompanyMeta(): { companyId?: string; businessName?: string; ownerName?: string } {
+    return {
+      companyId: this.data.companyId,
+      businessName: this.data.businessName,
+      ownerName: this.data.ownerName
+    };
+  }
+
+  /** Updates business profile fields for a real registered company (no-op for shared demo datasets). */
+  updateCompanyProfile(updates: { businessName?: string; ownerName?: string }) {
+    if (!this.data.companyId) return;
+    if (updates.businessName !== undefined) this.data.businessName = updates.businessName;
+    if (updates.ownerName !== undefined) this.data.ownerName = updates.ownerName;
+
+    const accounts = loadServiceAccounts();
+    const idx = accounts.findIndex(a => a.companyId === this.data.companyId);
+    if (idx >= 0) {
+      if (updates.businessName !== undefined) accounts[idx].businessName = updates.businessName;
+      if (updates.ownerName !== undefined) accounts[idx].ownerName = updates.ownerName;
+      saveServiceAccounts(accounts);
+    }
+
+    this.saveToStorage();
+  }
+
+  // --- Multi-tenant company accounts (Sign Up / Login) ---
+
+  registerCompany(payload: {
+    businessName: string;
+    ownerName: string;
+    mobile: string;
+    username: string;
+    password: string;
+    sector: ServiceSector;
+  }): { companyId: string; sector: ServiceSector } {
+    const cleanUsername = payload.username.trim().toLowerCase();
+    if (!cleanUsername) throw new Error('Please enter a username.');
+
+    const accounts = loadServiceAccounts();
+    if (accounts.some(a => a.username === cleanUsername)) {
+      throw new Error('This username is already registered. Please login instead, or choose another username.');
+    }
+
+    const companyId = `svc-co-${Date.now()}`;
+    accounts.push({
+      companyId,
+      username: cleanUsername,
+      password: payload.password.trim() || '123456',
+      businessName: payload.businessName || `${payload.sector} Business`,
+      ownerName: payload.ownerName || 'Business Owner',
+      mobile: payload.mobile || '9876543210',
+      sector: payload.sector,
+      role: 'owner'
+    });
+    saveServiceAccounts(accounts);
+
+    const emptyData: ServiceStoreData = {
+      activeSector: payload.sector,
+      companyId,
+      businessName: payload.businessName,
+      ownerName: payload.ownerName,
+      services: [],
+      appointments: [],
+      jobCards: [],
+      staff: [],
+      packages: [],
+      customers: [],
+      invoices: [],
+      quotations: [],
+      payments: []
+    };
+
+    this.data = emptyData;
+    this.saveToStorage();
+
+    return { companyId, sector: payload.sector };
+  }
+
+  loginCompany(username: string, password: string): {
+    companyId: string;
+    sector: ServiceSector;
+    businessName: string;
+    ownerName: string;
+    role: 'owner' | 'staff' | 'admin';
+  } {
+    const cleanUsername = username.trim().toLowerCase();
+    const accounts = loadServiceAccounts();
+    const found = accounts.find(a => a.username === cleanUsername);
+
+    if (!found) {
+      throw new Error('Account not found. Please check your username, or sign up as a new company.');
+    }
+    if (found.password && found.password !== password.trim()) {
+      throw new Error('Incorrect password. Please try again.');
+    }
+
+    const raw = localStorage.getItem(`${SERVICE_STORE_KEY}_${found.companyId}`);
+    this.data = raw ? JSON.parse(raw) : generateSeedServiceData(found.sector);
+    this.data.companyId = found.companyId;
+    this.data.businessName = found.businessName;
+    this.data.ownerName = found.ownerName;
+    this.saveToStorage();
+
+    return {
+      companyId: found.companyId,
+      sector: found.sector,
+      businessName: found.businessName,
+      ownerName: found.ownerName,
+      role: found.role
+    };
   }
 
   // Services

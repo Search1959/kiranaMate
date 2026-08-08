@@ -39,7 +39,6 @@ import {
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
-import { clientStore } from '../../lib/clientStore';
 import { ServiceSector } from '../../types';
 import { ServiceWorkspaceHeader } from '../../components/ServiceWorkspaceHeader';
 
@@ -56,6 +55,8 @@ export const ServiceDashboardView: React.FC<ServiceDashboardViewProps> = ({
   const [showToast, setShowToast] = useState<string | null>(null);
 
   const cfg = getServiceSectorConfig(activeSector);
+  const companyMeta = serviceStore.getCompanyMeta();
+  const companyName = companyMeta.businessName || cfg.name;
   const stats = serviceStore.getStats();
   const appointments = serviceStore.getAppointments().slice(0, 5);
   const jobCards = serviceStore.getJobCards().slice(0, 5);
@@ -112,8 +113,8 @@ export const ServiceDashboardView: React.FC<ServiceDashboardViewProps> = ({
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex flex-wrap items-center gap-3">
-                <span>{clientStore.getSettings()?.storeName || cfg.name}</span>
-                {(clientStore.getSettings()?.storeName && clientStore.getSettings().storeName !== cfg.name) && (
+                <span>{companyName}</span>
+                {companyName !== cfg.name && (
                   <span className="text-sm font-semibold text-blue-300">({cfg.name})</span>
                 )}
               </h1>

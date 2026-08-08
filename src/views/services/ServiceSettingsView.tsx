@@ -7,11 +7,14 @@ import { ServiceSector } from '../../types';
 export const ServiceSettingsView: React.FC = () => {
   const [activeSector, setActiveSector] = useState<ServiceSector>(serviceStore.getActiveSector());
   const cfg = getServiceSectorConfig(activeSector);
+  const companyMeta = serviceStore.getCompanyMeta();
 
-  const [businessName, setBusinessName] = useState<string>(cfg.name);
+  const [businessName, setBusinessName] = useState<string>(companyMeta.businessName || cfg.name);
+  const [ownerName, setOwnerName] = useState<string>(companyMeta.ownerName || '');
   const [tagline, setTagline] = useState<string>(cfg.tagline);
   const [gstin, setGstin] = useState<string>('27AAAAA0000A1Z5');
   const [whatsappAutoSend, setWhatsappAutoSend] = useState<boolean>(true);
+  const [savedMsg, setSavedMsg] = useState(false);
 
   const handleSectorChange = (s: ServiceSector) => {
     serviceStore.setActiveSector(s);
@@ -23,7 +26,9 @@ export const ServiceSettingsView: React.FC = () => {
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Service ERP settings updated successfully!");
+    serviceStore.updateCompanyProfile({ businessName, ownerName });
+    setSavedMsg(true);
+    setTimeout(() => setSavedMsg(false), 2500);
   };
 
   return (
@@ -79,6 +84,13 @@ export const ServiceSettingsView: React.FC = () => {
           <span>Service Business Profile & Invoice Customization</span>
         </h3>
 
+        {savedMsg && (
+          <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-2.5 rounded-xl text-xs flex items-center gap-2">
+            <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span>Business profile updated successfully!</span>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div>
             <label className="block text-slate-400 mb-1">Service Business Name</label>
@@ -86,6 +98,16 @@ export const ServiceSettingsView: React.FC = () => {
               type="text"
               value={businessName}
               onChange={e => setBusinessName(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-slate-400 mb-1">Owner / Manager Name</label>
+            <input
+              type="text"
+              value={ownerName}
+              onChange={e => setOwnerName(e.target.value)}
               className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
             />
           </div>
