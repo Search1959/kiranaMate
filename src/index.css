@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+  /* Inter across the whole app body copy — replaces the generic system-font stack */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Manrope for display/heading use on the marketing pages — bold weights carry the brand */
+  --font-display: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+}

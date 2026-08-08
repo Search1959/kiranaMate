@@ -9,21 +9,16 @@ import {
   ShieldCheck,
   CheckCircle2,
   Sparkles,
-  ArrowRight,
-  UserCheck,
-  Users,
   Smartphone,
   Globe,
-  Award,
   Zap,
-  Lock,
   ChevronRight,
-  Star,
-  Printer,
-  Bell,
   HelpCircle,
   Layers,
-  Wrench
+  Wrench,
+  ClipboardList,
+  Rocket,
+  LineChart
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
 
@@ -49,15 +44,15 @@ export const LandingView: React.FC<LandingViewProps> = ({
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500 selection:text-white">
       {/* Top Header Navigation */}
-      <nav className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-600/25">
             <Store className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1">
+            <span className="text-xl font-display font-extrabold tracking-tight text-white flex items-center gap-1">
               Trade<span className="text-blue-400">Mate</span>
             </span>
             <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-semibold leading-none">
@@ -70,12 +65,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
         <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-300">
           <button
             onClick={onOpenSectorModal}
-            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-bold transition-all bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-lg cursor-pointer"
+            className="flex items-center gap-1.5 text-blue-300 hover:text-blue-200 font-bold transition-all bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-full cursor-pointer"
             title="Browse all 23 Industry ERP Templates & Demo Environments"
           >
             <Layers className="w-4 h-4 text-blue-400" />
             <span>23 Trading Templates</span>
-            <span className="bg-blue-500/30 text-blue-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+            <span className="bg-blue-500/30 text-blue-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">
               Hub
             </span>
           </button>
@@ -83,12 +78,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
           {/* Service ERP Directory Button */}
           <button
             onClick={onOpenServiceSectorModal}
-            className="flex items-center gap-1.5 text-indigo-300 hover:text-white font-extrabold transition-all bg-gradient-to-r from-indigo-600/30 to-purple-600/30 hover:from-indigo-600/50 hover:to-purple-600/50 border border-indigo-400/40 px-3.5 py-1.5 rounded-lg cursor-pointer shadow-sm hover:shadow-indigo-500/20"
+            className="flex items-center gap-1.5 text-indigo-300 hover:text-white font-extrabold transition-all bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-400/40 px-3.5 py-1.5 rounded-full cursor-pointer shadow-sm hover:shadow-indigo-500/20"
             title="Open Universal Service Business ERP (50+ Service Sectors)"
           >
-            <Wrench className="w-4 h-4 text-indigo-400 animate-pulse" />
-            <span>🛠 Service ERP</span>
-            <span className="bg-indigo-500/40 text-indigo-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+            <Wrench className="w-4 h-4 text-indigo-400" />
+            <span>Service ERP</span>
+            <span className="bg-indigo-500/30 text-indigo-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">
               50+ Sectors
             </span>
           </button>
@@ -96,14 +91,13 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <a href="#features" className="hover:text-white transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-          <a href="#testimonials" className="hover:text-white transition-colors">Reviews</a>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Mobile Service ERP Button */}
           <button
             onClick={onOpenServiceSectorModal}
-            className="lg:hidden flex items-center gap-1 text-indigo-300 bg-indigo-600/20 border border-indigo-500/40 px-2.5 py-1.5 rounded-lg text-xs font-bold"
+            className="lg:hidden flex items-center gap-1 text-indigo-300 bg-indigo-600/20 border border-indigo-500/40 px-2.5 py-1.5 rounded-full text-xs font-bold"
           >
             <Wrench className="w-3.5 h-3.5 text-indigo-400" />
             <span>Service ERP</span>
@@ -112,83 +106,83 @@ export const LandingView: React.FC<LandingViewProps> = ({
           {/* Mobile Industry Hub Button */}
           <button
             onClick={onOpenSectorModal}
-            className="lg:hidden flex items-center gap-1 text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 rounded-lg text-xs font-bold"
+            className="lg:hidden flex items-center gap-1 text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 rounded-full text-xs font-bold"
           >
             <Layers className="w-3.5 h-3.5" />
             <span>Trading</span>
           </button>
 
           {/* Language Switcher */}
-          <div className="hidden sm:flex items-center gap-1 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs">
+          <div className="hidden sm:flex items-center gap-1 bg-slate-900 px-2.5 py-1.5 rounded-full border border-slate-800 text-xs">
             <Globe className="w-3.5 h-3.5 text-blue-400" />
             <select
               value={lang}
               onChange={(e) => onLanguageChange(e.target.value as LanguageCode)}
               className="bg-transparent text-white focus:outline-none text-xs cursor-pointer"
             >
-              <option value="en" className="bg-slate-800">English</option>
-              <option value="hi" className="bg-slate-800">हिन्दी (Hindi)</option>
-              <option value="bn" className="bg-slate-800">বাংলা (Bengali)</option>
-              <option value="mr" className="bg-slate-800">मराठी (Marathi)</option>
-              <option value="gu" className="bg-slate-800">ગુજરાતી (Gujarati)</option>
-              <option value="ta" className="bg-slate-800">தமிழ் (Tamil)</option>
+              <option value="en" className="bg-slate-900">English</option>
+              <option value="hi" className="bg-slate-900">हिन्दी (Hindi)</option>
+              <option value="bn" className="bg-slate-900">বাংলা (Bengali)</option>
+              <option value="mr" className="bg-slate-900">मराठी (Marathi)</option>
+              <option value="gu" className="bg-slate-900">ગુજરાતી (Gujarati)</option>
+              <option value="ta" className="bg-slate-900">தமிழ் (Tamil)</option>
             </select>
           </div>
 
           <button
             onClick={() => onOpenAuthModal('login')}
-            className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors border border-slate-700 cursor-pointer"
+            className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 rounded-full transition-colors border border-slate-800 cursor-pointer"
           >
             Login
           </button>
 
           <button
             onClick={() => onOpenAuthModal('register')}
-            className="px-4 py-2 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-1.5"
           >
-            <Sparkles className="w-4 h-4 text-blue-200" />
-            <span>Sign Up / Create Store</span>
+            <Sparkles className="w-4 h-4 text-blue-100" />
+            <span>Sign Up Free</span>
           </button>
         </div>
       </nav>
 
       {/* Hero Banner Section */}
-      <section className="relative pt-8 pb-16 px-4 sm:px-8 max-w-7xl mx-auto overflow-hidden">
+      <section className="relative pt-10 pb-16 px-4 sm:px-8 max-w-7xl mx-auto overflow-hidden">
         {/* Background Decorative Glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 sm:w-[600px] h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 sm:w-[600px] h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           {/* Left Panel: Hero Main Headline & CTAs */}
           <div className="lg:col-span-5 text-left space-y-5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              🇮🇳 India's #1 Universal ERP & POS for FMCG, Steel, Mandi, Textiles & Hardware
+              🇮🇳 Built for Indian FMCG, Steel, Mandi, Textiles & Hardware Trade
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              No POS? <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300">No Problem.</span>
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.1]">
+              No POS? <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-amber-300">No Problem.</span>
             </h1>
-            <h2 className="text-xl sm:text-2xl font-bold text-amber-300">
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-200">
               Your Smartphone is Now a Full-Powered POS with Auto Inventory.
             </h2>
 
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Create GST invoices, manage inventory automatically, collect payments, monitor profit, and run your complete trading business from any device — tailored for <strong>Kirana, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & General Trading</strong>.
+            <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
+              Create GST invoices, manage inventory automatically, collect payments, monitor profit, and run your complete trading business from any device — tailored for <strong className="text-slate-200 font-semibold">Kirana, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & General Trading</strong>.
             </p>
 
             {/* Key CTA Buttons */}
             <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-stretch sm:items-center gap-3 pt-2">
               <button
                 onClick={() => onStartDemo('owner')}
-                className="px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm"
+                className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-full shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm"
               >
-                <Zap className="w-4 h-4 text-yellow-300 shrink-0" />
-                <span>Try Instant Live Demo (Pre-loaded Store)</span>
+                <Zap className="w-4 h-4 shrink-0" />
+                <span>Try Instant Live Demo</span>
               </button>
 
               <button
                 onClick={() => onOpenAuthModal('register')}
-                className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm"
+                className="px-6 py-3.5 bg-transparent hover:bg-slate-900 text-white font-bold rounded-full border border-slate-700 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm"
               >
                 <Store className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>Sign Up (Start Clean Shop)</span>
@@ -198,46 +192,46 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <div className="pt-1 flex items-center justify-between gap-2">
               <button
                 onClick={() => onOpenAuthModal('admin')}
-                className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer text-xs"
+                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-semibold rounded-full flex items-center gap-1.5 transition-all cursor-pointer text-xs"
               >
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <ShieldCheck className="w-4 h-4 text-slate-400" />
                 <span>System Admin Login</span>
               </button>
 
-              <span className="text-[11px] text-slate-400">
-                ⚡ Instant setup • Free Demo
+              <span className="text-[11px] text-slate-500">
+                No card required • Free to start
               </span>
             </div>
           </div>
 
           {/* Right Panel: Multi-Sector Trading Industry Support Showcase */}
           <div className="lg:col-span-7">
-            <div className="bg-slate-900/90 border border-blue-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl relative z-10 backdrop-blur-xl">
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl relative z-10 backdrop-blur-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="bg-blue-500/20 text-blue-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border border-blue-400/30">
                       Universal Trading Platform
                     </span>
-                    <h3 className="text-sm sm:text-base font-bold text-white">Built for Any Trading Industry</h3>
+                    <h3 className="font-display text-sm sm:text-base font-bold text-white">Built for Any Trading Industry</h3>
                   </div>
-                  <p className="text-[11px] text-slate-300 mt-0.5">
-                    Select a sector below or open the full Multi-Sector Trading Hub to test live interactive demo environments.
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Select a sector below or open the full Multi-Sector Trading Hub to try a live interactive demo.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={onOpenSectorModal}
-                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-blue-400/40"
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs rounded-full shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700"
                   >
-                    <Layers className="w-3.5 h-3.5 text-blue-200" />
+                    <Layers className="w-3.5 h-3.5 text-blue-400" />
                     <span>View All 23 Sectors →</span>
                   </button>
                   <button
                     onClick={() => onStartDemo('owner')}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-full shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Zap className="w-3.5 h-3.5 text-yellow-300" />
+                    <Zap className="w-3.5 h-3.5" />
                     <span>Launch Kirana</span>
                   </button>
                 </div>
@@ -284,78 +278,82 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </div>
         </div>
 
-        {/* Live Preview Card Showcase */}
-        <div className="mt-12 max-w-5xl mx-auto bg-slate-800/80 border border-slate-700/80 rounded-2xl shadow-2xl p-4 sm:p-6 backdrop-blur-xl relative z-10">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-700 text-xs text-slate-400">
+        {/* Honest Product Preview — clearly labeled sample, not a claim of real live activity */}
+        <div className="mt-12 max-w-5xl mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl shadow-2xl p-4 sm:p-6 backdrop-blur-xl relative z-10">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-800 text-xs text-slate-400">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
-              <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
-              <span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
-              <span className="ml-2 font-mono text-slate-300 font-bold">Gupta Kirana Store - Live POS Control</span>
+              <span className="w-3 h-3 rounded-full bg-slate-700 inline-block"></span>
+              <span className="w-3 h-3 rounded-full bg-slate-700 inline-block"></span>
+              <span className="w-3 h-3 rounded-full bg-slate-700 inline-block"></span>
+              <span className="ml-2 font-mono text-slate-300 font-bold">Your Shop Name — Sample Dashboard</span>
             </div>
-            <span className="bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/30">
-              ● Counter Active
+            <span className="bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full font-bold border border-slate-700">
+              Sample Preview · Not Live Data
             </span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4">
-            <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/50">
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Today's Sales</div>
-              <div className="text-xl sm:text-2xl font-black text-white">₹14,850</div>
-              <div className="text-[10px] text-emerald-400 font-semibold mt-1">Cash ₹8,200 • UPI ₹6,650</div>
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Today's Sales</div>
+              <div className="text-xl sm:text-2xl font-display font-black text-white">₹14,850</div>
+              <div className="text-[10px] text-slate-400 font-semibold mt-1">Cash ₹8,200 • UPI ₹6,650</div>
             </div>
 
-            <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/50">
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Pending Udhaar</div>
-              <div className="text-xl sm:text-2xl font-black text-amber-400">₹8,450</div>
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Pending Udhaar</div>
+              <div className="text-xl sm:text-2xl font-display font-black text-amber-400">₹8,450</div>
               <div className="text-[10px] text-slate-400 font-semibold mt-1">12 Customers Khata</div>
             </div>
 
-            <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/50">
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Pending Orders</div>
-              <div className="text-xl sm:text-2xl font-black text-blue-400">5 Orders</div>
-              <div className="text-[10px] text-blue-300 font-semibold mt-1">Home Delivery Active</div>
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Pending Orders</div>
+              <div className="text-xl sm:text-2xl font-display font-black text-blue-400">5 Orders</div>
+              <div className="text-[10px] text-slate-400 font-semibold mt-1">Home Delivery Active</div>
             </div>
 
-            <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/50">
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Estimated Profit</div>
-              <div className="text-xl sm:text-2xl font-black text-teal-300">₹2,310</div>
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+              <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Estimated Profit</div>
+              <div className="text-xl sm:text-2xl font-display font-black text-emerald-400">₹2,310</div>
               <div className="text-[10px] text-slate-400 font-semibold mt-1">Today Net Margin</div>
             </div>
           </div>
+
+          <p className="text-[11px] text-slate-500 text-center pt-1">
+            Illustrative example — these numbers populate automatically from your real sales once you start billing.
+          </p>
         </div>
 
-        {/* Live Trust Metrics / Animated Counters */}
+        {/* What's Inside — real, current product facts, not usage claims */}
         <div className="mt-12 max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-black text-amber-400">25,000+</div>
-            <div className="text-xs font-semibold text-slate-300 mt-1">Businesses Served</div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Pan-India Network</div>
+          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-display font-black text-blue-400">23</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Trading Sector Templates</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Kirana to Jewellery</div>
           </div>
-          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-black text-blue-400">1.2M+</div>
-            <div className="text-xs font-semibold text-slate-300 mt-1">Invoices Generated</div>
-            <div className="text-[10px] text-slate-500 mt-0.5">30-Sec Counter Bills</div>
+          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-display font-black text-indigo-400">50+</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Service Business Sectors</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Salon to Legal Firms</div>
           </div>
-          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400">5.8M+</div>
-            <div className="text-xs font-semibold text-slate-300 mt-1">Products Managed</div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Multi-Unit Stocks</div>
+          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-display font-black text-emerald-400">6</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Regional Languages</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Hindi, Bengali & more</div>
           </div>
-          <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-black text-indigo-400">3.5M+</div>
-            <div className="text-xs font-semibold text-slate-300 mt-1">Orders Processed</div>
-            <div className="text-[10px] text-slate-500 mt-0.5">WhatsApp & Counter</div>
+          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+            <div className="text-2xl sm:text-3xl font-display font-black text-amber-400">₹0</div>
+            <div className="text-xs font-semibold text-slate-300 mt-1">Free to Start</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">No card required</div>
           </div>
         </div>
       </section>
 
       {/* Feature Pillar Highlights */}
-      <section id="features" className="py-20 px-4 sm:px-8 bg-slate-950 border-t border-slate-800">
+      <section id="features" className="py-20 px-4 sm:px-8 bg-slate-900/40 border-t border-slate-800">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <h2 className="text-xs uppercase font-bold tracking-widest text-blue-400">Universal Trading Platform</h2>
-            <h3 className="text-2xl sm:text-4xl font-black text-white">
+            <h3 className="font-display text-2xl sm:text-4xl font-black text-white">
               Everything Your Trading Business Needs to Scale & Maximize Profit
             </h3>
             <p className="text-sm sm:text-base text-slate-400">
@@ -366,10 +364,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Feature 1 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition-all space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-blue-600/15 text-blue-400 flex items-center justify-center font-bold">
                 <ShoppingCart className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">Express 30-Sec POS Billing</h4>
+              <h4 className="font-display text-lg font-bold text-white">Express 30-Sec POS Billing</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Fast barcode scanning via camera or USB scanner. Add items, apply instant discount, generate thermal printer receipts or share WhatsApp invoice.
               </p>
@@ -377,21 +375,21 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
             {/* Feature 2 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-amber-500/50 transition-all space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-amber-600/15 text-amber-400 flex items-center justify-center font-bold">
                 <CreditCard className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">Smart WhatsApp Khata Ledger</h4>
+              <h4 className="font-display text-lg font-bold text-white">Smart WhatsApp Khata Ledger</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Track customer Udhaar balances automatically. Send 1-tap WhatsApp reminder messages with UPI payment links for 3x faster collection!
+                Track customer Udhaar balances automatically. Send 1-tap WhatsApp reminder messages with UPI payment links for faster collection.
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-rose-500/50 transition-all space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-rose-600/15 text-rose-400 flex items-center justify-center font-bold">
                 <Package className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">Live Stock & Low Stock Alerts</h4>
+              <h4 className="font-display text-lg font-bold text-white">Live Stock & Low Stock Alerts</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Stock automatically deducts on every sale. Receive automated alerts when items fall below minimum reorder levels so you never run out.
               </p>
@@ -399,21 +397,21 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
             {/* Feature 4 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition-all space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-indigo-600/15 text-indigo-400 flex items-center justify-center font-bold">
                 <ShoppingBag className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">WhatsApp Delivery Orders</h4>
+              <h4 className="font-display text-lg font-bold text-white">WhatsApp Delivery Orders</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Receive customer delivery orders directly on WhatsApp, convert them into POS sales with 1-click, and manage order dispatch status.
               </p>
             </div>
 
             {/* Feature 5 */}
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-teal-500/50 transition-all space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-teal-600/20 text-teal-400 flex items-center justify-center font-bold">
+            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-emerald-600/15 text-emerald-400 flex items-center justify-center font-bold">
                 <TrendingUp className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">Daily Net Profit Analytics</h4>
+              <h4 className="font-display text-lg font-bold text-white">Daily Net Profit Analytics</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Live calculation of sales revenue, cost of goods sold, daily shop expenses (rent, electricity, staff salary), and net profit margin.
               </p>
@@ -421,10 +419,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
             {/* Feature 6 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-purple-500/50 transition-all space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-purple-600/15 text-purple-400 flex items-center justify-center font-bold">
                 <Globe className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-bold text-white">6 Regional Languages</h4>
+              <h4 className="font-display text-lg font-bold text-white">6 Regional Languages</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Switch entire app interface between English, Hindi (हिन्दी), Bengali (বাংলা), Marathi (मराठी), Gujarati (ગુજરાતી), and Tamil (தமிழ்) with 1 click.
               </p>
@@ -433,14 +431,71 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
+      {/* How It Works — real step-by-step onboarding, matches the nav anchor */}
+      <section id="how-it-works" className="py-20 px-4 sm:px-8 bg-slate-950 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <h2 className="text-xs uppercase font-bold tracking-widest text-blue-400">Getting Started</h2>
+            <h3 className="font-display text-2xl sm:text-4xl font-black text-white">
+              From Sign-Up to Your First Bill in Minutes
+            </h3>
+            <p className="text-sm sm:text-base text-slate-400">
+              No installation, no training required — TradeMate runs in your browser on any phone, tablet, or PC.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              {
+                step: '1',
+                icon: ClipboardList,
+                color: 'text-blue-400 bg-blue-600/15 border-blue-500/30',
+                title: 'Choose Your Business Type',
+                desc: 'Pick from 23 trading sector templates or 50+ service business sectors — units, categories & workflow are pre-configured for you.'
+              },
+              {
+                step: '2',
+                icon: Rocket,
+                color: 'text-amber-400 bg-amber-600/15 border-amber-500/30',
+                title: 'Set Up in Minutes',
+                desc: 'Add your store name, products or services, staff accounts, and currency. Or launch a free demo pre-loaded with sample data first.'
+              },
+              {
+                step: '3',
+                icon: Smartphone,
+                color: 'text-indigo-400 bg-indigo-600/15 border-indigo-500/30',
+                title: 'Bill & Track Daily',
+                desc: 'Take counter sales or appointments, track customer Udhaar/dues, and send WhatsApp invoices & reminders straight from your phone.'
+              },
+              {
+                step: '4',
+                icon: LineChart,
+                color: 'text-emerald-400 bg-emerald-600/15 border-emerald-500/30',
+                title: 'Grow With Insights',
+                desc: 'Watch your AI business health score, daily profit, and low-stock alerts to make better decisions as your business grows.'
+              }
+            ].map((s) => (
+              <div key={s.step} className="relative bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-3">
+                <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${s.color}`}>
+                  <s.icon className="w-6 h-6" />
+                </div>
+                <span className="absolute top-5 right-5 text-3xl font-display font-black text-slate-800">{s.step}</span>
+                <h4 className="font-display text-base font-bold text-white">{s.title}</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Demo vs New Account Explanation Banner */}
-      <section className="py-16 px-4 sm:px-8 bg-slate-900 border-t border-slate-800">
-        <div className="max-w-5xl mx-auto bg-gradient-to-r from-blue-900/60 via-slate-900 to-indigo-900/60 border border-blue-500/30 rounded-3xl p-6 sm:p-10 space-y-6">
+      <section className="py-16 px-4 sm:px-8 bg-slate-900/40 border-t border-slate-800">
+        <div className="max-w-5xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 space-y-6">
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-8 h-8 text-blue-400 shrink-0" />
             <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">Two Modes for Ultimate Flexibility</h3>
-              <p className="text-xs sm:text-sm text-slate-300">Choose how you want to experience TradeMate today</p>
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-white">Two Modes for Ultimate Flexibility</h3>
+              <p className="text-xs sm:text-sm text-slate-400">Choose how you want to experience TradeMate today</p>
             </div>
           </div>
 
@@ -459,7 +514,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </p>
               <button
                 onClick={() => onStartDemo('owner')}
-                className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-full text-xs transition-colors cursor-pointer"
               >
                 Launch Demo Mode Now →
               </button>
@@ -479,7 +534,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </p>
               <button
                 onClick={() => onOpenAuthModal('register')}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full text-xs transition-colors cursor-pointer"
               >
                 Register New Shop (Zero Data) →
               </button>
@@ -489,17 +544,17 @@ export const LandingView: React.FC<LandingViewProps> = ({
       </section>
 
       {/* Comparison Section: Why TradeMate? */}
-      <section className="py-20 px-4 sm:px-8 bg-slate-900 border-t border-slate-800">
+      <section className="py-20 px-4 sm:px-8 bg-slate-950 border-t border-slate-800">
         <div className="max-w-5xl mx-auto space-y-10">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="bg-blue-500/20 text-blue-400 text-xs font-extrabold px-3 py-1 rounded-full border border-blue-400/30 uppercase tracking-wider">
               Comparison
             </span>
-            <h3 className="text-2xl sm:text-4xl font-black text-white">Why Choose TradeMate?</h3>
+            <h3 className="font-display text-2xl sm:text-4xl font-black text-white">Why Choose TradeMate?</h3>
             <p className="text-sm text-slate-400">See how TradeMate Universal Industry ERP compares against typical POS software.</p>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-900 border-b border-slate-800 text-slate-300">
                 <tr>
@@ -512,7 +567,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 {[
                   { feature: 'Universal Industry ERP Workflows', tm: '✅ Tailored for 10+ Industries', pos: '❌ Generic Single-Template' },
                   { feature: 'Auto Multi-Unit Inventory (MT, Kg, Gram, Meter, Ream)', tm: '✅ Built-in & Sector Configurable', pos: '⚠️ Basic Pieces Only' },
-                  { feature: 'AI Purchase Bill Camera Scanner', tm: '✅ Auto Extracts Supplier, HSN & Items', pos: '❌ Manual Manual Entry' },
+                  { feature: 'AI Purchase Bill Camera Scanner', tm: '✅ Auto Extracts Supplier, HSN & Items', pos: '❌ Manual Entry' },
                   { feature: 'AI Business Health & AI Assistant', tm: '✅ Live Score & Voice Commands', pos: '❌ None' },
                   { feature: 'Automated WhatsApp Udhaar Reminders', tm: '✅ 1-Tap Reminders with UPI Link', pos: '❌ Paid Add-on or Manual' },
                   { feature: 'Multi-Language Interface (6 Languages)', tm: '✅ English, Hindi, Bengali, Marathi, etc.', pos: '⚠️ English Only' },
@@ -531,11 +586,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
       </section>
 
       {/* Pricing Plans Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-8 bg-slate-950 border-t border-slate-800">
+      <section id="pricing" className="py-20 px-4 sm:px-8 bg-slate-900/40 border-t border-slate-800">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <h2 className="text-xs uppercase font-bold tracking-widest text-blue-400">Affordable Plans</h2>
-            <h3 className="text-2xl sm:text-4xl font-black text-white">Simple, Honest Shop Pricing</h3>
+            <h3 className="font-display text-2xl sm:text-4xl font-black text-white">Simple, Honest Shop Pricing</h3>
             <p className="text-sm text-slate-400">Start free today. Upgrade as your shop grows.</p>
           </div>
 
@@ -543,9 +598,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
             {/* Plan 1 */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between space-y-6">
               <div>
-                <h4 className="text-lg font-bold text-white">Starter Kirana</h4>
+                <h4 className="font-display text-lg font-bold text-white">Starter Kirana</h4>
                 <p className="text-xs text-slate-400 mt-1">For small single-counter shops</p>
-                <div className="mt-4 text-3xl font-black text-white">₹0 <span className="text-xs font-normal text-slate-400">/ forever</span></div>
+                <div className="mt-4 text-3xl font-display font-black text-white">₹0 <span className="text-xs font-normal text-slate-400">/ forever</span></div>
                 <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Express POS Counter Billing</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Up to 500 Inventory Items</li>
@@ -555,7 +610,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </div>
               <button
                 onClick={() => onOpenAuthModal('register')}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-full text-xs transition-colors cursor-pointer"
               >
                 Start Free Plan
               </button>
@@ -567,9 +622,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 Most Popular
               </span>
               <div>
-                <h4 className="text-lg font-bold text-white">Pro Supermarket</h4>
+                <h4 className="font-display text-lg font-bold text-white">Pro Supermarket</h4>
                 <p className="text-xs text-slate-400 mt-1">For growing grocery outlets</p>
-                <div className="mt-4 text-3xl font-black text-white">₹499 <span className="text-xs font-normal text-slate-400">/ month</span></div>
+                <div className="mt-4 text-3xl font-display font-black text-white">₹499 <span className="text-xs font-normal text-slate-400">/ month</span></div>
                 <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Everything in Starter Plan</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Unlimited Inventory & Products</li>
@@ -580,7 +635,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </div>
               <button
                 onClick={() => onOpenAuthModal('register')}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-lg shadow-blue-600/30"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full text-xs transition-colors cursor-pointer shadow-lg shadow-blue-600/30"
               >
                 Start 14-Day Free Trial
               </button>
@@ -589,9 +644,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
             {/* Plan 3 */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between space-y-6">
               <div>
-                <h4 className="text-lg font-bold text-white">System Admin Enterprise</h4>
+                <h4 className="font-display text-lg font-bold text-white">System Admin Enterprise</h4>
                 <p className="text-xs text-slate-400 mt-1">For multi-branch & chain stores</p>
-                <div className="mt-4 text-3xl font-black text-white">₹1,499 <span className="text-xs font-normal text-slate-400">/ month</span></div>
+                <div className="mt-4 text-3xl font-display font-black text-white">₹1,499 <span className="text-xs font-normal text-slate-400">/ month</span></div>
                 <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> Multi-Store Management Console</li>
                   <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> System Administrator Controls</li>
@@ -601,7 +656,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </div>
               <button
                 onClick={() => onOpenAuthModal('admin')}
-                className="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-bold rounded-full text-xs transition-colors cursor-pointer"
               >
                 System Admin Access
               </button>
@@ -611,10 +666,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
       </section>
 
       {/* FAQ Accordion Section */}
-      <section className="py-16 px-4 sm:px-8 bg-slate-900 border-t border-slate-800">
+      <section className="py-16 px-4 sm:px-8 bg-slate-950 border-t border-slate-800">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
-            <h3 className="text-2xl font-bold text-white">Frequently Asked Questions</h3>
+            <h3 className="font-display text-2xl font-bold text-white">Frequently Asked Questions</h3>
             <p className="text-xs text-slate-400">Got questions? We have answers for shop owners.</p>
           </div>
 
@@ -637,10 +692,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 a: "Yes! You can create staff accounts. Staff can perform sales, scan items, and collect payments, but cannot view profit reports or edit critical store settings."
               }
             ].map((item, idx) => (
-              <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+              <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                  className="w-full p-4 text-left text-xs sm:text-sm font-semibold text-white flex items-center justify-between hover:bg-slate-900/60"
+                  className="w-full p-4 text-left text-xs sm:text-sm font-semibold text-white flex items-center justify-between hover:bg-slate-900/60 cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     <HelpCircle className="w-4 h-4 text-blue-400 shrink-0" />
@@ -664,10 +719,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Store className="w-4 h-4 text-blue-400" />
-            <span className="font-bold text-white">TradeMate</span>
+            <span className="font-display font-bold text-white">TradeMate</span>
             <span>— Universal Business ERP, POS Billing & Khata System</span>
           </div>
-          <p>© {new Date().getFullYear()} TradeMate POS. Built for Wholesale & Retail Traders across India with ❤️</p>
+          <p>© {new Date().getFullYear()} TradeMate POS. Built for Wholesale & Retail Traders across India.</p>
         </div>
       </footer>
     </div>
