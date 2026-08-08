@@ -20,6 +20,7 @@ import {
 import { generateSectorSeedData } from '../server/seedData';
 import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
 import { detectCurrencyFromLocale } from './currency';
+import { cloudFetchStore, cloudSaveStore, cloudLookupUsername, cloudRegisterUsername } from './tradingCloud';
 
 interface StoreData {
   settings: StoreSettings;
@@ -182,10 +183,49 @@ const PREDEFINED_ACCOUNTS: { [username: string]: { storeId: string; user: User; 
   }
 };
 
-function findUserAcrossAllStores(username: string): { user: User; storeId: string; storeData: StoreData } | null {
+async function findUserAcrossAllStores(username: string): Promise<{ user: User; storeId: string; storeData: StoreData } | null> {
   const clean = username.trim().toLowerCase();
 
-  // 1. Check browser localStorage
+  // 1. Check predefined accounts first (e.g., deshna@gmail.com, arun@gmail.com) —
+  //    their storeId is fixed/known on every origin, so always try the cloud's
+  //    latest copy before falling back to the hardcoded empty default.
+  if (PREDEFINED_ACCOUNTS[clean]) {
+    const pre = PREDEFINED_ACCOUNTS[clean];
+    await hydrateStoreFromCloud(pre.storeId);
+    const key = `${LOCAL_STORAGE_PREFIX}${pre.storeId}`;
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      try {
+        const storeData: StoreData = JSON.parse(raw);
+        const u = storeData.users?.find(usr => usr.username.toLowerCase() === clean) || pre.user;
+        return { user: u, storeId: pre.storeId, storeData };
+      } catch {
+        // fall through to the hardcoded default below
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(pre.storeData));
+    return pre;
+  }
+
+  // 2. Check the cloud directory for a self-registered account (works from
+  //    any browser/hosting, not just the one that originally registered it).
+  const cloudMatch = await cloudLookupUsername(clean);
+  if (cloudMatch?.storeId) {
+    await hydrateStoreFromCloud(cloudMatch.storeId);
+    const raw = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}${cloudMatch.storeId}`);
+    if (raw) {
+      try {
+        const storeData: StoreData = JSON.parse(raw);
+        const u = storeData.users?.find(usr => usr.username.toLowerCase() === clean);
+        if (u) return { user: u, storeId: cloudMatch.storeId, storeData };
+      } catch {
+        // ignore and fall through to local scan
+      }
+    }
+  }
+
+  // 3. Check browser localStorage (accounts only ever used locally, or as a
+  //    fallback when the cloud is unreachable)
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && (key.startsWith(LOCAL_STORAGE_PREFIX) || key.startsWith(LEGACY_LOCAL_STORAGE_PREFIX))) {
@@ -207,16 +247,6 @@ function findUserAcrossAllStores(username: string): { user: User; storeId: strin
         // ignore
       }
     }
-  }
-
-  // 2. Check predefined accounts (e.g., deshna@gmail.com, arun@gmail.com)
-  if (PREDEFINED_ACCOUNTS[clean]) {
-    const pre = PREDEFINED_ACCOUNTS[clean];
-    const key = `${LOCAL_STORAGE_PREFIX}${pre.storeId}`;
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify(pre.storeData));
-    }
-    return pre;
   }
 
   return null;
@@ -310,6 +340,23 @@ function getStoreData(storeId: string = 'store-demo'): StoreData {
 function saveStoreData(storeId: string, data: StoreData) {
   const key = `${LOCAL_STORAGE_PREFIX}${storeId}`;
   localStorage.setItem(key, JSON.stringify(data));
+  // Best-effort background push so this store's data reaches every other
+  // hosting/browser too — fire-and-forget, never blocks the caller.
+  cloudSaveStore(storeId, data);
+}
+
+/**
+ * Pulls this store's latest data down from Firestore (if any) and caches it
+ * locally, so a fresh login/demo-launch on this origin sees whatever was
+ * last saved anywhere else — not just what this browser already knew about.
+ * Safe no-op if the cloud is unreachable or has nothing for this store yet.
+ */
+async function hydrateStoreFromCloud(storeId: string): Promise<void> {
+  const cloudData = await cloudFetchStore(storeId);
+  if (cloudData && cloudData.users) {
+    const key = `${LOCAL_STORAGE_PREFIX}${storeId}`;
+    localStorage.setItem(key, JSON.stringify(cloudData));
+  }
 }
 
 export const clientStore = {
@@ -1299,12 +1346,12 @@ export const clientStore = {
     return { success: true };
   },
 
-  register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector; allowExisting?: boolean }): { success: boolean; user: User; storeId: string } {
+  async register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector; allowExisting?: boolean }): Promise<{ success: boolean; user: User; storeId: string }> {
     const rawUsername = payload.username || 'user';
     let cleanUsername = rawUsername.trim().toLowerCase();
 
     // Check if user already exists
-    const existing = findUserAcrossAllStores(cleanUsername);
+    const existing = await findUserAcrossAllStores(cleanUsername);
     if (existing) {
       if (payload.allowExisting !== false) {
         // Log in directly to the existing account and store
@@ -1383,7 +1430,8 @@ export const clientStore = {
       ]
     };
 
-    saveStoreData(newStoreId, newStoreData);
+    saveStoreData(newStoreId, newStoreData); // also pushes the store to the cloud
+    cloudRegisterUsername(cleanUsername, newStoreId); // best-effort — makes this username findable from any browser/hosting
     return { success: true, user: newUser, storeId: newStoreId };
   },
 
@@ -1567,7 +1615,7 @@ export const clientStore = {
     return { success: true };
   },
 
-  login(storeId: string = 'store-demo', username: string, password?: string, selectedSector?: TradingSector): { success: boolean; user: User; storeId: string } {
+  async login(storeId: string = 'store-demo', username: string, password?: string, selectedSector?: TradingSector): Promise<{ success: boolean; user: User; storeId: string }> {
     const cleanUsername = username.trim().toLowerCase();
     const cleanPassword = (password || '').trim();
 
@@ -1596,7 +1644,7 @@ export const clientStore = {
     }
 
     // 1. Search if account exists in any registered store
-    const found = findUserAcrossAllStores(cleanUsername);
+    const found = await findUserAcrossAllStores(cleanUsername);
     if (found) {
       if (selectedSector && found.storeData.settings) {
         found.storeData.settings.sector = selectedSector;
@@ -1612,6 +1660,7 @@ export const clientStore = {
         const matchedSec = TRADING_SECTORS.find(s => s.id === selectedSector);
         if (matchedSec) targetStoreId = matchedSec.demoStoreId;
       }
+      await hydrateStoreFromCloud(targetStoreId); // pull the latest demo data from any other hosting/session first
       const demoData = getStoreData(targetStoreId);
       let u = demoData.users.find(usr => usr.username.toLowerCase() === cleanUsername);
       if (!u) {
@@ -1646,7 +1695,7 @@ export const clientStore = {
       if (cleanUsername.includes('deshna')) shopName = 'Deshna Global';
       else if (cleanUsername.includes('arun')) shopName = 'Deinrim Solutionss (P) Ltd.';
 
-      const reg = this.register({
+      const reg = await this.register({
         username: cleanUsername,
         shopName,
         ownerName: parts[0],
