@@ -5,6 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import { db } from './src/server/db';
 import { lookupUsernameDirectory, fetchStoreFromCloud } from './src/server/firestore';
+import { getMysqlPool, ensureMysqlSchema } from './src/server/mysql';
 import { UserRole, User } from './src/types';
 
 async function startServer() {
@@ -705,6 +706,32 @@ RULES:
     res.json({ success: true, message: 'Database reset to fresh demo state with 100+ items and 50 customers!' });
   });
 
+  // One-off verification route for the MySQL migration — hits a real query,
+  // not just "is the pool object truthy", so it actually proves connectivity
+  // (this can only be checked once deployed; Hostinger's DB_HOST=localhost
+  // means "the Hostinger server itself", unreachable from local dev).
+  app.get('/api/admin/mysql-status', async (req, res) => {
+    const pool = getMysqlPool();
+    if (!pool) {
+      return res.json({ configured: false, connected: false, message: 'DB_HOST/DB_NAME/DB_USER/DB_PASSWORD not set in the environment.' });
+    }
+    try {
+      const [rows] = await pool.query('SELECT 1 AS ok');
+      const [tables] = await pool.query("SHOW TABLES LIKE 'sales'");
+      const [purchaseTables] = await pool.query("SHOW TABLES LIKE 'purchases'");
+      const [ledgerTables] = await pool.query("SHOW TABLES LIKE 'stock_ledger'");
+      res.json({
+        configured: true,
+        connected: true,
+        salesTableExists: (tables as any[]).length > 0,
+        purchasesTableExists: (purchaseTables as any[]).length > 0,
+        stockLedgerTableExists: (ledgerTables as any[]).length > 0
+      });
+    } catch (err: any) {
+      res.status(500).json({ configured: true, connected: false, error: err.message });
+    }
+  });
+
   // --- VITE MIDDLEWARE OR STATIC SERVING ---
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -719,6 +746,8 @@ RULES:
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  await ensureMysqlSchema();
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`KiranaMate Full-Stack Server running on http://0.0.0.0:${PORT}`);
