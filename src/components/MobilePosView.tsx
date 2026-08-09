@@ -116,6 +116,17 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
     );
   };
 
+  // Direct manual entry — for bulk quantities (e.g. 100kg of TMT rod) tapping
+  // + a hundred times isn't practical. Doesn't remove the row at 0 (the user
+  // is often mid-typing, e.g. clearing "1" to type "150") — the trash icon
+  // handles actually removing a line item.
+  const setItemQuantity = (productId: string, rawValue: string) => {
+    const newQty = Math.max(0, Number(rawValue) || 0);
+    setCart(prev =>
+      prev.map(item => (item.product.id === productId ? { ...item, quantity: newQty } : item))
+    );
+  };
+
   const removeFromCart = (productId: string) => {
     setCart(prev => prev.filter(item => item.product.id !== productId));
   };
@@ -382,11 +393,20 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
                     <p className="text-[10px] text-slate-500">{money(item.unitPrice)} / {item.product.unit}</p>
                   </div>
                   <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
-                    <button onClick={() => updateQuantity(item.product.id, -1)} className="p-1 rounded bg-white shadow-xs">
+                    <button onClick={() => updateQuantity(item.product.id, -1)} className="p-1 rounded bg-white shadow-xs shrink-0">
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="text-xs font-bold w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.product.id, 1)} className="p-1 rounded bg-white shadow-xs">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="any"
+                      value={item.quantity}
+                      onChange={(e) => setItemQuantity(item.product.id, e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                      className="text-xs font-bold w-11 text-center bg-white rounded px-0.5 py-1 border border-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button onClick={() => updateQuantity(item.product.id, 1)} className="p-1 rounded bg-white shadow-xs shrink-0">
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
