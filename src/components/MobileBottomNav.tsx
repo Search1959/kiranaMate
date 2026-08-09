@@ -23,7 +23,8 @@ import {
   Wrench,
   Calendar,
   ShieldCheck,
-  ArrowLeftRight
+  ArrowLeftRight,
+  MessageCircle
 } from 'lucide-react';
 import { LanguageCode, DailyStats } from '../types';
 import { translations } from '../lib/translations';
@@ -50,6 +51,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const t = translations[lang] || translations.en;
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showFabMenu, setShowFabMenu] = useState(false);
+  const [activeQuickCategory, setActiveQuickCategory] = useState<string>('');
 
   // Same "sticky workspace" pattern as DesktopSidebar.tsx: a shared tab like
   // 'settings' shouldn't flip the mobile nav back to Trading mid-session.
@@ -83,13 +85,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const navItems = isServiceMode ? serviceNavItems : tradingNavItems;
 
   const tradingQuickActions = [
-    { id: 'new-sale', label: t.newSale + ' (30s POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white' },
-    { id: 'new-order', label: t.newOrder, icon: ShoppingBag, bg: 'bg-blue-600 text-white' },
-    { id: 'collect-payment', label: t.collectPayment, icon: Receipt, bg: 'bg-amber-600 text-white' },
-    { id: 'add-stock', label: t.addStock, icon: ArrowUpRight, bg: 'bg-indigo-600 text-white' },
-    { id: 'add-customer', label: t.addCustomer, icon: UserPlus, bg: 'bg-teal-600 text-white' },
-    { id: 'add-product', label: t.addProduct, icon: PlusCircle, bg: 'bg-purple-600 text-white' },
-    { id: 'add-expense', label: t.addExpense, icon: TrendingDown, bg: 'bg-rose-600 text-white' }
+    { id: 'new-sale', label: t.newSale + ' (30s POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white', category: 'Billing' },
+    { id: 'new-order', label: t.newOrder, icon: ShoppingBag, bg: 'bg-blue-600 text-white', category: 'Billing' },
+    { id: 'collect-payment', label: t.collectPayment, icon: Receipt, bg: 'bg-amber-600 text-white', category: 'Billing' },
+    { id: 'add-stock', label: t.addStock, icon: ArrowUpRight, bg: 'bg-indigo-600 text-white', category: 'Inventory' },
+    { id: 'add-product', label: t.addProduct, icon: PlusCircle, bg: 'bg-purple-600 text-white', category: 'Inventory' },
+    { id: 'add-customer', label: t.addCustomer, icon: UserPlus, bg: 'bg-teal-600 text-white', category: 'Customers' },
+    { id: 'whatsapp-udhaar-reminder', label: 'WhatsApp Udhaar Reminder', icon: MessageCircle, bg: 'bg-green-600 text-white', category: 'Customers' },
+    { id: 'add-expense', label: t.addExpense, icon: TrendingDown, bg: 'bg-rose-600 text-white', category: 'Expenses' }
   ];
 
   // Service ERP's create-forms are local state inside each view (not lifted
@@ -97,16 +100,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   // screen rather than popping a modal directly — one extra tap to hit "+"
   // there, but still a real shortcut past the full menu.
   const serviceQuickActions = [
-    { id: 'service-new-bill', label: 'New Bill (POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white' },
-    { id: 'service-book-appointment', label: 'Book Appointment', icon: Calendar, bg: 'bg-blue-600 text-white' },
-    { id: 'service-new-job', label: `New ${serviceCfg.workOrderTerm}`, icon: Wrench, bg: 'bg-indigo-600 text-white' },
-    { id: 'service-record-payment', label: 'Record Payment', icon: Receipt, bg: 'bg-amber-600 text-white' },
-    { id: 'service-add-client', label: `Add ${serviceCfg.customerTerm}`, icon: UserPlus, bg: 'bg-teal-600 text-white' },
-    { id: 'service-new-quotation', label: 'New Quotation', icon: BookOpen, bg: 'bg-purple-600 text-white' },
-    { id: 'service-add-expense', label: 'Record Expense', icon: TrendingDown, bg: 'bg-rose-600 text-white' }
+    { id: 'service-new-bill', label: 'New Bill (POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white', category: 'Billing' },
+    { id: 'service-record-payment', label: 'Record Payment', icon: Receipt, bg: 'bg-amber-600 text-white', category: 'Billing' },
+    { id: 'service-book-appointment', label: 'Book Appointment', icon: Calendar, bg: 'bg-blue-600 text-white', category: 'Jobs' },
+    { id: 'service-new-job', label: `New ${serviceCfg.workOrderTerm}`, icon: Wrench, bg: 'bg-indigo-600 text-white', category: 'Jobs' },
+    { id: 'service-add-client', label: `Add ${serviceCfg.customerTerm}`, icon: UserPlus, bg: 'bg-teal-600 text-white', category: 'Clients' },
+    { id: 'service-new-quotation', label: 'New Quotation', icon: BookOpen, bg: 'bg-purple-600 text-white', category: 'Clients' },
+    { id: 'service-add-expense', label: 'Record Expense', icon: TrendingDown, bg: 'bg-rose-600 text-white', category: 'Clients' }
   ];
 
   const quickActions = isServiceMode ? serviceQuickActions : tradingQuickActions;
+  const quickActionCategories = Array.from(new Set(quickActions.map(a => a.category)));
+  const currentQuickCategory = quickActionCategories.includes(activeQuickCategory) ? activeQuickCategory : quickActionCategories[0];
+  const visibleQuickActions = quickActions.filter(a => a.category === currentQuickCategory);
 
   // Desktop-only screens (Finance, Reports, Stock Ledger, Settings, Backup,
   // System Admin) are deliberately left out of both lists below — reviewing
@@ -136,7 +142,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       {/* FAB Quick Action Button (Floating +) */}
       <div className="md:hidden fixed right-4 bottom-20 z-50">
         <button
-          onClick={() => setShowFabMenu(!showFabMenu)}
+          onClick={() => { setActiveQuickCategory(''); setShowFabMenu(!showFabMenu); }}
           className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-95 text-white ${
             showFabMenu ? 'bg-slate-800 rotate-45' : isServiceMode ? 'bg-indigo-600 hover:bg-indigo-700 font-bold ring-4 ring-indigo-500/20' : 'bg-blue-600 hover:bg-blue-700 font-bold ring-4 ring-blue-500/20'
           }`}
@@ -146,24 +152,43 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         </button>
       </div>
 
-      {/* FAB Quick Actions Popup Menu */}
+      {/* FAB Quick Actions — full-screen sheet with category tabs, so picking
+          a category shows its cards right there instead of navigating away. */}
       {showFabMenu && (
-        <div className="md:hidden fixed inset-0 bg-slate-900/75 backdrop-blur-xs z-50 flex flex-col justify-end p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-5 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                <Plus className="w-5 h-5 text-amber-500" /> {t.quickActions}
-              </h3>
-              <button
-                onClick={() => setShowFabMenu(false)}
-                className="p-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        <div className="md:hidden fixed inset-0 bg-white z-50 flex flex-col animate-in fade-in duration-150">
+          <div className={`p-4 sm:p-5 flex items-center justify-between shrink-0 text-white ${isServiceMode ? 'bg-indigo-600' : 'bg-blue-600'}`}>
+            <h3 className="font-bold text-base flex items-center gap-2">
+              <Plus className="w-5 h-5" /> {t.quickActions}
+            </h3>
+            <button
+              onClick={() => setShowFabMenu(false)}
+              className="p-1.5 rounded-full bg-white/15 hover:bg-white/25"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              {quickActions.map(action => {
+          {/* Category Tabs */}
+          <div className="flex items-center gap-2 px-4 sm:px-5 py-3 overflow-x-auto shrink-0 border-b border-slate-100">
+            {quickActionCategories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveQuickCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                  currentQuickCategory === cat
+                    ? (isServiceMode ? 'bg-indigo-600 text-white' : 'bg-blue-600 text-white')
+                    : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Selected category's cards — same screen, no navigation away */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+            <div className="grid grid-cols-2 gap-3 content-start">
+              {visibleQuickActions.map(action => {
                 const Icon = action.icon;
                 return (
                   <button
@@ -172,10 +197,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                       setShowFabMenu(false);
                       onOpenQuickAction(action.id);
                     }}
-                    className={`flex items-center gap-3 p-3 rounded-2xl text-left font-semibold text-xs transition-all active:scale-95 shadow-sm ${action.bg}`}
+                    className={`flex flex-col items-start gap-3 p-4 rounded-2xl text-left font-semibold text-xs transition-all active:scale-95 shadow-sm min-h-[92px] justify-between ${action.bg}`}
                   >
                     <Icon className="w-5 h-5 shrink-0" />
-                    <span className="leading-tight">{action.label}</span>
+                    <span className="leading-snug">{action.label}</span>
                   </button>
                 );
               })}

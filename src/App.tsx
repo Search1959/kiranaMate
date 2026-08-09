@@ -99,6 +99,7 @@ import { NewSaleModal } from './components/NewSaleModal';
 import { MobilePosView } from './components/MobilePosView';
 import { NewOrderModal } from './components/NewOrderModal';
 import { CollectPaymentModal } from './components/CollectPaymentModal';
+import { WhatsAppUdhaarRemindersModal } from './components/WhatsAppUdhaarRemindersModal';
 import { AddProductModal } from './components/AddProductModal';
 import { AddStockModal } from './components/AddStockModal';
 import { AddExpenseModal } from './components/AddExpenseModal';
@@ -191,6 +192,7 @@ export default function App() {
 
   const [isCollectPaymentOpen, setIsCollectPaymentOpen] = useState(false);
   const [paymentCustomerTarget, setPaymentCustomerTarget] = useState<Customer | null>(null);
+  const [isWhatsAppUdhaarRemindersOpen, setIsWhatsAppUdhaarRemindersOpen] = useState(false);
 
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProductTarget, setEditingProductTarget] = useState<Product | null>(null);
@@ -559,6 +561,9 @@ export default function App() {
         break;
       case 'add-expense':
         setIsAddExpenseOpen(true);
+        break;
+      case 'whatsapp-udhaar-reminder':
+        setIsWhatsAppUdhaarRemindersOpen(true);
         break;
       // Service ERP quick actions — those screens' own "+" modals are local
       // component state (not lifted up here like Trading's), so these just
@@ -1022,6 +1027,18 @@ export default function App() {
         selectedCustomerForPayment={paymentCustomerTarget}
         settings={settings}
         onPaymentSuccess={() => loadData(currentStoreId)}
+      />
+
+      <WhatsAppUdhaarRemindersModal
+        isOpen={isWhatsAppUdhaarRemindersOpen}
+        onClose={() => setIsWhatsAppUdhaarRemindersOpen(false)}
+        customers={customers}
+        settings={settings}
+        lang={lang}
+        onOpenCollectPayment={(customer) => {
+          setIsWhatsAppUdhaarRemindersOpen(false);
+          handleOpenCollectPayment(customer);
+        }}
       />
 
       <AddProductModal
