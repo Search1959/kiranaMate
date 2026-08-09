@@ -18,7 +18,9 @@ import {
   Wrench,
   ClipboardList,
   Rocket,
-  LineChart
+  LineChart,
+  Menu,
+  X
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
 
@@ -44,6 +46,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onOpenHelp
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Soft, best-effort framing only — not authoritative (that's the signup
   // form's explicit country field). A visitor whose browser locale doesn't
@@ -116,36 +119,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Mobile Service ERP Button */}
-          <button
-            onClick={onOpenServiceSectorModal}
-            className="lg:hidden flex items-center gap-1 text-indigo-300 bg-indigo-600/20 border border-indigo-500/40 px-2.5 py-1.5 rounded-full text-xs font-bold"
-          >
-            <Wrench className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Service ERP</span>
-          </button>
-
-          {/* Mobile Industry Hub Button */}
-          <button
-            onClick={onOpenSectorModal}
-            className="lg:hidden flex items-center gap-1 text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2.5 py-1.5 rounded-full text-xs font-bold"
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Trading</span>
-          </button>
-
-          {/* Mobile Help Button */}
-          {onOpenHelp && (
-            <button
-              onClick={onOpenHelp}
-              className="lg:hidden flex items-center text-slate-300 bg-slate-900 border border-slate-800 p-1.5 rounded-full"
-              title="Help & Guide"
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-            </button>
-          )}
-
-          {/* Language Switcher */}
+          {/* Language Switcher (desktop/tablet only — lives in the mobile menu sheet below) */}
           <div className="hidden sm:flex items-center gap-1 bg-slate-900 px-2.5 py-1.5 rounded-full border border-slate-800 text-xs">
             <Globe className="w-3.5 h-3.5 text-blue-400" />
             <select
@@ -157,27 +131,117 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <option value="hi" className="bg-slate-900">हिन्दी (Hindi)</option>
               <option value="bn" className="bg-slate-900">বাংলা (Bengali)</option>
               <option value="mr" className="bg-slate-900">मराठी (Marathi)</option>
-              <option value="gu" className="bg-slate-900">ગુજરાતી (Gujarati)</option>
+              <option value="gu" className="bg-slate-900">ગુજરાதી (Gujarati)</option>
               <option value="ta" className="bg-slate-900">தமிழ் (Tamil)</option>
             </select>
           </div>
 
           <button
             onClick={() => onOpenAuthModal('login')}
-            className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 rounded-full transition-colors border border-slate-800 cursor-pointer"
+            className="hidden sm:inline-flex px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 rounded-full transition-colors border border-slate-800 cursor-pointer"
           >
             Login
           </button>
 
           <button
             onClick={() => onOpenAuthModal('register')}
-            className="px-4 py-2 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
           >
             <Sparkles className="w-4 h-4 text-blue-100" />
-            <span>Sign Up Free</span>
+            <span className="hidden sm:inline">Sign Up Free</span>
+            <span className="sm:hidden">Sign Up</span>
+          </button>
+
+          {/* Mobile Menu Toggle — replaces the old row of separate pills (Service ERP / Trading / Help),
+              which used to overflow the header on real phones and push Login/Sign Up off-screen. */}
+          <button
+            onClick={() => setShowMobileMenu(true)}
+            className="lg:hidden flex items-center justify-center text-slate-200 bg-slate-900 border border-slate-800 p-2 rounded-full shrink-0"
+            title="Menu"
+          >
+            <Menu className="w-4 h-4" />
           </button>
         </div>
       </nav>
+
+      {/* Mobile/Tablet Menu Sheet — covers the same range (below lg:) that the
+          desktop nav links (`hidden lg:flex` above) are hidden for, so there's
+          no gap where Service ERP / Trading Hub / Help become unreachable. */}
+      {showMobileMenu && (
+        <div className="lg:hidden fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-[60] flex flex-col justify-end" onClick={() => setShowMobileMenu(false)}>
+          <div
+            className="bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 shadow-2xl text-white animate-in slide-in-from-bottom duration-200 max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <span className="font-display font-extrabold text-base">Menu</span>
+              <button onClick={() => setShowMobileMenu(false)} className="p-1.5 rounded-full bg-slate-800 text-slate-300">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <button
+                onClick={() => { setShowMobileMenu(false); onOpenServiceSectorModal?.(); }}
+                className="w-full flex items-center gap-2.5 text-indigo-300 bg-indigo-600/10 border border-indigo-500/30 px-4 py-3 rounded-2xl font-bold text-left"
+              >
+                <Wrench className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span className="flex-1">Service ERP</span>
+                <span className="bg-indigo-500/30 text-indigo-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">34 Sectors</span>
+              </button>
+
+              <button
+                onClick={() => { setShowMobileMenu(false); onOpenSectorModal?.(); }}
+                className="w-full flex items-center gap-2.5 text-blue-300 bg-blue-500/10 border border-blue-500/30 px-4 py-3 rounded-2xl font-bold text-left"
+              >
+                <Layers className="w-4 h-4 shrink-0" />
+                <span className="flex-1">Trading Industry Hub</span>
+                <span className="bg-blue-500/30 text-blue-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">23 Sectors</span>
+              </button>
+
+              <button
+                onClick={() => { setShowMobileMenu(false); onOpenAuthModal('login'); }}
+                className="w-full flex items-center gap-2.5 text-slate-200 bg-slate-800/60 border border-slate-700 px-4 py-3 rounded-2xl font-bold text-left"
+              >
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span>Login to Your Account</span>
+              </button>
+
+              {onOpenHelp && (
+                <button
+                  onClick={() => { setShowMobileMenu(false); onOpenHelp(); }}
+                  className="w-full flex items-center gap-2.5 text-slate-200 bg-slate-800/60 border border-slate-700 px-4 py-3 rounded-2xl font-bold text-left"
+                >
+                  <HelpCircle className="w-4 h-4 shrink-0" />
+                  <span>Help &amp; Guide</span>
+                </button>
+              )}
+
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <a href="#features" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-300 bg-slate-800/40 border border-slate-800 px-2 py-2.5 rounded-xl">Features</a>
+                <a href="#how-it-works" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-300 bg-slate-800/40 border border-slate-800 px-2 py-2.5 rounded-xl">How It Works</a>
+                <a href="#pricing" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-300 bg-slate-800/40 border border-slate-800 px-2 py-2.5 rounded-xl">Pricing</a>
+              </div>
+
+              <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700 px-4 py-3 rounded-2xl mt-1">
+                <Globe className="w-4 h-4 text-blue-400 shrink-0" />
+                <select
+                  value={lang}
+                  onChange={(e) => onLanguageChange(e.target.value as LanguageCode)}
+                  className="bg-transparent text-white focus:outline-none text-sm font-semibold flex-1 cursor-pointer"
+                >
+                  <option value="en" className="bg-slate-900">English</option>
+                  <option value="hi" className="bg-slate-900">हिन्दी (Hindi)</option>
+                  <option value="bn" className="bg-slate-900">বাংলা (Bengali)</option>
+                  <option value="mr" className="bg-slate-900">मराठी (Marathi)</option>
+                  <option value="gu" className="bg-slate-900">ગુજરાதી (Gujarati)</option>
+                  <option value="ta" className="bg-slate-900">தமிழ் (Tamil)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Banner Section */}
       <section className="relative pt-10 pb-16 px-4 sm:px-8 max-w-7xl mx-auto overflow-hidden">
