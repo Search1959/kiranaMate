@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MessageCircle, Search, CreditCard, MessageSquare } from 'lucide-react';
+import { X, MessageCircle, Search, CreditCard, MessageSquare, PartyPopper } from 'lucide-react';
 import { Customer, StoreSettings, LanguageCode } from '../types';
 import { formatMoney } from '../lib/currency';
 import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
@@ -39,8 +39,10 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
   const totalPending = withUdhaar.reduce((sum, c) => sum + (c.currentBalance ?? c.outstandingBalance ?? 0), 0);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-[70] flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 text-slate-900 flex flex-col max-h-[92vh]">
+    // Stops at bottom-16 on mobile (not inset-0) so the persistent bottom
+    // nav bar underneath stays visible instead of getting covered by the sheet.
+    <div className="fixed top-0 left-0 right-0 bottom-16 md:inset-0 bg-slate-900/80 backdrop-blur-xs z-[70] flex items-end sm:items-center justify-center">
+      <div className="bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 text-slate-900 flex flex-col max-h-full sm:max-h-[85vh]">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white p-4 sm:p-5 rounded-t-3xl flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -78,10 +80,22 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
         {/* List */}
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
           {filtered.length === 0 ? (
-            <div className="p-10 text-center text-slate-400 text-xs space-y-1">
-              <p className="font-bold text-sm text-slate-600">
-                {withUdhaar.length === 0 ? 'No pending Udhaar — every account is clear!' : 'No customer matches your search.'}
-              </p>
+            <div className="p-10 text-center space-y-3">
+              <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${
+                withUdhaar.length === 0 ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-100 text-slate-400'
+              }`}>
+                {withUdhaar.length === 0 ? <PartyPopper className="w-7 h-7" /> : <Search className="w-7 h-7" />}
+              </div>
+              <div>
+                <p className="font-bold text-sm text-slate-700">
+                  {withUdhaar.length === 0 ? 'Every account is clear!' : 'No customer matches your search'}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {withUdhaar.length === 0
+                    ? 'No pending Udhaar right now — nothing to remind anyone about.'
+                    : 'Try a different name or phone number.'}
+                </p>
+              </div>
             </div>
           ) : (
             filtered.map(cust => (

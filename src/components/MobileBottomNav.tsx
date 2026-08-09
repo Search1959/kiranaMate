@@ -153,9 +153,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       </div>
 
       {/* FAB Quick Actions — full-screen sheet with category tabs, so picking
-          a category shows its cards right there instead of navigating away. */}
+          a category shows its cards right there instead of navigating away.
+          Stops at bottom-16 (not inset-0) so the persistent bottom nav bar
+          stays visible/tappable underneath, instead of getting covered. */}
       {showFabMenu && (
-        <div className="md:hidden fixed inset-0 bg-white z-50 flex flex-col animate-in fade-in duration-150">
+        <div className="md:hidden fixed top-0 left-0 right-0 bottom-16 bg-slate-50 z-50 flex flex-col animate-in fade-in duration-150 shadow-2xl">
           <div className={`p-4 sm:p-5 flex items-center justify-between shrink-0 text-white ${isServiceMode ? 'bg-indigo-600' : 'bg-blue-600'}`}>
             <h3 className="font-bold text-base flex items-center gap-2">
               <Plus className="w-5 h-5" /> {t.quickActions}
@@ -169,20 +171,24 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </div>
 
           {/* Category Tabs */}
-          <div className="flex items-center gap-2 px-4 sm:px-5 py-3 overflow-x-auto shrink-0 border-b border-slate-100">
-            {quickActionCategories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setActiveQuickCategory(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-                  currentQuickCategory === cat
-                    ? (isServiceMode ? 'bg-indigo-600 text-white' : 'bg-blue-600 text-white')
-                    : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 px-4 sm:px-5 py-3 overflow-x-auto shrink-0 border-b border-slate-200 bg-white">
+            {quickActionCategories.map(cat => {
+              const count = quickActions.filter(a => a.category === cat).length;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveQuickCategory(cat)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                    currentQuickCategory === cat
+                      ? (isServiceMode ? 'bg-indigo-600 text-white' : 'bg-blue-600 text-white')
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className={`text-[10px] px-1.5 rounded-full ${currentQuickCategory === cat ? 'bg-white/20' : 'bg-slate-200'}`}>{count}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Selected category's cards — same screen, no navigation away */}
@@ -197,9 +203,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                       setShowFabMenu(false);
                       onOpenQuickAction(action.id);
                     }}
-                    className={`flex flex-col items-start gap-3 p-4 rounded-2xl text-left font-semibold text-xs transition-all active:scale-95 shadow-sm min-h-[92px] justify-between ${action.bg}`}
+                    className={`flex flex-col items-start gap-4 p-4 rounded-2xl text-left font-semibold text-xs transition-all active:scale-95 shadow-md min-h-[104px] justify-between ${action.bg}`}
                   >
-                    <Icon className="w-5 h-5 shrink-0" />
+                    <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5" />
+                    </div>
                     <span className="leading-snug">{action.label}</span>
                   </button>
                 );
@@ -209,9 +217,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         </div>
       )}
 
-      {/* More Drawer Menu */}
+      {/* More Drawer Menu — stops at bottom-16 so the persistent nav bar
+          underneath stays visible, same as the Quick Actions sheet above. */}
       {showMoreMenu && (
-        <div className="md:hidden fixed inset-0 bg-slate-900/60 z-50 flex flex-col justify-end" onClick={() => setShowMoreMenu(false)}>
+        <div className="md:hidden fixed top-0 left-0 right-0 bottom-16 bg-slate-900/60 z-50 flex flex-col justify-end" onClick={() => setShowMoreMenu(false)}>
           <div
             className="bg-white rounded-t-3xl p-5 shadow-2xl border-t border-slate-200 text-slate-800 animate-in slide-in-from-bottom duration-200"
             onClick={(e) => e.stopPropagation()}
