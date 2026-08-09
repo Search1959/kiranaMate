@@ -30,6 +30,7 @@ interface LandingViewProps {
   onSelectSectorDemo?: (sectorId: TradingSector, demoStoreId: string) => void;
   onOpenSectorModal?: () => void;
   onOpenServiceSectorModal?: () => void;
+  onOpenHelp?: () => void;
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({
@@ -39,7 +40,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onLanguageChange,
   onSelectSectorDemo,
   onOpenSectorModal,
-  onOpenServiceSectorModal
+  onOpenServiceSectorModal,
+  onOpenHelp
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
@@ -94,18 +96,23 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <button
             onClick={onOpenServiceSectorModal}
             className="flex items-center gap-1.5 text-indigo-300 hover:text-white font-extrabold transition-all bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-400/40 px-3.5 py-1.5 rounded-full cursor-pointer shadow-sm hover:shadow-indigo-500/20"
-            title="Open Universal Service Business ERP (50+ Service Sectors)"
+            title="Open Universal Service Business ERP (34 Service Sectors)"
           >
             <Wrench className="w-4 h-4 text-indigo-400" />
             <span>Service ERP</span>
             <span className="bg-indigo-500/30 text-indigo-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">
-              50+ Sectors
+              34 Sectors
             </span>
           </button>
 
           <a href="#features" className="hover:text-white transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+          {onOpenHelp && (
+            <button onClick={onOpenHelp} className="hover:text-white transition-colors cursor-pointer">
+              Help &amp; Guide
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -126,6 +133,17 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <Layers className="w-3.5 h-3.5" />
             <span>Trading</span>
           </button>
+
+          {/* Mobile Help Button */}
+          {onOpenHelp && (
+            <button
+              onClick={onOpenHelp}
+              className="lg:hidden flex items-center text-slate-300 bg-slate-900 border border-slate-800 p-1.5 rounded-full"
+              title="Help & Guide"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
 
           {/* Language Switcher */}
           <div className="hidden sm:flex items-center gap-1 bg-slate-900 px-2.5 py-1.5 rounded-full border border-slate-800 text-xs">
@@ -348,7 +366,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <div className="text-[10px] text-slate-500 mt-0.5">Kirana to Jewellery</div>
           </div>
           <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-display font-black text-indigo-400">50+</div>
+            <div className="text-2xl sm:text-3xl font-display font-black text-indigo-400">34</div>
             <div className="text-xs font-semibold text-slate-300 mt-1">Service Business Sectors</div>
             <div className="text-[10px] text-slate-500 mt-0.5">Salon to Legal Firms</div>
           </div>
@@ -468,7 +486,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 icon: ClipboardList,
                 color: 'text-blue-400 bg-blue-600/15 border-blue-500/30',
                 title: 'Choose Your Business Type',
-                desc: 'Pick from 23 trading sector templates or 50+ service business sectors — units, categories & workflow are pre-configured for you.'
+                desc: 'Pick from 23 trading sector templates or 34 service business sectors — units, categories & workflow are pre-configured for you.'
               },
               {
                 step: '2',

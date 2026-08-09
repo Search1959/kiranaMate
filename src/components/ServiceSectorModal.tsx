@@ -172,7 +172,7 @@ export const ServiceSectorModal: React.FC<ServiceSectorModalProps> = ({
                   Universal Service ERP Directory
                 </h2>
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                  50+ Service Sectors
+                  34 Service Sectors
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5 font-medium">

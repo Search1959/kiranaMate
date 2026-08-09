@@ -374,7 +374,7 @@ export const ServiceAuthModal: React.FC<ServiceAuthModalProps> = ({
                   </div>
                   <p className="text-[10px] text-indigo-300 mt-1 flex items-center gap-1 font-medium">
                     <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
-                    Pre-configures your client/staff terminology and default service list (50+ industries available).
+                    Pre-configures your client/staff terminology and default service list (34 industries available).
                   </p>
                 </div>
 

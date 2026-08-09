@@ -215,10 +215,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenServiceSectorModal || (() => onNavigateToTab('service_dashboard'))}
               className="hidden lg:flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg shadow-xs px-2.5 py-1 text-xs font-extrabold transition-all border border-indigo-400/30 shrink-0 cursor-pointer"
-              title="Open Universal Service Business ERP (50+ Sectors)"
+              title="Open Universal Service Business ERP (34 Sectors)"
             >
               <Wrench className="w-3.5 h-3.5 text-indigo-200" />
-              <span>Service ERP (50+)</span>
+              <span>Service ERP (34)</span>
             </button>
 
             {/* System Admin Store Switcher Dropdown */}

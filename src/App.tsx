@@ -90,6 +90,7 @@ import { Header } from './components/Header';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { DesktopSidebar } from './components/DesktopSidebar';
 import { LandingView } from './components/LandingView';
+import { HelpGuideView } from './components/HelpGuideView';
 import { AuthModal } from './components/AuthModal';
 
 // Modals
@@ -145,7 +146,7 @@ import { ServiceSector } from './types';
 
 export default function App() {
   // Navigation & Page State
-  const [viewMode, setViewMode] = useState<'landing' | 'service_login' | 'app'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'service_login' | 'help' | 'app'>('landing');
   const [currentStoreId, setCurrentStoreId] = useState<string>('store-demo');
   const [isServiceSectorModalOpen, setIsServiceSectorModalOpen] = useState(false);
   const [selectedServiceSector, setSelectedServiceSector] = useState<ServiceSector>('DOCTOR_CLINIC');
@@ -589,6 +590,7 @@ export default function App() {
           onSelectSectorDemo={handleSelectSectorDemo}
           onOpenSectorModal={() => setIsSectorModalOpen(true)}
           onOpenServiceSectorModal={() => handleOpenServiceAuthModal('register')}
+          onOpenHelp={() => setViewMode('help')}
         />
 
         {/* Multi-Sector Trading Demo Selector Modal */}
@@ -613,6 +615,17 @@ export default function App() {
           onAuthSuccess={handleServiceAuthSuccess}
         />
       </>
+    );
+  }
+
+  // IF HELP / USER GUIDE VIEW IS ACTIVE
+  if (viewMode === 'help') {
+    return (
+      <HelpGuideView
+        onBack={() => setViewMode('landing')}
+        onStartDemo={() => { setViewMode('landing'); handleStartDemo('owner'); }}
+        onSignUp={() => { setViewMode('landing'); handleOpenAuthModal('register'); }}
+      />
     );
   }
 
