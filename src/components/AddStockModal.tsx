@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   Zap,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Camera
 } from 'lucide-react';
 import { Product, Supplier, PaymentMethod, PaymentStatus, ProductUnit, StoreSettings } from '../types';
 import { api } from '../lib/api';
@@ -25,6 +26,8 @@ interface AddStockModalProps {
   settings: StoreSettings;
   selectedProductForStock?: Product | null;
   onStockAdded: () => void;
+  /** Switches to the AI camera-scan flow instead of typing the bill in by hand. */
+  onOpenScanBill?: () => void;
 }
 
 interface PurchaseItemRow {
@@ -47,7 +50,8 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
   suppliers = [],
   settings,
   selectedProductForStock,
-  onStockAdded
+  onStockAdded,
+  onOpenScanBill
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [activeTab, setActiveTab] = useState<'invoice' | 'quick'>('invoice');
@@ -392,6 +396,21 @@ export const AddStockModal: React.FC<AddStockModalProps> = ({
             <span>Quick Stock Increment</span>
           </button>
         </div>
+
+        {/* Scan-instead banner — typing a whole bill by hand is slow; this is
+            the fast path, especially on a phone at the counter. */}
+        {onOpenScanBill && (
+          <div className="px-3 sm:px-4 pt-3 shrink-0">
+            <button
+              type="button"
+              onClick={onOpenScanBill}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm rounded-xl shadow-xs cursor-pointer"
+            >
+              <Camera className="w-4 h-4" />
+              <span>Scan Bill with Camera Instead (AI Auto-Fill)</span>
+            </button>
+          </div>
+        )}
 
         {/* Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">

@@ -60,7 +60,11 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [step, setStep] = useState<'capture' | 'scanning' | 'review'>('capture');
-  const [activeTab, setActiveTab] = useState<'camera' | 'upload'>('upload');
+  // On a phone, camera capture is the whole point — file upload/import stays
+  // a desktop-only path (picking a file from a photo gallery is fiddly on
+  // mobile and desktop already covers bulk/PDF/Excel import well).
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [activeTab, setActiveTab] = useState<'camera' | 'upload'>(isMobile ? 'camera' : 'upload');
 
   // Camera stream
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -107,7 +111,11 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       }
     } catch (err: any) {
       console.error('Camera access error:', err);
-      setCameraError('Camera access denied or unavailable on this device. Please upload a photo instead.');
+      setCameraError(
+        isMobile
+          ? 'Camera access denied or unavailable on this device.'
+          : 'Camera access denied or unavailable on this device. Please upload a photo instead.'
+      );
     }
   };
 
@@ -547,11 +555,12 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
           {/* STEP 1: CAPTURE OR UPLOAD */}
           {step === 'capture' && (
             <div className="space-y-4">
-              {/* Camera vs File Upload Tabs */}
+              {/* Camera vs File Upload Tabs — Upload only shows on desktop;
+                  mobile is camera-only (see isMobile note near activeTab). */}
               <div className="flex bg-slate-100 p-1 rounded-xl gap-1 text-xs font-bold">
                 <button
                   onClick={() => setActiveTab('upload')}
-                  className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  className={`hidden md:flex flex-1 py-2 rounded-lg items-center justify-center gap-2 transition-all cursor-pointer ${
                     activeTab === 'upload' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -576,10 +585,13 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                       <p>{cameraError}</p>
                       <button
                         onClick={() => setActiveTab('upload')}
-                        className="px-3 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-xs cursor-pointer"
+                        className="hidden md:inline-block px-3 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-xs cursor-pointer"
                       >
                         Switch to File Upload
                       </button>
+                      <p className="md:hidden text-amber-700">
+                        Please allow camera access and try again, or scan this bill from a desktop/laptop instead.
+                      </p>
                     </div>
                   ) : (
                     <div className="relative bg-slate-950 rounded-2xl overflow-hidden aspect-4/3 max-h-[360px] flex items-center justify-center border border-slate-800">

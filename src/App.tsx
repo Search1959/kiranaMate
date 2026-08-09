@@ -1061,6 +1061,7 @@ export default function App() {
         settings={activeSettings}
         selectedProductForStock={stockProductTarget}
         onStockAdded={() => loadData(currentStoreId)}
+        onOpenScanBill={() => { setIsAddStockOpen(false); setIsScanPurchaseBillOpen(true); }}
       />
 
       <AddExpenseModal
