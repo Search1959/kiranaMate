@@ -744,6 +744,16 @@ export class ServiceStoreManager {
     return newStaff;
   }
 
+  updateStaff(id: string, updates: Partial<Omit<ServiceStaff, 'id'>>) {
+    this.data.staff = this.data.staff.map(s => (s.id === id ? { ...s, ...updates } : s));
+    this.saveToStorage();
+  }
+
+  deleteStaff(id: string) {
+    this.data.staff = this.data.staff.filter(s => s.id !== id);
+    this.saveToStorage();
+  }
+
   // Packages
   getPackages(): ServicePackage[] {
     return this.data.packages || [];
@@ -778,6 +788,16 @@ export class ServiceStoreManager {
     this.data.customers = [newCust, ...this.data.customers];
     this.saveToStorage();
     return newCust;
+  }
+
+  updateCustomer(id: string, updates: Partial<Omit<ServiceCustomer, 'id' | 'createdAt' | 'sector'>>) {
+    this.data.customers = this.data.customers.map(c => (c.id === id ? { ...c, ...updates } : c));
+    this.saveToStorage();
+  }
+
+  deleteCustomer(id: string) {
+    this.data.customers = this.data.customers.filter(c => c.id !== id);
+    this.saveToStorage();
   }
 
   // Invoices
@@ -937,6 +957,16 @@ export class ServiceStoreManager {
     this.data.expenses = [newExp, ...(this.data.expenses || [])];
     this.saveToStorage();
     return newExp;
+  }
+
+  updateExpense(id: string, updates: Partial<Omit<Expense, 'id' | 'createdAt'>>) {
+    this.data.expenses = (this.data.expenses || []).map(e => (e.id === id ? { ...e, ...updates } : e));
+    this.saveToStorage();
+  }
+
+  deleteExpense(id: string) {
+    this.data.expenses = (this.data.expenses || []).filter(e => e.id !== id);
+    this.saveToStorage();
   }
 
   // Calculated Service Stats

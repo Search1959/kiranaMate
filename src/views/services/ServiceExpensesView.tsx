@@ -1,18 +1,37 @@
 import React, { useState } from 'react';
-import { TrendingDown, Plus, Search, Receipt, Calendar, CreditCard, Repeat } from 'lucide-react';
+import { TrendingDown, Plus, Search, Receipt, Calendar, CreditCard, Repeat, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore, SERVICE_EXPENSE_CATEGORIES } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { AddServiceExpenseModal } from '../../components/AddServiceExpenseModal';
+import { Expense } from '../../types';
 
 export const ServiceExpensesView: React.FC = () => {
   const activeSector = serviceStore.getActiveSector();
   const cfg = getServiceSectorConfig(activeSector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const expenses = serviceStore.getExpenses();
   const stats = serviceStore.getStats();
 
   const [showModal, setShowModal] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+
+  const handleOpenCreate = () => {
+    setEditingExpense(null);
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (exp: Expense) => {
+    setEditingExpense(exp);
+    setShowModal(true);
+  };
+
+  const handleDeleteExpense = (exp: Expense) => {
+    if (!window.confirm(`Delete this ₹${exp.amount.toLocaleString('en-IN')} expense (${exp.category})? This can't be undone.`)) return;
+    serviceStore.deleteExpense(exp.id);
+    setRefreshTick(t => t + 1);
+  };
 
   const recurringTotal = expenses.filter(e => e.isRecurring).reduce((acc, e) => acc + e.amount, 0);
 
@@ -41,7 +60,7 @@ export const ServiceExpensesView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-600/30 flex items-center gap-2 cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
@@ -162,8 +181,24 @@ export const ServiceExpensesView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-right shrink-0">
+              <div className="flex items-center gap-3 shrink-0">
                 <span className="text-lg font-black text-rose-400">₹{exp.amount.toLocaleString('en-IN')}</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handleOpenEdit(exp)}
+                    title="Edit expense"
+                    className="p-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white border border-slate-700 rounded-lg cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteExpense(exp)}
+                    title="Delete expense"
+                    className="p-1.5 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 rounded-lg cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -172,8 +207,9 @@ export const ServiceExpensesView: React.FC = () => {
 
       <AddServiceExpenseModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSaved={() => setShowModal(false)}
+        onClose={() => { setShowModal(false); setEditingExpense(null); }}
+        onSaved={() => { setShowModal(false); setEditingExpense(null); setRefreshTick(t => t + 1); }}
+        editingExpense={editingExpense}
       />
     </div>
   );

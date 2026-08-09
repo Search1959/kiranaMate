@@ -1,19 +1,55 @@
 import React, { useState } from 'react';
-import { Users, Plus, Star, Phone, Award, DollarSign, CheckCircle } from 'lucide-react';
+import { Users, Plus, Star, Phone, Award, DollarSign, CheckCircle, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
+import { ServiceStaff } from '../../types';
 
 export const ServiceStaffView: React.FC = () => {
   const activeSector = serviceStore.getActiveSector();
   const cfg = getServiceSectorConfig(activeSector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const staff = serviceStore.getStaff();
 
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
   const [name, setName] = useState<string>('');
   const [role, setRole] = useState<string>(cfg.staffTerm);
   const [mobile, setMobile] = useState<string>('');
   const [specialty, setSpecialty] = useState<string>('');
   const [commission, setCommission] = useState<number>(20);
+  const [status, setStatus] = useState<ServiceStaff['status']>('Active');
+
+  const resetForm = () => {
+    setName('');
+    setRole(cfg.staffTerm);
+    setMobile('');
+    setSpecialty('');
+    setCommission(20);
+    setStatus('Active');
+    setEditingStaffId(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (st: ServiceStaff) => {
+    setEditingStaffId(st.id);
+    setName(st.name);
+    setRole(st.role);
+    setMobile(st.mobile);
+    setSpecialty(st.specialty);
+    setCommission(st.commissionPercent);
+    setStatus(st.status);
+    setShowModal(true);
+  };
+
+  const handleDeleteStaff = (st: ServiceStaff) => {
+    if (!window.confirm(`Remove ${st.name} from your ${cfg.staffTerm.toLowerCase()} roster? This can't be undone.`)) return;
+    serviceStore.deleteStaff(st.id);
+    setRefreshTick(t => t + 1);
+  };
 
   const handleAddStaff = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,21 +57,31 @@ export const ServiceStaffView: React.FC = () => {
       alert("Please enter staff name and mobile");
       return;
     }
-    serviceStore.addStaff({
-      name,
-      role,
-      mobile,
-      specialty: specialty || 'General Specialist',
-      rating: 4.8,
-      totalJobsCompleted: 0,
-      commissionPercent: commission,
-      dailyTarget: 5000,
-      status: 'Active'
-    });
+    if (editingStaffId) {
+      serviceStore.updateStaff(editingStaffId, {
+        name,
+        role,
+        mobile,
+        specialty: specialty || 'General Specialist',
+        commissionPercent: commission,
+        status
+      });
+    } else {
+      serviceStore.addStaff({
+        name,
+        role,
+        mobile,
+        specialty: specialty || 'General Specialist',
+        rating: 4.8,
+        totalJobsCompleted: 0,
+        commissionPercent: commission,
+        dailyTarget: 5000,
+        status: 'Active'
+      });
+    }
     setShowModal(false);
-    setName('');
-    setMobile('');
-    setSpecialty('');
+    resetForm();
+    setRefreshTick(t => t + 1);
   };
 
   return (
@@ -50,7 +96,7 @@ export const ServiceStaffView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -91,6 +137,32 @@ export const ServiceStaffView: React.FC = () => {
                 <span className="font-bold text-blue-400">{st.commissionPercent}%</span>
               </div>
             </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                st.status === 'Active' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                st.status === 'Busy' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                'bg-slate-800 text-slate-400 border border-slate-700'
+              }`}>
+                {st.status}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleOpenEdit(st)}
+                  title="Edit staff"
+                  className="p-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => handleDeleteStaff(st)}
+                  title="Remove staff"
+                  className="p-1 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -100,7 +172,7 @@ export const ServiceStaffView: React.FC = () => {
           <form onSubmit={handleAddStaff} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-400" />
-              <span>Add Staff Member</span>
+              <span>{editingStaffId ? 'Edit Staff Member' : 'Add Staff Member'}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
@@ -145,12 +217,26 @@ export const ServiceStaffView: React.FC = () => {
                   className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white"
                 />
               </div>
+              {editingStaffId && (
+                <div>
+                  <label className="block text-slate-400 mb-1">Duty Status</label>
+                  <select
+                    value={status}
+                    onChange={e => setStatus(e.target.value as ServiceStaff['status'])}
+                    className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Busy">Busy</option>
+                    <option value="On-Leave">On-Leave</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
@@ -159,7 +245,7 @@ export const ServiceStaffView: React.FC = () => {
                 type="submit"
                 className="flex-1 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30"
               >
-                Save Staff
+                {editingStaffId ? 'Save Changes' : 'Save Staff'}
               </button>
             </div>
           </form>

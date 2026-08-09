@@ -25,7 +25,7 @@ import {
   Tag,
   Receipt
 } from 'lucide-react';
-import { ExpenseCategory, PaymentMethod, StoreSettings } from '../types';
+import { Expense, ExpenseCategory, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { formatMoney } from '../lib/currency';
 
@@ -35,6 +35,8 @@ interface AddExpenseModalProps {
   onExpenseSaved: () => void;
   recordedBy?: string;
   settings: StoreSettings;
+  /** Pass an existing expense to edit it instead of creating a new one. */
+  editingExpense?: Expense | null;
 }
 
 const EXPENSE_CATEGORIES: { label: ExpenseCategory; icon: any; color: string }[] = [
@@ -191,9 +193,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   onClose,
   onExpenseSaved,
   recordedBy = 'Shop Owner',
-  settings
+  settings,
+  editingExpense
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
+  const isEditing = !!editingExpense;
   const [activeTab, setActiveTab] = useState<'form' | 'scan'>('form');
 
   // Form State
@@ -207,6 +211,32 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [gstAmount, setGstAmount] = useState<number | ''>('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (editingExpense) {
+      setActiveTab('form');
+      setCategory(editingExpense.category);
+      setPayeeName(editingExpense.payeeName || '');
+      setAmount(editingExpense.amount);
+      setDate(editingExpense.date);
+      setDescription(editingExpense.description || '');
+      setPaymentMethod(editingExpense.paymentMethod);
+      setReceiptNo(editingExpense.receiptNo || '');
+      setGstAmount(editingExpense.gstAmount ?? '');
+      setIsRecurring(!!editingExpense.isRecurring);
+    } else {
+      setCategory('Tea & Snacks');
+      setPayeeName('');
+      setAmount('');
+      setDate(new Date().toISOString().split('T')[0]);
+      setDescription('');
+      setPaymentMethod('CASH');
+      setReceiptNo('');
+      setGstAmount('');
+      setIsRecurring(false);
+    }
+  }, [isOpen, editingExpense]);
 
   // AI Extracted Badge Banner
   const [aiExtractedBanner, setAiExtractedBanner] = useState<string | null>(null);
@@ -367,30 +397,44 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const fullDescription = [
-        payeeName ? `Paid To: ${payeeName}` : null,
-        description || `Shop expense: ${category}`,
-        receiptNo ? `Ref/Bill #: ${receiptNo}` : null,
-        isRecurring ? `[Monthly/Daily Recurring]` : null
-      ].filter(Boolean).join(' • ');
+      if (isEditing && editingExpense) {
+        await api.updateExpense(editingExpense.id, {
+          category,
+          amount: Number(amount),
+          date,
+          description: description || `Shop expense: ${category}`,
+          paymentMethod,
+          payeeName: payeeName || undefined,
+          receiptNo: receiptNo || undefined,
+          isRecurring,
+          gstAmount: typeof gstAmount === 'number' ? gstAmount : undefined
+        });
+      } else {
+        const fullDescription = [
+          payeeName ? `Paid To: ${payeeName}` : null,
+          description || `Shop expense: ${category}`,
+          receiptNo ? `Ref/Bill #: ${receiptNo}` : null,
+          isRecurring ? `[Monthly/Daily Recurring]` : null
+        ].filter(Boolean).join(' • ');
 
-      await api.createExpense({
-        category,
-        amount: Number(amount),
-        date,
-        description: fullDescription,
-        paymentMethod,
-        payeeName: payeeName || undefined,
-        receiptNo: receiptNo || undefined,
-        isRecurring,
-        gstAmount: typeof gstAmount === 'number' ? gstAmount : undefined,
-        recordedBy
-      });
+        await api.createExpense({
+          category,
+          amount: Number(amount),
+          date,
+          description: fullDescription,
+          paymentMethod,
+          payeeName: payeeName || undefined,
+          receiptNo: receiptNo || undefined,
+          isRecurring,
+          gstAmount: typeof gstAmount === 'number' ? gstAmount : undefined,
+          recordedBy
+        });
+      }
 
       onExpenseSaved();
       onClose();
     } catch (err: any) {
-      alert(err.message || 'Failed to record expense');
+      alert(err.message || 'Failed to save expense');
     } finally {
       setIsSubmitting(false);
     }
@@ -407,13 +451,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             </div>
             <div>
               <h2 className="font-extrabold text-base sm:text-lg flex items-center gap-2">
-                <span>Record Shop Expense</span>
+                <span>{isEditing ? 'Edit Shop Expense' : 'Record Shop Expense'}</span>
                 <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
                   Operational Costs
                 </span>
               </h2>
               <p className="text-xs text-rose-100/80">
-                Log daily shop expenses or scan receipt bills with AI Camera
+                {isEditing ? 'Fix a wrongly entered amount, category, or note' : 'Log daily shop expenses or scan receipt bills with AI Camera'}
               </p>
             </div>
           </div>
@@ -689,12 +733,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   {isSubmitting ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Recording Expense...</span>
+                      <span>{isEditing ? 'Saving Changes...' : 'Recording Expense...'}</span>
                     </>
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>SAVE SHOP EXPENSE LOG</span>
+                      <span>{isEditing ? 'SAVE CHANGES' : 'SAVE SHOP EXPENSE LOG'}</span>
                     </>
                   )}
                 </button>

@@ -15,7 +15,9 @@ import {
   X,
   Scan,
   CreditCard,
-  ShieldCheck
+  ShieldCheck,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { Supplier, Purchase, StoreSettings } from '../types';
 import { api } from '../lib/api';
@@ -45,8 +47,9 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedSupplierForPay, setSelectedSupplierForPay] = useState<Supplier | null>(null);
+  const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
 
-  // New Supplier Form
+  // New/Edit Supplier Form
   const [newSupName, setNewSupName] = useState('');
   const [newSupCompany, setNewSupCompany] = useState('');
   const [newSupContact, setNewSupContact] = useState('');
@@ -95,7 +98,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
     setErrorMsg(null);
 
     try {
-      await api.createSupplier({
+      const payload = {
         name: newSupName.trim(),
         companyName: newSupCompany.trim() || newSupName.trim(),
         contactPerson: newSupContact.trim() || newSupName.trim(),
@@ -103,16 +106,22 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         gstin: newSupGstin.trim() || undefined,
         address: newSupAddress.trim() || 'Wholesale Market',
         city: newSupCity.trim() || 'City',
-        outstandingBalance: Number(newSupBalance) || 0,
         notes: newSupNotes.trim() || undefined
-      });
+      };
 
-      setSuccessMsg(`Supplier "${newSupName}" added successfully!`);
+      if (editingSupplierId) {
+        await api.updateSupplier(editingSupplierId, payload);
+        setSuccessMsg(`Supplier "${newSupName}" updated successfully!`);
+      } else {
+        await api.createSupplier({ ...payload, outstandingBalance: Number(newSupBalance) || 0 });
+        setSuccessMsg(`Supplier "${newSupName}" added successfully!`);
+      }
+
       setIsAddSupplierModalOpen(false);
       resetAddForm();
       onRefreshData();
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to add supplier');
+      setErrorMsg(err.message || 'Failed to save supplier');
     } finally {
       setIsSubmitting(false);
     }
@@ -128,6 +137,33 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
     setNewSupCity('');
     setNewSupBalance(0);
     setNewSupNotes('');
+    setEditingSupplierId(null);
+  };
+
+  const handleOpenEditSupplier = (sup: Supplier) => {
+    setErrorMsg(null);
+    setEditingSupplierId(sup.id);
+    setNewSupName(sup.name);
+    setNewSupCompany(sup.companyName || '');
+    setNewSupContact(sup.contactPerson || '');
+    setNewSupMobile(sup.mobile);
+    setNewSupGstin(sup.gstin || '');
+    setNewSupAddress(sup.address || '');
+    setNewSupCity(sup.city || '');
+    setNewSupBalance(sup.outstandingBalance || 0);
+    setNewSupNotes(sup.notes || '');
+    setIsAddSupplierModalOpen(true);
+  };
+
+  const handleDeleteSupplier = async (sup: Supplier) => {
+    if (!window.confirm(`Delete supplier "${sup.name}"? This can't be undone. (Past purchase bills from them are kept.)`)) return;
+    try {
+      await api.deleteSupplier(sup.id);
+      setSuccessMsg(`Supplier "${sup.name}" deleted.`);
+      onRefreshData();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to delete supplier');
+    }
   };
 
   const handleOpenPayModal = (sup: Supplier) => {
@@ -373,6 +409,22 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                         >
                           + Purchase Bill
                         </button>
+
+                        <button
+                          onClick={() => handleOpenEditSupplier(sup)}
+                          title="Edit supplier"
+                          className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg cursor-pointer"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteSupplier(sup)}
+                          title="Delete supplier"
+                          className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -390,10 +442,10 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="font-extrabold text-base flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-blue-600" />
-                <span>Add Wholesale Supplier / Vendor</span>
+                <span>{editingSupplierId ? 'Edit Supplier / Vendor' : 'Add Wholesale Supplier / Vendor'}</span>
               </h2>
               <button
-                onClick={() => setIsAddSupplierModalOpen(false)}
+                onClick={() => { setIsAddSupplierModalOpen(false); resetAddForm(); }}
                 className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
@@ -475,18 +527,26 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Current Opening Payable Balance ({settings.currencySymbol})</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={newSupBalance}
-                  onChange={(e) => setNewSupBalance(Number(e.target.value))}
-                  placeholder="0"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-extrabold text-rose-600 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                />
-                <span className="text-[10px] text-slate-400">Enter amount if shop already owes money to this vendor</span>
-              </div>
+              {editingSupplierId ? (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-500 block">Current Payable Balance</span>
+                  <span className="font-extrabold text-rose-600 text-sm block">{money(newSupBalance)}</span>
+                  <span className="text-[10px] text-slate-400">Use "Pay Khata" from the list to settle this — it's not edited here.</span>
+                </div>
+              ) : (
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Current Opening Payable Balance ({settings.currencySymbol})</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newSupBalance}
+                    onChange={(e) => setNewSupBalance(Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-extrabold text-rose-600 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-400">Enter amount if shop already owes money to this vendor</span>
+                </div>
+              )}
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Address / Landmark</label>
@@ -502,7 +562,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsAddSupplierModalOpen(false)}
+                  onClick={() => { setIsAddSupplierModalOpen(false); resetAddForm(); }}
                   className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
                 >
                   Cancel
@@ -512,7 +572,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                   disabled={isSubmitting}
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Supplier'}
+                  {isSubmitting ? 'Saving...' : editingSupplierId ? 'Save Changes' : 'Save Supplier'}
                 </button>
               </div>
             </form>

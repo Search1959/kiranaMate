@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Plus, Search, Phone, Mail, MapPin, Calendar, Wrench, Shield } from 'lucide-react';
+import { Users, Plus, Search, Phone, Mail, MapPin, Calendar, Wrench, Shield, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceCustomer } from '../../types';
@@ -13,10 +13,12 @@ interface ServiceCustomersViewProps {
 export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNavigateTab }) => {
   const [sector, setSector] = useState(serviceStore.getActiveSector());
   const cfg = getServiceSectorConfig(sector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const customers = serviceStore.getCustomers();
 
   const [search, setSearch] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
 
   const [name, setName] = useState<string>('');
   const [mobile, setMobile] = useState<string>('');
@@ -30,25 +32,56 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
     (c.email && c.email.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const resetForm = () => {
+    setName('');
+    setMobile('');
+    setEmail('');
+    setAddress('');
+    setNotes('');
+    setEditingCustomerId(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (c: ServiceCustomer) => {
+    setEditingCustomerId(c.id);
+    setName(c.name);
+    setMobile(c.mobile);
+    setEmail(c.email || '');
+    setAddress(c.address || '');
+    setNotes(c.notes || '');
+    setShowModal(true);
+  };
+
+  const handleDeleteCustomer = (c: ServiceCustomer) => {
+    if (!window.confirm(`Delete client "${c.name}" (${c.mobile})? This can't be undone.`)) return;
+    serviceStore.deleteCustomer(c.id);
+    setRefreshTick(t => t + 1);
+  };
+
   const handleAddCustomer = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !mobile) {
       alert("Please enter customer name and mobile");
       return;
     }
-    serviceStore.addCustomer({
-      name,
-      mobile,
-      email,
-      address,
-      notes
-    });
+    if (editingCustomerId) {
+      serviceStore.updateCustomer(editingCustomerId, { name, mobile, email, address, notes });
+    } else {
+      serviceStore.addCustomer({
+        name,
+        mobile,
+        email,
+        address,
+        notes
+      });
+    }
     setShowModal(false);
-    setName('');
-    setMobile('');
-    setEmail('');
-    setAddress('');
-    setNotes('');
+    resetForm();
+    setRefreshTick(t => t + 1);
   };
 
   return (
@@ -71,7 +104,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -109,13 +142,29 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
                 </div>
               </div>
 
-              {c.amcStatus && (
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                  c.amcStatus === 'Active' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
-                }`}>
-                  AMC {c.amcStatus}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5">
+                {c.amcStatus && (
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                    c.amcStatus === 'Active' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    AMC {c.amcStatus}
+                  </span>
+                )}
+                <button
+                  onClick={() => handleOpenEdit(c)}
+                  title="Edit client"
+                  className="p-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => handleDeleteCustomer(c)}
+                  title="Delete client"
+                  className="p-1 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             <div className="bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/50 text-[11px] space-y-1">
@@ -134,7 +183,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
           <form onSubmit={handleAddCustomer} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-400" />
-              <span>Add New {cfg.customerTerm}</span>
+              <span>{editingCustomerId ? `Edit ${cfg.customerTerm}` : `Add New ${cfg.customerTerm}`}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
@@ -185,7 +234,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
@@ -194,7 +243,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
                 type="submit"
                 className="flex-1 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30"
               >
-                Save Client
+                {editingCustomerId ? 'Save Changes' : 'Save Client'}
               </button>
             </div>
           </form>

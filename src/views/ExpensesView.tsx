@@ -17,23 +17,38 @@ import {
   Receipt,
   Calendar,
   CreditCard,
-  Repeat
+  Repeat,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { Expense, StoreSettings } from '../types';
 import { formatMoney } from '../lib/currency';
+import { api } from '../lib/api';
 
 interface ExpensesViewProps {
   expenses: Expense[];
   settings: StoreSettings;
   onOpenAddExpense: () => void;
+  onEditExpense?: (expense: Expense) => void;
   onRefreshData?: () => void;
 }
 
 export const ExpensesView: React.FC<ExpensesViewProps> = ({
   expenses,
   settings,
-  onOpenAddExpense
+  onOpenAddExpense,
+  onEditExpense,
+  onRefreshData
 }) => {
+  const handleDeleteExpense = async (exp: Expense) => {
+    if (!window.confirm(`Delete this ${money(exp.amount)} expense (${exp.category})? This can't be undone.`)) return;
+    try {
+      await api.deleteExpense(exp.id);
+      onRefreshData?.();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete expense');
+    }
+  };
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -222,15 +237,33 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                 </div>
               </div>
 
-              <div className="text-right shrink-0">
-                <span className="text-lg font-black text-rose-700">
-                  {money(exp.amount)}
-                </span>
-                {exp.gstAmount && exp.gstAmount > 0 ? (
-                  <div className="text-[10px] font-semibold text-emerald-700">
-                    Includes {money(exp.gstAmount)} Tax/GST
-                  </div>
-                ) : null}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="text-right">
+                  <span className="text-lg font-black text-rose-700">
+                    {money(exp.amount)}
+                  </span>
+                  {exp.gstAmount && exp.gstAmount > 0 ? (
+                    <div className="text-[10px] font-semibold text-emerald-700">
+                      Includes {money(exp.gstAmount)} Tax/GST
+                    </div>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => onEditExpense?.(exp)}
+                    title="Edit expense"
+                    className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteExpense(exp)}
+                    title="Delete expense"
+                    className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))

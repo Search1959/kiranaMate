@@ -200,6 +200,7 @@ export default function App() {
   const [stockProductTarget, setStockProductTarget] = useState<Product | null>(null);
 
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const [isInvoicePrintOpen, setIsInvoicePrintOpen] = useState(false);
   const [invoiceData, setInvoiceData] = useState<Sale | Order | null>(null);
@@ -817,6 +818,7 @@ export default function App() {
               expenses={expenses}
               settings={activeSettings}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+              onEditExpense={(exp) => { setEditingExpense(exp); setIsAddExpenseOpen(true); }}
               onRefreshData={() => loadData(currentStoreId)}
             />
           )}
@@ -1007,10 +1009,11 @@ export default function App() {
 
       <AddExpenseModal
         isOpen={isAddExpenseOpen}
-        onClose={() => setIsAddExpenseOpen(false)}
+        onClose={() => { setIsAddExpenseOpen(false); setEditingExpense(null); }}
         onExpenseSaved={() => loadData(currentStoreId)}
         recordedBy={currentUser.name}
         settings={activeSettings}
+        editingExpense={editingExpense}
       />
 
       <InvoicePrintModal

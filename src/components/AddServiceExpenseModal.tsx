@@ -17,7 +17,7 @@ import {
   Tag,
   DollarSign
 } from 'lucide-react';
-import { ExpenseCategory, PaymentMethod } from '../types';
+import { Expense, ExpenseCategory, PaymentMethod } from '../types';
 import { serviceStore } from '../lib/serviceStore';
 
 interface AddServiceExpenseModalProps {
@@ -25,6 +25,8 @@ interface AddServiceExpenseModalProps {
   onClose: () => void;
   onSaved: () => void;
   recordedBy?: string;
+  /** Pass an existing expense to edit it instead of creating a new one. */
+  editingExpense?: Expense | null;
 }
 
 const SERVICE_EXPENSE_CATEGORY_META: { label: ExpenseCategory | string; icon: any; color: string }[] = [
@@ -45,8 +47,10 @@ export const AddServiceExpenseModal: React.FC<AddServiceExpenseModalProps> = ({
   isOpen,
   onClose,
   onSaved,
-  recordedBy = 'Owner'
+  recordedBy = 'Owner',
+  editingExpense
 }) => {
+  const isEditing = !!editingExpense;
   const [category, setCategory] = useState<ExpenseCategory | string>('Staff Salary');
   const [payeeName, setPayeeName] = useState('');
   const [amount, setAmount] = useState<number | ''>('');
@@ -55,6 +59,27 @@ export const AddServiceExpenseModal: React.FC<AddServiceExpenseModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    if (editingExpense) {
+      setCategory(editingExpense.category);
+      setPayeeName(editingExpense.payeeName || '');
+      setAmount(editingExpense.amount);
+      setDate(editingExpense.date);
+      setDescription(editingExpense.description || '');
+      setPaymentMethod(editingExpense.paymentMethod);
+      setIsRecurring(!!editingExpense.isRecurring);
+    } else {
+      setCategory('Staff Salary');
+      setPayeeName('');
+      setAmount('');
+      setDate(new Date().toISOString().split('T')[0]);
+      setDescription('');
+      setPaymentMethod('UPI');
+      setIsRecurring(false);
+    }
+  }, [isOpen, editingExpense]);
 
   if (!isOpen) return null;
 
@@ -82,22 +107,34 @@ export const AddServiceExpenseModal: React.FC<AddServiceExpenseModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const fullDescription = [
-        payeeName ? `Paid To: ${payeeName}` : null,
-        description || `Business expense: ${category}`,
-        isRecurring ? '[Monthly Recurring]' : null
-      ].filter(Boolean).join(' • ');
+      if (isEditing && editingExpense) {
+        serviceStore.updateExpense(editingExpense.id, {
+          category,
+          amount: Number(amount),
+          date,
+          description: description || `Business expense: ${category}`,
+          paymentMethod,
+          payeeName: payeeName || undefined,
+          isRecurring
+        });
+      } else {
+        const fullDescription = [
+          payeeName ? `Paid To: ${payeeName}` : null,
+          description || `Business expense: ${category}`,
+          isRecurring ? '[Monthly Recurring]' : null
+        ].filter(Boolean).join(' • ');
 
-      serviceStore.addExpense({
-        category,
-        amount: Number(amount),
-        date,
-        description: fullDescription,
-        paymentMethod,
-        payeeName: payeeName || undefined,
-        isRecurring,
-        recordedBy
-      });
+        serviceStore.addExpense({
+          category,
+          amount: Number(amount),
+          date,
+          description: fullDescription,
+          paymentMethod,
+          payeeName: payeeName || undefined,
+          isRecurring,
+          recordedBy
+        });
+      }
 
       resetForm();
       onSaved();
@@ -120,9 +157,9 @@ export const AddServiceExpenseModal: React.FC<AddServiceExpenseModalProps> = ({
             </div>
             <div>
               <h2 className="font-extrabold text-base flex items-center gap-2">
-                <span>Record Service Expense</span>
+                <span>{isEditing ? 'Edit Service Expense' : 'Record Service Expense'}</span>
               </h2>
-              <p className="text-xs text-rose-100/80">Log salary, rent, subscriptions & operating costs</p>
+              <p className="text-xs text-rose-100/80">{isEditing ? 'Fix a wrongly entered amount, category, or note' : 'Log salary, rent, subscriptions & operating costs'}</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="p-1.5 rounded-full hover:bg-white/20 text-rose-100 cursor-pointer">
@@ -274,7 +311,7 @@ export const AddServiceExpenseModal: React.FC<AddServiceExpenseModalProps> = ({
             ) : (
               <>
                 <Check className="w-4 h-4" />
-                <span>Save Expense</span>
+                <span>{isEditing ? 'Save Changes' : 'Save Expense'}</span>
               </>
             )}
           </button>
