@@ -859,6 +859,70 @@ class Database {
     return true;
   }
 
+  /**
+   * Voids a sale — the GST-correct way to fix a wrong entry. The sale record
+   * is KEPT (never deleted, so it stays in the audit trail and can never
+   * silently vanish from tax records) but marked CANCELLED, and its effects
+   * are reversed: stock is restored, and Udhaar balance is credited back if
+   * the sale was on Credit. getDailyStats() excludes CANCELLED sales from
+   * revenue, so cancelling here actually corrects the numbers, not just the
+   * label.
+   */
+  public voidSale(storeId: string = 'store-demo', id: string, reason: string): Sale | null {
+    const store = this.getStore(storeId);
+    const sale = store.sales.find(s => s.id === id);
+    if (!sale || sale.status === 'CANCELLED') return sale || null;
+
+    sale.items.forEach(item => {
+      const p = store.products.find(prod => prod.id === item.productId);
+      if (p) {
+        const newStock = p.currentStock + item.quantity;
+        p.currentStock = newStock;
+        p.updatedAt = new Date().toISOString();
+
+        store.inventoryTransactions.push({
+          id: `inv-void-${Date.now()}`,
+          productId: p.id,
+          productName: p.name,
+          type: 'SALE_CANCELLED',
+          quantityChange: item.quantity,
+          stockAfter: newStock,
+          referenceId: sale.saleNumber,
+          createdBy: 'Shop Owner',
+          createdAt: new Date().toISOString()
+        });
+      }
+    });
+
+    if (sale.paymentMethod === 'CREDIT' && sale.customerId) {
+      const cust = store.customers.find(c => c.id === sale.customerId);
+      if (cust) {
+        const newBal = Math.max(0, cust.currentBalance - sale.grandTotal);
+        cust.currentBalance = newBal;
+        cust.updatedAt = new Date().toISOString();
+
+        store.customerTransactions.push({
+          id: `tx-void-${Date.now()}`,
+          customerId: cust.id,
+          type: 'RETURN_CREDIT',
+          amount: sale.grandTotal,
+          balanceAfter: newBal,
+          referenceId: sale.saleNumber,
+          notes: `Sale #${sale.saleNumber} voided: ${reason}`,
+          createdBy: 'Shop Owner',
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    sale.status = 'CANCELLED';
+    sale.cancelReason = reason;
+    sale.cancelledAt = new Date().toISOString();
+
+    this.saveData();
+    return sale;
+  }
+
   // --- ORDERS ---
   public getOrders(storeId: string = 'store-demo', search?: string, status?: string): Order[] {
     const store = this.getStore(storeId);
@@ -1303,7 +1367,9 @@ class Database {
     if (todaySalesList.length === 0 && store.sales.length > 0) {
       todaySalesList = store.sales;
     }
-    const todayOrdersList = store.orders.filter(o => o.createdAt.startsWith(todayStr));
+    // Voided sales stay in the record for the audit trail but must never count toward revenue.
+    todaySalesList = todaySalesList.filter(s => s.status !== 'CANCELLED');
+    const todayOrdersList = store.orders.filter(o => o.createdAt.startsWith(todayStr) && o.orderStatus !== 'CANCELLED');
 
     let totalSalesVal = 0;
     let cashSales = 0;

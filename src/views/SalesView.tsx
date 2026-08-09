@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Search, Receipt, Plus } from 'lucide-react';
+import { ShoppingCart, Search, Receipt, Plus, Ban, X, AlertTriangle } from 'lucide-react';
 import { Sale, StoreSettings } from '../types';
 import { formatMoney } from '../lib/currency';
+import { api } from '../lib/api';
 
 interface SalesViewProps {
   sales: Sale[];
@@ -15,10 +16,14 @@ export const SalesView: React.FC<SalesViewProps> = ({
   sales,
   settings,
   onOpenNewSale,
-  onOpenInvoicePrint
+  onOpenInvoicePrint,
+  onRefreshData
 }) => {
   const [search, setSearch] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('ALL');
+  const [voidingSale, setVoidingSale] = useState<Sale | null>(null);
+  const [voidReason, setVoidReason] = useState('');
+  const [isVoiding, setIsVoiding] = useState(false);
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
 
   const filteredSales = sales.filter(s => {
@@ -30,7 +35,27 @@ export const SalesView: React.FC<SalesViewProps> = ({
     return matchesSearch && matchesPayment;
   });
 
-  const totalAmount = filteredSales.reduce((sum, s) => sum + s.grandTotal, 0);
+  // Voided sales stay visible in the log (audit trail) but never count toward the total shown.
+  const totalAmount = filteredSales.filter(s => s.status !== 'CANCELLED').reduce((sum, s) => sum + s.grandTotal, 0);
+
+  const handleConfirmVoid = async () => {
+    if (!voidingSale) return;
+    if (!voidReason.trim()) {
+      alert('Please enter a reason for voiding this sale.');
+      return;
+    }
+    setIsVoiding(true);
+    try {
+      await api.voidSale(voidingSale.id, voidReason.trim());
+      setVoidingSale(null);
+      setVoidReason('');
+      onRefreshData?.();
+    } catch (err: any) {
+      alert(err.message || 'Failed to void sale');
+    } finally {
+      setIsVoiding(false);
+    }
+  };
 
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
@@ -80,37 +105,113 @@ export const SalesView: React.FC<SalesViewProps> = ({
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
-        {filteredSales.map(s => (
-          <div key={s.id} className="p-4 flex items-center justify-between text-xs hover:bg-slate-50">
-            <div>
-              <span className="font-bold text-slate-900 block">Bill #{s.saleNumber}</span>
-              <span className="text-slate-600 font-medium">{s.customerName}</span>
-              <p className="text-[10px] text-slate-400 mt-0.5">
-                {(s.createdAt ? new Date(s.createdAt) : new Date()).toLocaleString('en-IN')} • {(s.items || []).length} Items
-              </p>
-            </div>
-
-            <div className="text-right flex items-center gap-3">
+        {filteredSales.map(s => {
+          const isVoid = s.status === 'CANCELLED';
+          return (
+            <div key={s.id} className={`p-4 flex items-center justify-between text-xs hover:bg-slate-50 ${isVoid ? 'opacity-60' : ''}`}>
               <div>
-                <span className="text-base font-black text-slate-900 block">{money(s.grandTotal)}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
-                  s.paymentMethod === 'CREDIT' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'
-                }`}>
-                  {s.paymentMethod}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`font-bold text-slate-900 block ${isVoid ? 'line-through' : ''}`}>Bill #{s.saleNumber}</span>
+                  {isVoid && (
+                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 uppercase">
+                      Voided
+                    </span>
+                  )}
+                </div>
+                <span className="text-slate-600 font-medium">{s.customerName}</span>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  {(s.createdAt ? new Date(s.createdAt) : new Date()).toLocaleString('en-IN')} • {(s.items || []).length} Items
+                </p>
+                {isVoid && s.cancelReason && (
+                  <p className="text-[10px] text-red-600 mt-0.5">Reason: {s.cancelReason}</p>
+                )}
               </div>
 
+              <div className="text-right flex items-center gap-3">
+                <div>
+                  <span className={`text-base font-black text-slate-900 block ${isVoid ? 'line-through' : ''}`}>{money(s.grandTotal)}</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+                    s.paymentMethod === 'CREDIT' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'
+                  }`}>
+                    {s.paymentMethod}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => onOpenInvoicePrint(s)}
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"
+                  title="Print Receipt"
+                >
+                  <Receipt className="w-4 h-4" />
+                </button>
+
+                {!isVoid && (
+                  <button
+                    onClick={() => { setVoidingSale(s); setVoidReason(''); }}
+                    className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
+                    title="Void this sale"
+                  >
+                    <Ban className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Void Sale Confirmation Modal */}
+      {voidingSale && (
+        <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-slate-900 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 className="font-extrabold text-base flex items-center gap-2 text-red-700">
+                <AlertTriangle className="w-5 h-5" />
+                <span>Void Sale #{voidingSale.saleNumber}</span>
+              </h2>
               <button
-                onClick={() => onOpenInvoicePrint(s)}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"
-                title="Print Receipt"
+                onClick={() => { setVoidingSale(null); setVoidReason(''); }}
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
-                <Receipt className="w-4 h-4" />
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-red-50 p-3 rounded-xl border border-red-200 text-xs text-red-800">
+              This bill stays in your records (marked Voided) but its total, GST, and any Udhaar it added will be removed from your revenue and stock. Items sold ({(voidingSale.items || []).length}) will be added back to stock. This can't be undone.
+            </div>
+
+            <div className="text-xs">
+              <label className="block font-bold text-slate-700 mb-1">Reason for voiding *</label>
+              <textarea
+                rows={2}
+                required
+                autoFocus
+                value={voidReason}
+                onChange={(e) => setVoidReason(e.target.value)}
+                placeholder="e.g. Billed by mistake, wrong customer, duplicate entry"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                onClick={() => { setVoidingSale(null); setVoidReason(''); }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmVoid}
+                disabled={isVoiding}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md text-xs disabled:opacity-50"
+              >
+                {isVoiding ? 'Voiding...' : 'Confirm Void'}
               </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -304,6 +304,10 @@ export interface Sale {
   createdByName?: string;
   notes?: string;
   createdAt: string;
+  /** Absent/undefined means a normal completed sale — only ever set to 'CANCELLED' via voidSale(), which also reverses stock & Udhaar balance. Never delete a sale; void it instead so GST/tax records stay intact. */
+  status?: 'CANCELLED';
+  cancelReason?: string;
+  cancelledAt?: string;
 }
 
 export type ExpenseCategory =
@@ -335,7 +339,7 @@ export interface Expense {
   createdAt: string;
 }
 
-export type InventoryTransactionType = 'STOCK_IN_PURCHASE' | 'STOCK_OUT_SALE' | 'MANUAL_ADD' | 'MANUAL_REDUCE' | 'DAMAGE_EXPIRED' | 'INITIAL_STOCK';
+export type InventoryTransactionType = 'STOCK_IN_PURCHASE' | 'STOCK_OUT_SALE' | 'MANUAL_ADD' | 'MANUAL_REDUCE' | 'DAMAGE_EXPIRED' | 'INITIAL_STOCK' | 'SALE_CANCELLED';
 
 export interface InventoryTransaction {
   id: string;

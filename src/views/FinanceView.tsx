@@ -106,8 +106,9 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
 
   // Financial Computations for Selected Period
   const financialSummary = useMemo(() => {
-    // 1. Sales / Income in period
+    // 1. Sales / Income in period (voided sales are excluded — they never happened financially)
     const filteredSales = sales.filter(s => {
+      if (s.status === 'CANCELLED') return false;
       const t = new Date(s.createdAt).getTime();
       return t >= startTimestamp && t <= endTimestamp;
     });

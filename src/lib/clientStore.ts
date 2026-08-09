@@ -368,6 +368,8 @@ export const clientStore = {
     if (todaySales.length === 0 && data.sales.length > 0) {
       todaySales = data.sales;
     }
+    // Voided sales stay in the record for the audit trail but must never count toward revenue.
+    todaySales = todaySales.filter(s => s.status !== 'CANCELLED');
     const todaySalesTotal = todaySales.reduce((acc, s) => acc + s.grandTotal, 0);
     const todayProfit = todaySales.reduce((acc, s) => {
       const itemsProfit = s.items.reduce((pAcc, item) => {
@@ -867,6 +869,66 @@ export const clientStore = {
       saveStoreData(storeId, data);
     }
     return { success: true };
+  },
+
+  /** Mirrors src/server/db.ts voidSale() — keeps the sale record but marks it
+   * CANCELLED and reverses stock + Udhaar balance, instead of deleting it. */
+  voidSale(storeId: string = 'store-demo', id: string, reason: string): Sale {
+    const data = getStoreData(storeId);
+    const sale = data.sales.find(s => s.id === id);
+    if (!sale) throw new Error('Sale not found');
+    if (sale.status === 'CANCELLED') return sale;
+
+    for (const item of sale.items) {
+      const prod = data.products.find(p => p.id === item.productId);
+      if (prod) {
+        prod.currentStock = prod.currentStock + item.quantity;
+        prod.updatedAt = new Date().toISOString();
+
+        data.inventoryTransactions.unshift({
+          id: `inv-void-${Date.now()}`,
+          productId: prod.id,
+          productName: prod.name,
+          type: 'SALE_CANCELLED',
+          quantityChange: item.quantity,
+          stockAfter: prod.currentStock,
+          referenceId: sale.saleNumber,
+          notes: `Sale #${sale.saleNumber} voided: ${reason}`,
+          createdBy: 'Owner',
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    if (sale.paymentMethod === 'CREDIT' && sale.customerId) {
+      const cust = data.customers.find(c => c.id === sale.customerId);
+      if (cust) {
+        const prevBal = cust.currentBalance || cust.outstandingBalance || 0;
+        const newBal = Math.max(0, prevBal - sale.grandTotal);
+        cust.currentBalance = newBal;
+        cust.outstandingBalance = newBal;
+        cust.updatedAt = new Date().toISOString();
+
+        data.customerTransactions.unshift({
+          id: `tx-void-${Date.now()}`,
+          customerId: cust.id,
+          type: 'RETURN_CREDIT',
+          amount: sale.grandTotal,
+          balanceAfter: newBal,
+          referenceId: sale.saleNumber,
+          notes: `Sale #${sale.saleNumber} voided: ${reason}`,
+          createdBy: 'Owner',
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    sale.status = 'CANCELLED';
+    sale.cancelReason = reason;
+    sale.cancelledAt = new Date().toISOString();
+
+    saveStoreData(storeId, data);
+    return sale;
   },
 
   // Orders

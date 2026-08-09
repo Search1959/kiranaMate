@@ -342,6 +342,14 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  app.post('/api/sales/:id/void', (req, res) => {
+    const reason = (req.body?.reason || '').trim();
+    if (!reason) return res.status(400).json({ error: 'A reason is required to void a sale.' });
+    const voided = db.voidSale(req.storeId, req.params.id, reason);
+    if (!voided) return res.status(404).json({ error: 'Sale not found' });
+    res.json(voided);
+  });
+
   // Orders
   app.get('/api/orders', (req, res) => {
     const search = req.query.search as string;

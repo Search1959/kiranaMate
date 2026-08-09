@@ -145,6 +145,10 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
     const id = pathname.split('/')[3];
     return clientStore.deleteSale(currentStoreId, id) as unknown as T;
   }
+  if (pathname.startsWith('/api/sales/') && pathname.endsWith('/void') && method === 'POST') {
+    const id = pathname.split('/')[3];
+    return clientStore.voidSale(currentStoreId, id, body?.reason || '') as unknown as T;
+  }
 
   // 6. Orders
   if (pathname === '/api/orders' && method === 'GET') {
@@ -346,6 +350,7 @@ export const api = {
   createSale: (data: Partial<Sale>) => apiFetch<Sale>('/api/sales', { method: 'POST', body: JSON.stringify(data) }),
   updateSale: (id: string, data: Partial<Sale>) => apiFetch<Sale>(`/api/sales/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteSale: (id: string) => apiFetch<{ success: boolean }>(`/api/sales/${id}`, { method: 'DELETE' }),
+  voidSale: (id: string, reason: string) => apiFetch<Sale>(`/api/sales/${id}/void`, { method: 'POST', body: JSON.stringify({ reason }) }),
 
   // Orders
   getOrders: (search?: string, status?: string) => {
