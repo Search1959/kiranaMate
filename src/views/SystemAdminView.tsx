@@ -22,13 +22,15 @@ import {
   Building,
   CheckCircle2,
   SlidersHorizontal,
-  Mail
+  Mail,
+  Wallet
 } from 'lucide-react';
 import { AdminAccountItem, UserRole, TradingSector } from '../types';
 import { api } from '../lib/api';
 import { TRADING_SECTORS } from '../lib/sectorConfig';
 import { cloudListAllServiceAccounts, cloudFetchCompanyData, cloudDeleteAccount, cloudAdminUpdateAccount } from '../lib/serviceCloud';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
+import { SubscriptionLedgerTab } from '../components/SubscriptionLedgerTab';
 
 interface SystemAdminViewProps {
   onSwitchStore?: (storeId: string) => void;
@@ -37,6 +39,7 @@ interface SystemAdminViewProps {
 export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore }) => {
   const [accounts, setAccounts] = useState<AdminAccountItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeAdminTab, setActiveAdminTab] = useState<'registry' | 'ledger'>('registry');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [sectorFilter, setSectorFilter] = useState<string>('all');
@@ -323,6 +326,32 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
         </div>
       </div>
 
+      {/* Admin Tab Switcher */}
+      <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-2xl p-1.5 w-full sm:w-auto sm:inline-flex">
+        <button
+          onClick={() => setActiveAdminTab('registry')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer flex-1 sm:flex-none justify-center ${
+            activeAdminTab === 'registry' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Key className="w-3.5 h-3.5" />
+          <span>Account Registry</span>
+        </button>
+        <button
+          onClick={() => setActiveAdminTab('ledger')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer flex-1 sm:flex-none justify-center ${
+            activeAdminTab === 'ledger' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Wallet className="w-3.5 h-3.5" />
+          <span>Subscription Ledger</span>
+        </button>
+      </div>
+
+      {activeAdminTab === 'ledger' ? (
+        <SubscriptionLedgerTab accounts={accounts} />
+      ) : (
+      <>
       {/* Filter and Search Bar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
@@ -541,6 +570,8 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* VIEW ACCOUNT MODAL */}
       {viewingAccount && (

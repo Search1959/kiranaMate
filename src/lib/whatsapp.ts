@@ -148,6 +148,24 @@ export function generateInvoiceWhatsAppText(
   return `Hello ${sale?.customerName || 'Valued Customer'},\n\nBill Invoice #${sale?.saleNumber || ''} from ${settings?.storeName || 'Our Store'}:\n\n${itemsText}\n\n${breakdownText}Grand Total: ${totalStr}\nPayment Method: ${sale?.paymentMethod || ''}\n\nThank you for shopping with us!`;
 }
 
+/** Platform subscription bill sent by the System Admin to a Trading/Service
+ * ERP account owner — separate from anything a store sends its own
+ * customers, hence not routed through StoreSettings/currency at all. */
+export function generateSubscriptionBillText(params: {
+  ownerName: string;
+  storeName: string;
+  monthlyFee: number;
+  monthsBilled: number;
+  totalDue: number;
+  totalPaid: number;
+  balance: number;
+}): string {
+  const { ownerName, storeName, monthlyFee, monthsBilled, totalDue, totalPaid, balance } = params;
+  const rupee = (v: number) => `₹${v.toLocaleString('en-IN')}`;
+
+  return `Hello ${ownerName || 'there'},\n\nThis is your TradeMate subscription bill for "${storeName}".\n\nMonthly Fee: ${rupee(monthlyFee)}\nMonths Billed: ${monthsBilled}\nTotal Billed: ${rupee(totalDue)}\nTotal Paid: ${rupee(totalPaid)}\n\nOutstanding Balance: ${rupee(balance)}\n\nPlease clear the pending amount at your earliest convenience to continue uninterrupted service.\n\nThank you for using TradeMate!\n— Deinrim Solutionss`;
+}
+
 export function getWhatsAppWebLink(mobile: string, text: string): string {
   const formattedMobile = sanitizeMobile(mobile);
   const encodedText = encodeURIComponent(text);
