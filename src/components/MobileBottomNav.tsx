@@ -271,7 +271,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       )}
 
       {/* Fixed Mobile Bottom Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg px-2 py-1 flex items-center justify-around select-none">
+      {/* z-[80] is deliberately higher than every modal in the app (max z-[70]
+          in use elsewhere) so this stays visible and tappable no matter what
+          else is open — the actual persistent fix, rather than reserving
+          bottom space in every individual modal one at a time. */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-white border-t border-slate-200 shadow-lg px-2 py-1 flex items-center justify-around select-none">
         {navItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;

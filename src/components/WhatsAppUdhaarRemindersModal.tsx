@@ -39,10 +39,12 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
   const totalPending = withUdhaar.reduce((sum, c) => sum + (c.currentBalance ?? c.outstandingBalance ?? 0), 0);
 
   return (
-    // Stops at bottom-16 on mobile (not inset-0) so the persistent bottom
-    // nav bar underneath stays visible instead of getting covered by the sheet.
-    <div className="fixed top-0 left-0 right-0 bottom-16 md:inset-0 bg-slate-900/80 backdrop-blur-xs z-[70] flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-200 text-slate-900 flex flex-col max-h-full sm:max-h-[85vh]">
+    // Same centered-card placement as CollectPaymentModal (not a bottom
+    // sheet) — consistent across screen sizes, and the persistent bottom
+    // nav bar always renders above this regardless (see MobileBottomNav's
+    // z-index), so there's no need to carve out space for it here either.
+    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 text-slate-900 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 text-white p-4 sm:p-5 rounded-t-3xl flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
