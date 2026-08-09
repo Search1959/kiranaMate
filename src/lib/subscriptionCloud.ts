@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
+import { stripUndefinedDeep } from './deepClean';
 
 /**
  * Client-side (browser) Firestore access for the System Admin's own
@@ -76,7 +77,7 @@ export async function cloudSaveLedgerEntry(entry: SubscriptionLedgerEntry): Prom
   const db = getCloudFirestore();
   if (!db) return;
   try {
-    await setDoc(doc(db, COLLECTION, entry.accountId), { ...entry, updatedAt: new Date().toISOString() });
+    await setDoc(doc(db, COLLECTION, entry.accountId), stripUndefinedDeep({ ...entry, updatedAt: new Date().toISOString() }));
   } catch (err) {
     console.error(`Failed to save subscription ledger [${entry.accountId}]:`, err);
   }

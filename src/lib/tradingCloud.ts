@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import { stripUndefinedDeep } from './deepClean';
 
 /**
  * Client-side (browser) Firestore access for Trading ERP stores.
@@ -55,7 +56,7 @@ export async function cloudSaveStore(storeId: string, data: any): Promise<void> 
   const db = getCloudFirestore();
   if (!db) return;
   try {
-    await setDoc(doc(db, 'stores', storeId), { ...data, updatedAt: new Date().toISOString() });
+    await setDoc(doc(db, 'stores', storeId), stripUndefinedDeep({ ...data, updatedAt: new Date().toISOString() }));
   } catch (err) {
     console.error(`Failed to sync store [${storeId}] to cloud:`, err);
   }

@@ -2,6 +2,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
 import { ServiceSector } from '../types';
 import { ServiceStoreData } from './serviceStore';
+import { stripUndefinedDeep } from './deepClean';
 
 /**
  * Client-side (browser) Firestore access for Service ERP company accounts.
@@ -114,8 +115,8 @@ export async function cloudRegisterCompany(payload: {
     expenses: []
   };
 
-  await setDoc(doc(db, 'serviceAccounts', cleanUsername), account);
-  await setDoc(doc(db, 'serviceCompanies', companyId), emptyData as any);
+  await setDoc(doc(db, 'serviceAccounts', cleanUsername), stripUndefinedDeep(account));
+  await setDoc(doc(db, 'serviceCompanies', companyId), stripUndefinedDeep(emptyData) as any);
 
   return { companyId, sector: payload.sector };
 }
@@ -165,7 +166,7 @@ export async function cloudSaveCompanyData(companyId: string, data: ServiceStore
   const db = getCloudFirestore();
   if (!db) return;
   try {
-    await setDoc(doc(db, 'serviceCompanies', companyId), { ...data, updatedAt: new Date().toISOString() } as any);
+    await setDoc(doc(db, 'serviceCompanies', companyId), stripUndefinedDeep({ ...data, updatedAt: new Date().toISOString() }) as any);
   } catch (err) {
     console.error(`Failed to sync service company [${companyId}] to cloud:`, err);
   }

@@ -649,6 +649,11 @@ export class ServiceStoreManager {
     return newItem;
   }
 
+  updateService(id: string, updates: Partial<Omit<ServiceItem, 'id' | 'sector'>>) {
+    this.data.services = this.data.services.map(s => (s.id === id ? { ...s, ...updates } : s));
+    this.saveToStorage();
+  }
+
   deleteService(id: string) {
     this.data.services = this.data.services.filter(s => s.id !== id);
     this.saveToStorage();

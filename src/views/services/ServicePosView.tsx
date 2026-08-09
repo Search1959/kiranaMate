@@ -15,13 +15,15 @@ import {
   IndianRupee,
   Share2,
   Wrench,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceItem, ServiceStaff, PaymentMethod, ServiceInvoice, ServiceInvoiceItem } from '../../types';
 
 import { ServiceWorkspaceHeader } from '../../components/ServiceWorkspaceHeader';
+import { AddEditServiceModal } from '../../components/AddEditServiceModal';
 
 interface CartItem {
   service: ServiceItem;
@@ -38,9 +40,39 @@ interface ServicePosViewProps {
 export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab }) => {
   const [sector, setSector] = useState(serviceStore.getActiveSector());
   const cfg = getServiceSectorConfig(sector);
+  const [catalogTick, setCatalogTick] = useState(0);
   const services = serviceStore.getServices();
   const staffList = serviceStore.getStaff();
   const customers = serviceStore.getCustomers();
+
+  // Add/Edit Service catalog management
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+
+  const refreshCatalog = () => setCatalogTick(t => t + 1);
+
+  const handleOpenAddService = () => {
+    setEditingService(null);
+    setServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (srv: ServiceItem) => {
+    setEditingService(srv);
+    setServiceModalOpen(true);
+  };
+
+  const handleServiceSaved = () => {
+    setServiceModalOpen(false);
+    setEditingService(null);
+    refreshCatalog();
+  };
+
+  const handleDeleteService = (srv: ServiceItem) => {
+    if (!window.confirm(`Delete "${srv.name}" from your service catalog? This can't be undone.`)) return;
+    serviceStore.deleteService(srv.id);
+    setCart(prev => prev.filter(item => item.service.id !== srv.id));
+    refreshCatalog();
+  };
 
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -232,15 +264,24 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
         <div className="lg:col-span-7 space-y-4">
           {/* Search & Categories */}
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-              <input
-                type="text"
-                placeholder={`Search ${cfg.name} services...`}
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  placeholder={`Search ${cfg.name} services...`}
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <button
+                onClick={handleOpenAddService}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add Service</span>
+              </button>
             </div>
 
             {/* Category Pills */}
@@ -262,6 +303,20 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
           </div>
 
           {/* Services Grid */}
+          {filteredServices.length === 0 && (
+            <div className="text-center py-10 bg-slate-900 border border-dashed border-slate-800 rounded-2xl text-slate-500 text-xs space-y-2">
+              <p>{services.length === 0 ? 'No services in your catalog yet.' : 'No services match this search/category.'}</p>
+              {services.length === 0 && (
+                <button
+                  onClick={handleOpenAddService}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Your First Service</span>
+                </button>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
             {filteredServices.map(srv => {
               const inCart = cart.find(c => c.service.id === srv.id);
@@ -273,13 +328,29 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                     inCart ? 'border-blue-500 bg-blue-950/20' : 'border-slate-800'
                   }`}
                 >
-                  {srv.isPopular && (
-                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-extrabold border border-amber-500/30">
-                      Popular
-                    </span>
-                  )}
+                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                    {srv.isPopular && (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-extrabold border border-amber-500/30">
+                        Popular
+                      </span>
+                    )}
+                    <button
+                      onClick={e => { e.stopPropagation(); handleOpenEditService(srv); }}
+                      title="Edit service"
+                      className="p-1 rounded-lg bg-slate-800/90 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); handleDeleteService(srv); }}
+                      title="Delete service"
+                      className="p-1 rounded-lg bg-slate-800/90 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                   <div>
-                    <h3 className="text-xs font-bold text-white pr-12">{srv.name}</h3>
+                    <h3 className="text-xs font-bold text-white pr-20">{srv.name}</h3>
                     <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">{srv.description}</p>
                   </div>
 
@@ -565,6 +636,14 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
           </div>
         </div>
       )}
+
+      {/* Add/Edit Service Modal */}
+      <AddEditServiceModal
+        isOpen={serviceModalOpen}
+        onClose={() => { setServiceModalOpen(false); setEditingService(null); }}
+        onSaved={handleServiceSaved}
+        editingService={editingService}
+      />
       </div>
     </div>
   );

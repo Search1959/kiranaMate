@@ -2,6 +2,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
+import { stripUndefinedDeep } from '../lib/deepClean';
 
 let firestoreInstance: ReturnType<typeof getFirestore> | null = null;
 
@@ -30,10 +31,10 @@ export async function saveStoreToCloud(storeId: string, storeData: any) {
   if (!db) return;
   try {
     const ref = doc(db, 'stores', storeId);
-    await setDoc(ref, {
+    await setDoc(ref, stripUndefinedDeep({
       ...storeData,
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    }), { merge: true });
     console.log(`☁️ Cloud Firestore: Store [${storeId}] synced successfully.`);
   } catch (err) {
     console.error(`Failed to sync store [${storeId}] to Cloud Firestore:`, err);
