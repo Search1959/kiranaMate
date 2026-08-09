@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Plus, ArrowRight, CheckCircle, Wrench, IndianRupee } from 'lucide-react';
+import { FileText, Plus, ArrowRight, CheckCircle, Wrench, IndianRupee, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceQuotation } from '../../types';
@@ -7,13 +7,43 @@ import { ServiceQuotation } from '../../types';
 export const ServiceQuotationsView: React.FC = () => {
   const activeSector = serviceStore.getActiveSector();
   const cfg = getServiceSectorConfig(activeSector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const quotations = serviceStore.getQuotations();
 
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
   const [custName, setCustName] = useState<string>('');
   const [custMobile, setCustMobile] = useState<string>('');
   const [serviceCharge, setServiceCharge] = useState<number>(1500);
   const [materialCharge, setMaterialCharge] = useState<number>(500);
+
+  const resetForm = () => {
+    setCustName('');
+    setCustMobile('');
+    setServiceCharge(1500);
+    setMaterialCharge(500);
+    setEditingQuoteId(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (q: ServiceQuotation) => {
+    setEditingQuoteId(q.id);
+    setCustName(q.customerName);
+    setCustMobile(q.mobile);
+    setServiceCharge(q.labourCharges);
+    setMaterialCharge(q.materialCharges);
+    setShowModal(true);
+  };
+
+  const handleDeleteQuotation = (q: ServiceQuotation) => {
+    if (!window.confirm(`Delete quotation ${q.quoteNo} for ${q.customerName}? This can't be undone.`)) return;
+    serviceStore.deleteQuotation(q.id);
+    setRefreshTick(t => t + 1);
+  };
 
   const handleCreateQuotation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,37 +53,52 @@ export const ServiceQuotationsView: React.FC = () => {
     }
     const tot = serviceCharge + materialCharge;
     const gst = Math.round(tot * 0.18);
+    const items = [
+      { id: 'q1', name: `${cfg.name} Execution Fee`, type: 'SERVICE' as const, price: serviceCharge, quantity: 1, total: serviceCharge },
+      ...(materialCharge > 0 ? [{ id: 'q2', name: 'Spare Parts & Consumables', type: 'MATERIAL' as const, price: materialCharge, quantity: 1, total: materialCharge }] : [])
+    ];
 
-    serviceStore.createQuotation({
-      customerId: `scust-${Date.now()}`,
-      customerName: custName,
-      mobile: custMobile,
-      date: new Date().toISOString().split('T')[0],
-      validUntil: '2026-08-30',
-      items: [
-        { id: 'q1', name: `${cfg.name} Execution Fee`, type: 'SERVICE', price: serviceCharge, quantity: 1, total: serviceCharge },
-        ...(materialCharge > 0 ? [{ id: 'q2', name: 'Spare Parts & Consumables', type: 'MATERIAL' as const, price: materialCharge, quantity: 1, total: materialCharge }] : [])
-      ],
-      labourCharges: serviceCharge,
-      materialCharges: materialCharge,
-      discount: 0,
-      gstAmount: gst,
-      grandTotal: tot + gst,
-      status: 'Sent'
-    });
+    if (editingQuoteId) {
+      serviceStore.updateQuotation(editingQuoteId, {
+        customerName: custName,
+        mobile: custMobile,
+        items,
+        labourCharges: serviceCharge,
+        materialCharges: materialCharge,
+        gstAmount: gst,
+        grandTotal: tot + gst
+      });
+    } else {
+      serviceStore.createQuotation({
+        customerId: `scust-${Date.now()}`,
+        customerName: custName,
+        mobile: custMobile,
+        date: new Date().toISOString().split('T')[0],
+        validUntil: '2026-08-30',
+        items,
+        labourCharges: serviceCharge,
+        materialCharges: materialCharge,
+        discount: 0,
+        gstAmount: gst,
+        grandTotal: tot + gst,
+        status: 'Sent'
+      });
+    }
 
     setShowModal(false);
-    setCustName('');
-    setCustMobile('');
+    resetForm();
+    setRefreshTick(t => t + 1);
   };
 
   const handleConvertToJob = (qId: string) => {
     serviceStore.convertQuotationToJobCard(qId);
+    setRefreshTick(t => t + 1);
     alert("Quotation converted to Job Card successfully!");
   };
 
   const handleConvertToInvoice = (qId: string) => {
     serviceStore.convertQuotationToInvoice(qId);
+    setRefreshTick(t => t + 1);
     alert("Quotation converted to Paid Invoice successfully!");
   };
 
@@ -69,7 +114,7 @@ export const ServiceQuotationsView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -115,8 +160,22 @@ export const ServiceQuotationsView: React.FC = () => {
                     <CheckCircle className="w-3.5 h-3.5" />
                     <span>Convert to Invoice</span>
                   </button>
+                  <button
+                    onClick={() => handleOpenEdit(q)}
+                    title="Edit quotation"
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               )}
+              <button
+                onClick={() => handleDeleteQuotation(q)}
+                title="Delete quotation"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         ))}
@@ -124,10 +183,10 @@ export const ServiceQuotationsView: React.FC = () => {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleCreateQuotation} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
+          <form onSubmit={handleCreateQuotation} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white max-h-[92vh] overflow-y-auto">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-400" />
-              <span>Create Estimate Quotation</span>
+              <span>{editingQuoteId ? 'Edit Estimate Quotation' : 'Create Estimate Quotation'}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
@@ -178,7 +237,7 @@ export const ServiceQuotationsView: React.FC = () => {
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
@@ -187,7 +246,7 @@ export const ServiceQuotationsView: React.FC = () => {
                 type="submit"
                 className="flex-1 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30"
               >
-                Generate Estimate
+                {editingQuoteId ? 'Save Changes' : 'Generate Estimate'}
               </button>
             </div>
           </form>

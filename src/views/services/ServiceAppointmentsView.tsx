@@ -10,7 +10,9 @@ import {
   XCircle,
   Share2,
   Filter,
-  Sparkles
+  Sparkles,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -25,6 +27,7 @@ interface ServiceAppointmentsViewProps {
 export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = ({ onNavigateTab }) => {
   const [sector, setSector] = useState(serviceStore.getActiveSector());
   const cfg = getServiceSectorConfig(sector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const appointments = serviceStore.getAppointments();
   const services = serviceStore.getServices();
   const staff = serviceStore.getStaff();
@@ -32,8 +35,9 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
   const [search, setSearch] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingAppId, setEditingAppId] = useState<string | null>(null);
 
-  // New Appointment Form
+  // New/Edit Appointment Form
   const [custName, setCustName] = useState<string>('');
   const [custMobile, setCustMobile] = useState<string>('');
   const [selectedServiceId, setSelectedServiceId] = useState<string>(services[0]?.id || '');
@@ -41,6 +45,40 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
   const [appDate, setAppDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [appTime, setAppTime] = useState<string>('11:00');
   const [notes, setNotes] = useState<string>('');
+
+  const resetForm = () => {
+    setCustName('');
+    setCustMobile('');
+    setSelectedServiceId(services[0]?.id || '');
+    setSelectedStaffId(staff[0]?.id || '');
+    setAppDate(new Date().toISOString().split('T')[0]);
+    setAppTime('11:00');
+    setNotes('');
+    setEditingAppId(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (app: Appointment) => {
+    setEditingAppId(app.id);
+    setCustName(app.customerName);
+    setCustMobile(app.mobile);
+    setSelectedServiceId(app.serviceId);
+    setSelectedStaffId(app.staffId);
+    setAppDate(app.date);
+    setAppTime(app.time);
+    setNotes(app.notes || '');
+    setShowModal(true);
+  };
+
+  const handleDeleteAppointment = (app: Appointment) => {
+    if (!window.confirm(`Cancel/delete the appointment for ${app.customerName} on ${app.date} at ${app.time}? This can't be undone.`)) return;
+    serviceStore.deleteAppointment(app.id);
+    setRefreshTick(t => t + 1);
+  };
 
   const filtered = appointments.filter(a => {
     const matchesSearch = a.customerName.toLowerCase().includes(search.toLowerCase()) ||
@@ -58,30 +96,45 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
     const srvObj = services.find(s => s.id === selectedServiceId);
     const staffObj = staff.find(st => st.id === selectedStaffId);
 
-    serviceStore.addAppointment({
-      customerId: `scust-${Date.now()}`,
-      customerName: custName,
-      mobile: custMobile,
-      serviceId: selectedServiceId,
-      serviceName: srvObj?.name || 'Custom Service',
-      staffId: selectedStaffId,
-      staffName: staffObj?.name || 'Assigned Staff',
-      date: appDate,
-      time: appTime,
-      status: 'Scheduled',
-      notes,
-      totalAmount: srvObj?.price || 500,
-      paidAmount: 0
-    });
+    if (editingAppId) {
+      serviceStore.updateAppointment(editingAppId, {
+        customerName: custName,
+        mobile: custMobile,
+        serviceId: selectedServiceId,
+        serviceName: srvObj?.name || 'Custom Service',
+        staffId: selectedStaffId,
+        staffName: staffObj?.name || 'Assigned Staff',
+        date: appDate,
+        time: appTime,
+        notes,
+        totalAmount: srvObj?.price || 500
+      });
+    } else {
+      serviceStore.addAppointment({
+        customerId: `scust-${Date.now()}`,
+        customerName: custName,
+        mobile: custMobile,
+        serviceId: selectedServiceId,
+        serviceName: srvObj?.name || 'Custom Service',
+        staffId: selectedStaffId,
+        staffName: staffObj?.name || 'Assigned Staff',
+        date: appDate,
+        time: appTime,
+        status: 'Scheduled',
+        notes,
+        totalAmount: srvObj?.price || 500,
+        paidAmount: 0
+      });
+    }
 
     setShowModal(false);
-    setCustName('');
-    setCustMobile('');
-    setNotes('');
+    resetForm();
+    setRefreshTick(t => t + 1);
   };
 
   const handleStatusChange = (id: string, status: AppointmentStatus) => {
     serviceStore.updateAppointmentStatus(id, status);
+    setRefreshTick(t => t + 1);
   };
 
   const handleWhatsAppReminder = (app: Appointment) => {
@@ -110,7 +163,7 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -199,13 +252,29 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
                   <option value="Cancelled">Cancelled</option>
                 </select>
 
-                <button
-                  onClick={() => handleWhatsAppReminder(app)}
-                  className="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer"
-                >
-                  <Share2 className="w-3 h-3" />
-                  <span>WhatsApp</span>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleWhatsAppReminder(app)}
+                    className="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Share2 className="w-3 h-3" />
+                    <span>WhatsApp</span>
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(app)}
+                    title="Edit appointment"
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAppointment(app)}
+                    title="Delete appointment"
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -215,10 +284,10 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
       {/* Book Appointment Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleCreateAppointment} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
+          <form onSubmit={handleCreateAppointment} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white max-h-[92vh] overflow-y-auto">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <CalendarIcon className="w-4 h-4 text-blue-400" />
-              <span>Book Appointment ({cfg.name})</span>
+              <span>{editingAppId ? `Edit Appointment (${cfg.name})` : `Book Appointment (${cfg.name})`}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
@@ -297,7 +366,7 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
@@ -306,7 +375,7 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
                 type="submit"
                 className="flex-1 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30"
               >
-                Confirm Booking
+                {editingAppId ? 'Save Changes' : 'Confirm Booking'}
               </button>
             </div>
           </form>

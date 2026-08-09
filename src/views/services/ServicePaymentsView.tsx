@@ -1,19 +1,49 @@
 import React, { useState } from 'react';
-import { IndianRupee, Plus, CreditCard, Search } from 'lucide-react';
+import { IndianRupee, Plus, CreditCard, Search, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
-import { PaymentMethod } from '../../types';
+import { PaymentMethod, ServicePayment } from '../../types';
 
 export const ServicePaymentsView: React.FC = () => {
   const activeSector = serviceStore.getActiveSector();
   const cfg = getServiceSectorConfig(activeSector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const payments = serviceStore.getPayments();
 
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [custName, setCustName] = useState<string>('');
   const [amount, setAmount] = useState<number>(1000);
   const [method, setMethod] = useState<PaymentMethod>('UPI');
   const [notes, setNotes] = useState<string>('');
+
+  const resetForm = () => {
+    setCustName('');
+    setAmount(1000);
+    setMethod('UPI');
+    setNotes('');
+    setEditingPaymentId(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (p: ServicePayment) => {
+    setEditingPaymentId(p.id);
+    setCustName(p.customerName);
+    setAmount(p.amount);
+    setMethod(p.method);
+    setNotes(p.notes || '');
+    setShowModal(true);
+  };
+
+  const handleDeletePayment = (p: ServicePayment) => {
+    if (!window.confirm(`Delete payment receipt ${p.receiptNo} for ₹${p.amount} from ${p.customerName}? This reverses the receipt and can't be undone.`)) return;
+    serviceStore.deletePayment(p.id);
+    setRefreshTick(t => t + 1);
+  };
 
   const handleRecordPayment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,18 +52,27 @@ export const ServicePaymentsView: React.FC = () => {
       return;
     }
 
-    serviceStore.addPayment({
-      customerId: `scust-${Date.now()}`,
-      customerName: custName,
-      amount,
-      date: new Date().toISOString().split('T')[0],
-      method,
-      notes
-    });
+    if (editingPaymentId) {
+      serviceStore.updatePayment(editingPaymentId, {
+        customerName: custName,
+        amount,
+        method,
+        notes
+      });
+    } else {
+      serviceStore.addPayment({
+        customerId: `scust-${Date.now()}`,
+        customerName: custName,
+        amount,
+        date: new Date().toISOString().split('T')[0],
+        method,
+        notes
+      });
+    }
 
     setShowModal(false);
-    setCustName('');
-    setNotes('');
+    resetForm();
+    setRefreshTick(t => t + 1);
   };
 
   return (
@@ -48,7 +87,7 @@ export const ServicePaymentsView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -71,8 +110,22 @@ export const ServicePaymentsView: React.FC = () => {
               {p.notes && <p className="text-[10px] text-slate-400">{p.notes}</p>}
             </div>
 
-            <div className="text-right">
+            <div className="flex items-center gap-3">
               <span className="text-sm font-black text-emerald-400">+ ₹{p.amount}</span>
+              <button
+                onClick={() => handleOpenEdit(p)}
+                title="Edit payment"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => handleDeletePayment(p)}
+                title="Delete payment"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         ))}
@@ -83,7 +136,7 @@ export const ServicePaymentsView: React.FC = () => {
           <form onSubmit={handleRecordPayment} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-emerald-400" />
-              <span>Record Payment Collection</span>
+              <span>{editingPaymentId ? 'Edit Payment Receipt' : 'Record Payment Collection'}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
@@ -140,7 +193,7 @@ export const ServicePaymentsView: React.FC = () => {
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
@@ -149,7 +202,7 @@ export const ServicePaymentsView: React.FC = () => {
                 type="submit"
                 className="flex-1 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30"
               >
-                Save Receipt
+                {editingPaymentId ? 'Save Changes' : 'Save Receipt'}
               </button>
             </div>
           </form>

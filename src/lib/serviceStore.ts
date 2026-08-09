@@ -683,6 +683,16 @@ export class ServiceStoreManager {
     this.saveToStorage();
   }
 
+  updateAppointment(id: string, updates: Partial<Omit<Appointment, 'id' | 'createdAt' | 'serviceSector'>>) {
+    this.data.appointments = this.data.appointments.map(a => (a.id === id ? { ...a, ...updates } : a));
+    this.saveToStorage();
+  }
+
+  deleteAppointment(id: string) {
+    this.data.appointments = this.data.appointments.filter(a => a.id !== id);
+    this.saveToStorage();
+  }
+
   // Job Cards
   getJobCards(): JobCard[] {
     return this.data.jobCards || [];
@@ -706,6 +716,16 @@ export class ServiceStoreManager {
     this.data.jobCards = this.data.jobCards.map(j =>
       j.id === id ? { ...j, status, ...(status === 'Completed' ? { actualCompletionDate: new Date().toISOString().split('T')[0] } : {}) } : j
     );
+    this.saveToStorage();
+  }
+
+  updateJobCard(id: string, updates: Partial<Omit<JobCard, 'id' | 'jobNo' | 'createdAt' | 'serviceSector'>>) {
+    this.data.jobCards = this.data.jobCards.map(j => (j.id === id ? { ...j, ...updates } : j));
+    this.saveToStorage();
+  }
+
+  deleteJobCard(id: string) {
+    this.data.jobCards = this.data.jobCards.filter(j => j.id !== id);
     this.saveToStorage();
   }
 
@@ -810,6 +830,16 @@ export class ServiceStoreManager {
     return newQuote;
   }
 
+  updateQuotation(id: string, updates: Partial<Omit<ServiceQuotation, 'id' | 'quoteNo' | 'createdAt'>>) {
+    this.data.quotations = this.data.quotations.map(q => (q.id === id ? { ...q, ...updates } : q));
+    this.saveToStorage();
+  }
+
+  deleteQuotation(id: string) {
+    this.data.quotations = this.data.quotations.filter(q => q.id !== id);
+    this.saveToStorage();
+  }
+
   convertQuotationToJobCard(quoteId: string): JobCard {
     const q = this.data.quotations.find(item => item.id === quoteId);
     if (!q) throw new Error('Quotation not found');
@@ -881,6 +911,16 @@ export class ServiceStoreManager {
     this.data.payments = [newPay, ...this.data.payments];
     this.saveToStorage();
     return newPay;
+  }
+
+  updatePayment(id: string, updates: Partial<Omit<ServicePayment, 'id' | 'receiptNo' | 'createdAt'>>) {
+    this.data.payments = this.data.payments.map(p => (p.id === id ? { ...p, ...updates } : p));
+    this.saveToStorage();
+  }
+
+  deletePayment(id: string) {
+    this.data.payments = this.data.payments.filter(p => p.id !== id);
+    this.saveToStorage();
   }
 
   // Expenses (staff salary, rent, subscriptions, marketing spend, etc.)

@@ -11,7 +11,9 @@ import {
   IndianRupee,
   Share2,
   FileText,
-  X
+  X,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -26,14 +28,16 @@ interface ServiceJobCardsViewProps {
 export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavigateTab }) => {
   const [sector, setSector] = useState(serviceStore.getActiveSector());
   const cfg = getServiceSectorConfig(sector);
+  const [refreshTick, setRefreshTick] = useState(0);
   const jobCards = serviceStore.getJobCards();
   const staff = serviceStore.getStaff();
 
   const [search, setSearch] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
 
-  // New Job Card Form
+  // New/Edit Job Card Form
   const [custName, setCustName] = useState<string>('');
   const [custMobile, setCustMobile] = useState<string>('');
   const [assignedStaffId, setAssignedStaffId] = useState<string>(staff[0]?.id || '');
@@ -42,6 +46,42 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
   const [deviceInfo, setDeviceInfo] = useState<string>('');
   const [labour, setLabour] = useState<number>(500);
   const [material, setMaterial] = useState<number>(0);
+
+  const resetForm = () => {
+    setCustName('');
+    setCustMobile('');
+    setAssignedStaffId(staff[0]?.id || '');
+    setPriority('Medium');
+    setIssueDesc('');
+    setDeviceInfo('');
+    setLabour(500);
+    setMaterial(0);
+    setEditingJobId(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (j: JobCard) => {
+    setEditingJobId(j.id);
+    setCustName(j.customerName);
+    setCustMobile(j.mobile);
+    setAssignedStaffId(j.assignedStaffId);
+    setPriority(j.priority);
+    setIssueDesc(j.issueDescription);
+    setDeviceInfo(j.deviceOrVehicleInfo);
+    setLabour(j.labourCharges);
+    setMaterial(j.materialCharges);
+    setShowModal(true);
+  };
+
+  const handleDeleteJobCard = (j: JobCard) => {
+    if (!window.confirm(`Delete work order ${j.jobNo} for ${j.customerName}? This can't be undone.`)) return;
+    serviceStore.deleteJobCard(j.id);
+    setRefreshTick(t => t + 1);
+  };
 
   const filtered = jobCards.filter(j => {
     const matchesSearch = j.jobNo.toLowerCase().includes(search.toLowerCase()) ||
@@ -60,34 +100,52 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
     const staffObj = staff.find(st => st.id === assignedStaffId);
     const tot = labour + material;
 
-    serviceStore.addJobCard({
-      customerId: `scust-${Date.now()}`,
-      customerName: custName,
-      mobile: custMobile,
-      assignedStaffId,
-      assignedStaffName: staffObj?.name || 'Assigned Technician',
-      status: 'Pending',
-      priority,
-      issueDescription: issueDesc,
-      deviceOrVehicleInfo: deviceInfo || `${cfg.name} Work Order`,
-      partsUsed: material > 0 ? [{ id: 'p1', name: 'Parts & Spare Materials', quantity: 1, unitPrice: material, totalPrice: material }] : [],
-      labourCharges: labour,
-      materialCharges: material,
-      totalAmount: tot,
-      paidAmount: 0,
-      balanceAmount: tot,
-      estimatedCompletionDate: new Date().toISOString().split('T')[0]
-    });
+    if (editingJobId) {
+      const existing = jobCards.find(j => j.id === editingJobId);
+      const alreadyPaid = existing?.paidAmount || 0;
+      serviceStore.updateJobCard(editingJobId, {
+        customerName: custName,
+        mobile: custMobile,
+        assignedStaffId,
+        assignedStaffName: staffObj?.name || 'Assigned Technician',
+        priority,
+        issueDescription: issueDesc,
+        deviceOrVehicleInfo: deviceInfo || `${cfg.name} Work Order`,
+        partsUsed: material > 0 ? [{ id: 'p1', name: 'Parts & Spare Materials', quantity: 1, unitPrice: material, totalPrice: material }] : [],
+        labourCharges: labour,
+        materialCharges: material,
+        totalAmount: tot,
+        balanceAmount: Math.max(0, tot - alreadyPaid)
+      });
+    } else {
+      serviceStore.addJobCard({
+        customerId: `scust-${Date.now()}`,
+        customerName: custName,
+        mobile: custMobile,
+        assignedStaffId,
+        assignedStaffName: staffObj?.name || 'Assigned Technician',
+        status: 'Pending',
+        priority,
+        issueDescription: issueDesc,
+        deviceOrVehicleInfo: deviceInfo || `${cfg.name} Work Order`,
+        partsUsed: material > 0 ? [{ id: 'p1', name: 'Parts & Spare Materials', quantity: 1, unitPrice: material, totalPrice: material }] : [],
+        labourCharges: labour,
+        materialCharges: material,
+        totalAmount: tot,
+        paidAmount: 0,
+        balanceAmount: tot,
+        estimatedCompletionDate: new Date().toISOString().split('T')[0]
+      });
+    }
 
     setShowModal(false);
-    setCustName('');
-    setCustMobile('');
-    setIssueDesc('');
-    setDeviceInfo('');
+    resetForm();
+    setRefreshTick(t => t + 1);
   };
 
   const handleUpdateStatus = (id: string, status: JobCardStatus) => {
     serviceStore.updateJobCardStatus(id, status);
+    setRefreshTick(t => t + 1);
   };
 
   const handleWhatsApp = (j: JobCard) => {
@@ -116,7 +174,7 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -178,6 +236,20 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
                   }`}>
                     {j.status}
                   </span>
+                  <button
+                    onClick={() => handleOpenEdit(j)}
+                    title="Edit work order"
+                    className="p-1 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteJobCard(j)}
+                    title="Delete work order"
+                    className="p-1 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
 
@@ -222,10 +294,10 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
       {/* New Job Card Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleCreateJobCard} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
+          <form onSubmit={handleCreateJobCard} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white max-h-[92vh] overflow-y-auto">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <Wrench className="w-4 h-4 text-indigo-400" />
-              <span>Create {cfg.workOrderTerm}</span>
+              <span>{editingJobId ? `Edit ${cfg.workOrderTerm}` : `Create ${cfg.workOrderTerm}`}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
@@ -330,7 +402,7 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); resetForm(); }}
                 className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
               >
                 Cancel
@@ -339,7 +411,7 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
                 type="submit"
                 className="flex-1 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30"
               >
-                Create Job Card
+                {editingJobId ? 'Save Changes' : 'Create Job Card'}
               </button>
             </div>
           </form>
