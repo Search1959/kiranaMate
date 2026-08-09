@@ -16,11 +16,13 @@ import {
   Zap,
   LogIn,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { User as UserType, UserRole, TradingSector } from '../types';
 import { TRADING_SECTORS } from '../lib/sectorConfig';
+import { COUNTRIES, guessCountryFromLocales } from '../lib/currency';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -44,6 +46,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regSector, setRegSector] = useState<TradingSector>('METALS_STEEL');
+  // Pre-select a sensible guess from the browser's own locale so most people
+  // never have to touch this field — but the choice itself is explicit and
+  // authoritative once submitted, not just inferred silently.
+  const [regCountry, setRegCountry] = useState<string>(() => {
+    try {
+      const locales = (typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length)
+        ? Array.from(navigator.languages)
+        : [typeof navigator !== 'undefined' ? navigator.language : 'en-IN'];
+      return guessCountryFromLocales(locales) || 'IN';
+    } catch {
+      return 'IN';
+    }
+  });
 
   // Login Form State
   const [loginUsername, setLoginUsername] = useState('');
@@ -78,7 +93,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         mobile: regMobile.trim() || '9876543210',
         username,
         password: regPassword.trim() || '123456',
-        sector: regSector
+        sector: regSector,
+        country: regCountry
       });
 
       api.setStoreId(res.storeId);
@@ -411,6 +427,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 mb-1">
+                  Business Location (Country) *
+                </label>
+                <div className="relative">
+                  <Globe className="w-4 h-4 absolute left-3 top-3 text-blue-400" />
+                  <select
+                    value={regCountry}
+                    onChange={(e) => setRegCountry(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-blue-500/60 rounded-xl text-xs text-white font-semibold focus:outline-none focus:border-blue-400"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code} className="bg-slate-900 text-white py-1">
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[10px] text-blue-300 mt-1 flex items-center gap-1 font-medium">
+                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  Sets your store's currency automatically — change it anytime in Settings.
+                </p>
               </div>
 
               <div>

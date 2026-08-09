@@ -43,6 +43,21 @@ export const LandingView: React.FC<LandingViewProps> = ({
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
+  // Soft, best-effort framing only — not authoritative (that's the signup
+  // form's explicit country field). A visitor whose browser locale doesn't
+  // look Indian sees a neutral hero badge instead of an India-specific one;
+  // everyone still gets the exact same product and features either way.
+  const isLikelyOverseas = (() => {
+    try {
+      const locales = (typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length)
+        ? Array.from(navigator.languages)
+        : [typeof navigator !== 'undefined' ? navigator.language : 'en-IN'];
+      return !locales.some(loc => loc.toLowerCase().includes('-in') || loc.toLowerCase() === 'in');
+    } catch {
+      return false;
+    }
+  })();
+
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500 selection:text-white">
       {/* Top Header Navigation */}
@@ -156,7 +171,9 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="lg:col-span-5 text-left space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              🇮🇳 Built for Indian FMCG, Steel, Mandi, Textiles & Hardware Trade
+              {isLikelyOverseas
+                ? '🌍 Built for South Asian Traders Worldwide — FMCG, Steel, Textiles & Hardware'
+                : '🇮🇳 Built for Indian FMCG, Steel, Mandi, Textiles & Hardware Trade'}
             </div>
 
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.1]">

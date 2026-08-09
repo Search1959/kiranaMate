@@ -19,7 +19,7 @@
 } from '../types';
 import { generateSectorSeedData } from '../server/seedData';
 import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
-import { detectCurrencyFromLocale } from './currency';
+import { detectCurrencyFromLocale, getCurrencyByCountry } from './currency';
 import { cloudFetchStore, cloudSaveStore, cloudLookupUsername, cloudRegisterUsername, cloudListAllTradingAccounts, cloudDeleteStore, cloudDeleteUsername } from './tradingCloud';
 
 interface StoreData {
@@ -1237,7 +1237,7 @@ export const clientStore = {
     return { success: true };
   },
 
-  async register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector; allowExisting?: boolean }): Promise<{ success: boolean; user: User; storeId: string }> {
+  async register(payload: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector; country?: string; allowExisting?: boolean }): Promise<{ success: boolean; user: User; storeId: string }> {
     const rawUsername = payload.username || 'user';
     let cleanUsername = rawUsername.trim().toLowerCase();
 
@@ -1256,10 +1256,9 @@ export const clientStore = {
     const sectorKey = payload.sector || 'KIRANA_FMCG';
     const sectorConfig = getSectorConfig(sectorKey);
 
-    // Auto-detect currency from this browser's own locale — e.g. a visitor
-    // signing up from the US gets USD by default. Set once at registration;
-    // change it later in Settings if it guessed wrong.
-    const detectedCurrency = detectCurrencyFromLocale();
+    // An explicit country from the signup form is authoritative; fall back to
+    // a locale guess only when the user didn't pick one (e.g. quick sign-up).
+    const detectedCurrency = payload.country ? getCurrencyByCountry(payload.country) : detectCurrencyFromLocale();
 
     const newSettings: StoreSettings = {
       storeName: payload.shopName,
@@ -1271,6 +1270,7 @@ export const clientStore = {
       pincode: '400001',
       currencySymbol: detectedCurrency.symbol,
       currencyCode: detectedCurrency.code,
+      country: payload.country,
       invoicePrefix: sectorConfig.defaultSettings?.invoicePrefix || 'INV-',
       invoiceFooterNote: `Thank you for doing business with ${payload.shopName}! GST Tax Invoice.`,
       lowStockThresholdDefault: 5,

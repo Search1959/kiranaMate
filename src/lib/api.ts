@@ -295,7 +295,7 @@ export const api = {
       body: JSON.stringify({ username, password, sector })
     }),
 
-  register: (data: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector }) =>
+  register: (data: { username: string; password?: string; shopName: string; ownerName: string; mobile: string; sector?: TradingSector; country?: string }) =>
     apiFetch<{ success: boolean; user: User; storeId: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)

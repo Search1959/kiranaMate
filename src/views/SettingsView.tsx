@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import { TRADING_SECTORS } from '../lib/sectorConfig';
 import { serviceStore } from '../lib/serviceStore';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
-import { CURRENCIES, getCurrencyByCode, getCurrencyBySymbol } from '../lib/currency';
+import { CURRENCIES, getCurrencyByCode, getCurrencyBySymbol, COUNTRIES, getCurrencyByCountry } from '../lib/currency';
 
 interface SettingsViewProps {
   settings: StoreSettings;
@@ -37,6 +37,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [currencyCode, setCurrencyCode] = useState<string>(
     settings.currencyCode || getCurrencyBySymbol(settings.currencySymbol).code
   );
+  const [country, setCountry] = useState<string>(settings.country || 'IN');
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -56,6 +57,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         gstin,
         tagline,
         sector,
+        country,
         currencyCode: currency.code,
         currencySymbol: currency.symbol
       });
@@ -216,6 +218,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block mb-1">Business Country</label>
+          <select
+            value={country}
+            onChange={(e) => {
+              const newCountry = e.target.value;
+              setCountry(newCountry);
+              setCurrencyCode(getCurrencyByCountry(newCountry).code);
+            }}
+            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+          >
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>{c.name}</option>
+            ))}
+          </select>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Changing this also updates your currency below to match.
+          </p>
         </div>
 
         <div>

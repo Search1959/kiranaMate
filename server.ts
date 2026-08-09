@@ -48,7 +48,7 @@ async function startServer() {
 
   // Register New Store Account (Zero Demo Data!)
   app.post('/api/auth/register', (req, res) => {
-    const { username, password, shopName, ownerName, mobile, sector } = req.body;
+    const { username, password, shopName, ownerName, mobile, sector, country } = req.body;
     if (!username || !shopName || !ownerName) {
       return res.status(400).json({ error: 'Username, Shop Name, and Owner Name are required' });
     }
@@ -61,6 +61,7 @@ async function startServer() {
         ownerName,
         mobile: mobile || '9876543210',
         sector,
+        country,
         acceptLanguage: req.headers['accept-language'] as string
       });
       const token = `token-owner-${Date.now()}`;

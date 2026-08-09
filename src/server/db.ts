@@ -23,7 +23,7 @@ import {
 } from '../types';
 import { generateSeedData, generateSectorSeedData } from './seedData';
 import { getSectorConfig, TRADING_SECTORS } from '../lib/sectorConfig';
-import { detectCurrencyFromAcceptLanguage, formatMoney } from '../lib/currency';
+import { detectCurrencyFromAcceptLanguage, getCurrencyByCountry, formatMoney } from '../lib/currency';
 
 const DB_FILE = path.join(process.cwd(), 'data_kiranamate_db.json');
 
@@ -342,6 +342,7 @@ class Database {
     ownerName: string;
     mobile: string;
     sector?: TradingSector;
+    country?: string;
     acceptLanguage?: string;
   }): { user: User; storeId: string } {
     const cleanUsername = data.username.trim().toLowerCase();
@@ -380,12 +381,13 @@ class Database {
       }
     };
 
-    // Auto-detect currency from the signing-up user's browser locale (sent via
-    // the Accept-Language header) — e.g. a visitor signing up from the US gets
-    // USD by default. This is set once at registration; it won't change on
-    // later logins from elsewhere, since a store's bookkeeping currency
-    // shouldn't drift with wherever the owner happens to be. Overridable in Settings.
-    const detectedCurrency = detectCurrencyFromAcceptLanguage(data.acceptLanguage);
+    // An explicit country from the signup form is authoritative; fall back to
+    // a locale guess (via Accept-Language) only when the user didn't pick one.
+    // This is set once at registration and won't drift with wherever the
+    // owner happens to be on a later login — overridable in Settings.
+    const detectedCurrency = data.country
+      ? getCurrencyByCountry(data.country)
+      : detectCurrencyFromAcceptLanguage(data.acceptLanguage);
 
     const newSettings: StoreSettings = {
       storeName: data.shopName,
@@ -397,6 +399,7 @@ class Database {
       pincode: '400001',
       currencySymbol: detectedCurrency.symbol,
       currencyCode: detectedCurrency.code,
+      country: data.country,
       invoicePrefix: sectorConfig.defaultSettings?.invoicePrefix || 'INV-',
       invoiceFooterNote: `Thank you for doing business with ${data.shopName}! GST Tax Invoice.`,
       lowStockThresholdDefault: 5,

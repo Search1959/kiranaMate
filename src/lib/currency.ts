@@ -62,6 +62,58 @@ export function getCurrencyBySymbol(symbol?: string): CurrencyDef {
   return CURRENCIES.find(c => c.symbol === symbol) || DEFAULT_CURRENCY;
 }
 
+/** Countries offered on the signup form — explicit selection, not a guess. */
+export const COUNTRIES: { code: string; name: string }[] = [
+  { code: 'IN', name: 'India' },
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'SA', name: 'Saudi Arabia' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'US', name: 'United States' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'NZ', name: 'New Zealand' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'KE', name: 'Kenya' },
+  { code: 'NP', name: 'Nepal' },
+  { code: 'BD', name: 'Bangladesh' },
+  { code: 'PK', name: 'Pakistan' },
+  { code: 'LK', name: 'Sri Lanka' },
+  { code: 'MY', name: 'Malaysia' },
+  { code: 'PH', name: 'Philippines' },
+  { code: 'ID', name: 'Indonesia' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'CN', name: 'China' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'IT', name: 'Italy' },
+  { code: 'ES', name: 'Spain' },
+  { code: 'NL', name: 'Netherlands' },
+  { code: 'IE', name: 'Ireland' },
+  { code: 'OTHER', name: 'Other / Not Listed' }
+];
+
+/** Explicit country selection (e.g. from signup) is more reliable than a
+ * locale guess — this is the authoritative lookup once a user has told us
+ * where their business is, vs detectCurrencyFromLocale()'s best-effort guess. */
+export function getCurrencyByCountry(countryCode?: string): CurrencyDef {
+  if (!countryCode || countryCode === 'OTHER') return DEFAULT_CURRENCY;
+  const currencyCode = COUNTRY_TO_CURRENCY[countryCode.toUpperCase()];
+  return currencyCode ? getCurrencyByCode(currencyCode) : DEFAULT_CURRENCY;
+}
+
+/** Best-effort country guess from a BCP-47 locale/Accept-Language region tag
+ * (e.g. "en-AE" -> "AE"). Used only to pre-select a sensible default in the
+ * signup form's country dropdown — never treated as authoritative on its own. */
+export function guessCountryFromLocales(locales: string[]): string | undefined {
+  for (const loc of locales) {
+    const region = loc.split(';')[0]?.split('-')[1]?.toUpperCase();
+    if (region && COUNTRIES.some(c => c.code === region)) return region;
+  }
+  return undefined;
+}
+
 /**
  * Core detector: given a list of BCP-47 locale tags (most-preferred first,
  * e.g. ["en-US", "en;q=0.9"]), returns the matching currency. Shared by both
