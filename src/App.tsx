@@ -209,6 +209,20 @@ export default function App() {
   const [isScanPurchaseBillOpen, setIsScanPurchaseBillOpen] = useState(false);
   const [isSectorModalOpen, setIsSectorModalOpen] = useState(false);
 
+  /**
+   * On a phone, staff almost always open the app to bill someone — so a
+   * fresh login/signup/demo-start lands straight on POS instead of the
+   * dashboard, matching what desktop does (dashboard-first, for reviewing
+   * what already happened). Session restores on refresh are left alone —
+   * only actual login-type events redirect, so navigating away mid-session
+   * and refreshing doesn't unexpectedly bounce someone back to POS.
+   */
+  const getMobileLandingTab = (mode: 'trading' | 'service') => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    if (mode === 'service') return isMobile ? 'service_pos' : 'service_dashboard';
+    return isMobile ? 'mobile_pos' : 'home';
+  };
+
   const handleSelectSectorDemo = async (sectorId: TradingSector, demoStoreId: string) => {
     setIsSectorModalOpen(false);
     setIsLoading(true);
@@ -243,7 +257,7 @@ export default function App() {
       localStorage.setItem('trademate_session_store_id', demoStoreId);
 
       await loadData(demoStoreId);
-      setActiveTab('home');
+      setActiveTab(getMobileLandingTab('trading'));
       setViewMode('app');
     } catch (err) {
       console.error("Failed to select sector demo:", err);
@@ -400,7 +414,7 @@ export default function App() {
     localStorage.setItem('trademate_session_user', JSON.stringify(user));
     localStorage.setItem('trademate_active_workspace', 'service');
     setViewMode('app');
-    setActiveTab('service_dashboard');
+    setActiveTab(getMobileLandingTab('service'));
   };
 
   const handleStartDemo = async (role: 'owner' | 'staff' | 'admin') => {
@@ -444,7 +458,7 @@ export default function App() {
       localStorage.setItem('trademate_session_store_id', 'store-demo');
 
       await loadData('store-demo');
-      setActiveTab('home');
+      setActiveTab(getMobileLandingTab('trading'));
       setViewMode('app');
     } catch (err) {
       console.error('Demo boot error:', err);
@@ -463,6 +477,7 @@ export default function App() {
     localStorage.setItem('trademate_session_store_id', storeId);
 
     await loadData(storeId);
+    setActiveTab(getMobileLandingTab('trading'));
     setViewMode('app');
   };
 
@@ -545,6 +560,30 @@ export default function App() {
       case 'add-expense':
         setIsAddExpenseOpen(true);
         break;
+      // Service ERP quick actions — those screens' own "+" modals are local
+      // component state (not lifted up here like Trading's), so these just
+      // navigate straight to the right screen instead of popping a modal.
+      case 'service-new-bill':
+        setActiveTab('service_pos');
+        break;
+      case 'service-book-appointment':
+        setActiveTab('service_appointments');
+        break;
+      case 'service-new-job':
+        setActiveTab('service_jobs');
+        break;
+      case 'service-record-payment':
+        setActiveTab('service_payments');
+        break;
+      case 'service-add-client':
+        setActiveTab('service_customers');
+        break;
+      case 'service-new-quotation':
+        setActiveTab('service_quotations');
+        break;
+      case 'service-add-expense':
+        setActiveTab('service_expenses');
+        break;
       default:
         break;
     }
@@ -576,7 +615,7 @@ export default function App() {
     setCurrentUser(user);
     serviceStore.setActiveSector(sector);
     setViewMode('app');
-    setActiveTab('service_dashboard');
+    setActiveTab(getMobileLandingTab('service'));
   };
 
   // IF LANDING PAGE VIEW IS ACTIVE

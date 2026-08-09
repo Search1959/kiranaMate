@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Home,
   ShoppingBag,
@@ -19,10 +19,16 @@ import {
   PlusCircle,
   Truck,
   BookOpen,
-  DollarSign
+  DollarSign,
+  Wrench,
+  Calendar,
+  ShieldCheck,
+  ArrowLeftRight
 } from 'lucide-react';
 import { LanguageCode, DailyStats } from '../types';
 import { translations } from '../lib/translations';
+import { serviceStore } from '../lib/serviceStore';
+import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 
 interface MobileBottomNavProps {
   activeTab: string;
@@ -45,7 +51,20 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
-  const navItems = [
+  // Same "sticky workspace" pattern as DesktopSidebar.tsx: a shared tab like
+  // 'settings' shouldn't flip the mobile nav back to Trading mid-session.
+  const [isServiceMode, setIsServiceMode] = useState(activeTab.startsWith('service_'));
+  useEffect(() => {
+    if (activeTab.startsWith('service_')) {
+      setIsServiceMode(true);
+    } else if (activeTab !== 'settings' && activeTab !== 'system_admin') {
+      setIsServiceMode(false);
+    }
+  }, [activeTab]);
+
+  const serviceCfg = getServiceSectorConfig(serviceStore.getActiveSector());
+
+  const tradingNavItems = [
     { id: 'home', label: t.home, icon: Home },
     { id: 'orders', label: t.orders, icon: ShoppingBag, badge: stats.pendingOrdersCount },
     { id: 'stock', label: t.stock, icon: Package, badge: stats.lowStockCount + stats.outOfStockCount },
@@ -53,7 +72,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'more', label: t.more, icon: Grid }
   ];
 
-  const quickActions = [
+  const serviceNavItems: typeof tradingNavItems = [
+    { id: 'service_dashboard', label: 'Hub', icon: Home, badge: undefined },
+    { id: 'service_jobs', label: serviceCfg.workOrderTerm, icon: Wrench, badge: undefined },
+    { id: 'service_appointments', label: 'Appts', icon: Calendar, badge: undefined },
+    { id: 'service_customers', label: 'Clients', icon: Users, badge: undefined },
+    { id: 'more', label: t.more, icon: Grid, badge: undefined }
+  ];
+
+  const navItems = isServiceMode ? serviceNavItems : tradingNavItems;
+
+  const tradingQuickActions = [
     { id: 'new-sale', label: t.newSale + ' (30s POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white' },
     { id: 'new-order', label: t.newOrder, icon: ShoppingBag, bg: 'bg-blue-600 text-white' },
     { id: 'collect-payment', label: t.collectPayment, icon: Receipt, bg: 'bg-amber-600 text-white' },
@@ -63,6 +92,45 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'add-expense', label: t.addExpense, icon: TrendingDown, bg: 'bg-rose-600 text-white' }
   ];
 
+  // Service ERP's create-forms are local state inside each view (not lifted
+  // to App.tsx like Trading's are), so these navigate straight to the right
+  // screen rather than popping a modal directly — one extra tap to hit "+"
+  // there, but still a real shortcut past the full menu.
+  const serviceQuickActions = [
+    { id: 'service-new-bill', label: 'New Bill (POS)', icon: ShoppingCart, bg: 'bg-emerald-600 text-white' },
+    { id: 'service-book-appointment', label: 'Book Appointment', icon: Calendar, bg: 'bg-blue-600 text-white' },
+    { id: 'service-new-job', label: `New ${serviceCfg.workOrderTerm}`, icon: Wrench, bg: 'bg-indigo-600 text-white' },
+    { id: 'service-record-payment', label: 'Record Payment', icon: Receipt, bg: 'bg-amber-600 text-white' },
+    { id: 'service-add-client', label: `Add ${serviceCfg.customerTerm}`, icon: UserPlus, bg: 'bg-teal-600 text-white' },
+    { id: 'service-new-quotation', label: 'New Quotation', icon: BookOpen, bg: 'bg-purple-600 text-white' },
+    { id: 'service-add-expense', label: 'Record Expense', icon: TrendingDown, bg: 'bg-rose-600 text-white' }
+  ];
+
+  const quickActions = isServiceMode ? serviceQuickActions : tradingQuickActions;
+
+  // Desktop-only screens (Finance, Reports, Stock Ledger, Settings, Backup,
+  // System Admin) are deliberately left out of both lists below — reviewing
+  // numbers and admin work belongs on a wide screen, not this drawer.
+  const tradingMoreItems = [
+    { id: 'service_dashboard', label: 'Switch to Service ERP', icon: ArrowLeftRight, color: 'text-blue-600 bg-blue-50' },
+    { id: 'sales', label: t.sales, icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50' },
+    { id: 'purchases', label: t.purchases, icon: Truck, color: 'text-blue-600 bg-blue-50' },
+    { id: 'expenses', label: t.expenses, icon: TrendingDown, color: 'text-rose-600 bg-rose-50' },
+    { id: 'suppliers', label: t.suppliers, icon: Users, color: 'text-purple-600 bg-purple-50' },
+  ];
+
+  const serviceMoreItems = [
+    { id: 'home', label: 'Switch to TradeMate', icon: ArrowLeftRight, color: 'text-blue-600 bg-blue-50' },
+    { id: 'service_staff', label: `${serviceCfg.staffTerm} Roster`, icon: ShieldCheck, color: 'text-indigo-600 bg-indigo-50' },
+    { id: 'service_packages', label: 'Packages & AMC', icon: Package, color: 'text-purple-600 bg-purple-50' },
+    { id: 'service_payments', label: 'Payments', icon: DollarSign, color: 'text-emerald-600 bg-emerald-50' },
+    { id: 'service_expenses', label: 'Expenses', icon: TrendingDown, color: 'text-rose-600 bg-rose-50' },
+    { id: 'service_invoices', label: 'Invoices & Receipts', icon: FileText, color: 'text-blue-600 bg-blue-50' },
+    { id: 'service_quotations', label: 'Quotations', icon: BookOpen, color: 'text-amber-600 bg-amber-50' },
+  ];
+
+  const moreItems = isServiceMode ? serviceMoreItems : tradingMoreItems;
+
   return (
     <>
       {/* FAB Quick Action Button (Floating +) */}
@@ -70,7 +138,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         <button
           onClick={() => setShowFabMenu(!showFabMenu)}
           className={`w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-95 text-white ${
-            showFabMenu ? 'bg-slate-800 rotate-45' : 'bg-blue-600 hover:bg-blue-700 font-bold ring-4 ring-blue-500/20'
+            showFabMenu ? 'bg-slate-800 rotate-45' : isServiceMode ? 'bg-indigo-600 hover:bg-indigo-700 font-bold ring-4 ring-indigo-500/20' : 'bg-blue-600 hover:bg-blue-700 font-bold ring-4 ring-blue-500/20'
           }`}
           title="Quick Action"
         >
@@ -131,20 +199,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              {[
-                { id: 'service_dashboard', label: '🛠 Service ERP', icon: Home, color: 'text-blue-600 bg-blue-50' },
-                { id: 'service_pos', label: '🧾 Service POS', icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50' },
-                { id: 'service_jobs', label: '🛠 Job Cards', icon: Settings, color: 'text-indigo-600 bg-indigo-50' },
-                { id: 'sales', label: t.sales, icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50' },
-                { id: 'purchases', label: t.purchases, icon: Truck, color: 'text-blue-600 bg-blue-50' },
-                { id: 'expenses', label: t.expenses, icon: TrendingDown, color: 'text-rose-600 bg-rose-50' },
-                { id: 'finance', label: t.finance, icon: DollarSign, color: 'text-emerald-600 bg-emerald-50' },
-                { id: 'suppliers', label: t.suppliers, icon: Users, color: 'text-purple-600 bg-purple-50' },
-                { id: 'stockLedger', label: t.stockLedger, icon: BookOpen, color: 'text-indigo-600 bg-indigo-50' },
-                { id: 'reports', label: t.reports, icon: FileText, color: 'text-amber-600 bg-amber-50' },
-                { id: 'settings', label: t.settings, icon: Settings, color: 'text-slate-600 bg-slate-100' },
-                { id: 'backup', label: t.backup, icon: Database, color: 'text-teal-600 bg-teal-50' },
-              ].map(item => {
+              {moreItems.map(item => {
                 const Icon = item.icon;
                 return (
                   <button
@@ -173,6 +228,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 <span className="text-xs font-semibold text-red-700">{t.logout}</span>
               </button>
             </div>
+
+            <p className="text-center text-[10px] text-slate-400 pt-3 mt-2 border-t border-slate-100">
+              Reports, Finance & Settings are easier to review on a bigger screen — open TradeMate on desktop for those.
+            </p>
           </div>
         </div>
       )}
@@ -194,7 +253,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 }
               }}
               className={`flex-1 py-1 flex flex-col items-center justify-center min-w-0 relative transition-colors ${
-                isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+                isActive ? (isServiceMode ? 'text-indigo-600 font-bold' : 'text-blue-600 font-bold') : 'text-slate-500 hover:text-slate-800 font-medium'
               }`}
             >
               <div className="relative">
