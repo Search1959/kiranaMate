@@ -4,6 +4,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import { db } from './src/server/db';
+import { lookupUsernameDirectory, fetchStoreFromCloud } from './src/server/firestore';
 import { UserRole, User } from './src/types';
 
 async function startServer() {
@@ -76,7 +77,7 @@ async function startServer() {
   });
 
   // Login
-  app.post('/api/auth/login', (req, res) => {
+  app.post('/api/auth/login', async (req, res) => {
     const { username, password, sector } = req.body;
     if (!username) {
       return res.status(400).json({ error: 'Username is required' });
@@ -109,6 +110,34 @@ async function startServer() {
     }
 
     let found = db.getUserByUsername(username);
+
+    // Not in this server process's current in-memory map — before assuming
+    // the account genuinely doesn't exist, check the durable cloud directory.
+    // This is the fix for a real data-loss bug: a server restart (any
+    // redeploy) used to wipe the in-memory map, and the OLD code here would
+    // silently register a brand-new, empty store under a fresh random ID the
+    // moment a known user like Deshna Global logged back in — orphaning all
+    // their real purchase/stock data in the process. Now it looks the
+    // username up in Firestore first and re-hydrates the SAME store instead.
+    if (!found) {
+      try {
+        const directoryHit = await lookupUsernameDirectory(username);
+        if (directoryHit?.storeId) {
+          const cloudData = await fetchStoreFromCloud(directoryHit.storeId);
+          if (cloudData && (cloudData as any).users) {
+            db.hydrateStoreFromData(directoryHit.storeId, cloudData as any);
+            const cleanUser = username.trim().toLowerCase();
+            const matchedUser = (cloudData as any).users.find((u: User) => u.username.toLowerCase() === cleanUser) || (cloudData as any).users[0];
+            if (matchedUser) {
+              found = { user: matchedUser, storeId: directoryHit.storeId };
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Cloud directory lookup failed during login:', err);
+      }
+    }
+
     if (!found) {
       if (username.includes('@') || username.trim().length >= 3) {
         const cleanName = username.trim().toLowerCase();

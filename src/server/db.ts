@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { saveStoreToCloud, fetchStoreFromCloud } from './firestore';
+import { saveStoreToCloud, fetchStoreFromCloud, saveUsernameDirectory, lookupUsernameDirectory, listAllUsernameDirectoryEntries } from './firestore';
 import {
   User,
   Customer,
@@ -87,8 +87,19 @@ class Database {
 
   private async hydrateFromCloud() {
     try {
-      const storesToSync = Object.keys(this.storeMap);
-      if (!storesToSync.includes('store-demo')) storesToSync.push('store-demo');
+      // Don't just re-sync stores a (possibly stale, git-reset) local snapshot
+      // already happens to know about — pull the full list of every real
+      // account from the durable Firestore directory too, so a fresh deploy
+      // recovers everyone's real data immediately, not just whichever stores
+      // happened to be in the last commit of the local file.
+      const storesToSync = new Set(Object.keys(this.storeMap));
+      storesToSync.add('store-demo');
+      try {
+        const directory = await listAllUsernameDirectoryEntries();
+        directory.forEach(entry => { if (entry.storeId) storesToSync.add(entry.storeId); });
+      } catch (err) {
+        console.error('Failed to list username directory during hydrate:', err);
+      }
 
       for (const sId of storesToSync) {
         const cloudStore = await fetchStoreFromCloud(sId);
@@ -99,10 +110,18 @@ class Database {
         }
       }
       fs.writeFileSync(DB_FILE, JSON.stringify({ stores: this.storeMap }, null, 2), 'utf-8');
-      console.log('☁️ Database hydrated with live data from Cloud Firestore!');
+      console.log(`☁️ Database hydrated with live data from Cloud Firestore! (${storesToSync.size} stores)`);
     } catch (err) {
       console.error('Failed to hydrate from Cloud Firestore:', err);
     }
+  }
+
+  /** Injects freshly cloud-fetched data for a store directly into the live
+   * in-memory map (and persists it locally too) — used when a login resolves
+   * a username to an existing storeId that wasn't already loaded. */
+  public hydrateStoreFromData(storeId: string, data: DatabaseSchema) {
+    this.storeMap[storeId] = data;
+    this.saveData();
   }
 
   public saveData() {
@@ -433,6 +452,10 @@ class Database {
     };
 
     this.saveData();
+    // Register this username's storeId in the durable cloud directory so a
+    // later login — even after this server process restarts — finds THIS
+    // store again instead of silently creating a new empty one.
+    saveUsernameDirectory(cleanUsername, newStoreId);
     return { user: newUser, storeId: newStoreId };
   }
 

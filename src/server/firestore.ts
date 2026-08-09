@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
 
@@ -53,4 +53,54 @@ export async function fetchStoreFromCloud(storeId: string) {
     console.error(`Failed to fetch store [${storeId}] from Cloud Firestore:`, err);
   }
   return null;
+}
+
+/**
+ * Durable username -> storeId directory, shared with the client-side fallback
+ * (src/lib/tradingCloud.ts writes the exact same `tradingAccounts` collection).
+ * This is what lets a login find an EXISTING store after the server process
+ * restarts (a redeploy, a crash, a host recycling the dyno) instead of the
+ * in-memory-only getUserByUsername() coming up empty and silently creating a
+ * brand-new store with a fresh random ID, orphaning all the real data that
+ * was in the original one. This was a real, serious bug — see the session
+ * this fix was written in.
+ */
+export async function saveUsernameDirectory(username: string, storeId: string): Promise<void> {
+  const db = getCloudFirestore();
+  if (!db) return;
+  try {
+    await setDoc(doc(db, 'tradingAccounts', username.trim().toLowerCase()), {
+      storeId,
+      createdAt: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error(`Failed to register username [${username}] in cloud directory:`, err);
+  }
+}
+
+export async function lookupUsernameDirectory(username: string): Promise<{ storeId: string } | null> {
+  const db = getCloudFirestore();
+  if (!db) return null;
+  try {
+    const snap = await getDoc(doc(db, 'tradingAccounts', username.trim().toLowerCase()));
+    return snap.exists() ? (snap.data() as { storeId: string }) : null;
+  } catch (err) {
+    console.error(`Failed to look up username [${username}] in cloud directory:`, err);
+    return null;
+  }
+}
+
+/** Every known username -> storeId pair, used to proactively re-hydrate all
+ * real accounts on server startup, not just the ones a stale local snapshot
+ * already happens to know about. */
+export async function listAllUsernameDirectoryEntries(): Promise<{ username: string; storeId: string }[]> {
+  const db = getCloudFirestore();
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'tradingAccounts'));
+    return snap.docs.map(d => ({ username: d.id, storeId: (d.data() as any).storeId }));
+  } catch (err) {
+    console.error('Failed to list username directory from cloud:', err);
+    return [];
+  }
 }
