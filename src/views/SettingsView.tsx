@@ -6,6 +6,7 @@ import { TRADING_SECTORS } from '../lib/sectorConfig';
 import { serviceStore } from '../lib/serviceStore';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 import { CURRENCIES, getCurrencyByCode, getCurrencyBySymbol, COUNTRIES, getCurrencyByCountry } from '../lib/currency';
+import { getSectorConfig } from '../lib/sectorConfig';
 
 interface SettingsViewProps {
   settings: StoreSettings;
@@ -38,6 +39,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     settings.currencyCode || getCurrencyBySymbol(settings.currencySymbol).code
   );
   const [country, setCountry] = useState<string>(settings.country || 'IN');
+  const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -102,7 +104,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <p className="text-xs text-slate-500">
           {isServiceWorkspace
             ? 'Configure Service Business details printed on WhatsApp invoices, work orders, estimates, and receipts'
-            : 'Configure Kirana store details printed on WhatsApp bills and receipts'}
+            : `Configure ${sectorLabel} store details printed on WhatsApp bills and receipts`}
         </p>
       </div>
 

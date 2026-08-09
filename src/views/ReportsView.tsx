@@ -2,6 +2,7 @@ import React from 'react';
 import { FileText, Download, TrendingUp, TrendingDown, DollarSign, Award, Calendar } from 'lucide-react';
 import { DailyStats, Product, Sale, StoreSettings } from '../types';
 import { formatMoney } from '../lib/currency';
+import { getSectorConfig } from '../lib/sectorConfig';
 
 interface ReportsViewProps {
   stats: DailyStats;
@@ -17,6 +18,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   settings
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
+  const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
   const topSellingProducts = [...products]
     .sort((a, b) => ((b as any).salesCount || 0) - ((a as any).salesCount || 0))
     .slice(0, 5);
@@ -48,7 +50,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <FileText className="w-5 h-5 text-emerald-600" /> Financial Reports & P&L Statement
           </h2>
           <p className="text-xs text-slate-500">
-            Real-time Kirana store profit & loss breakdown
+            Real-time {sectorLabel} store profit & loss breakdown
           </p>
         </div>
 
@@ -92,7 +94,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       {/* Top 5 Best Selling Items */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
         <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-          <Award className="w-4 h-4 text-amber-500" /> Top Fast-Moving Kirana Items
+          <Award className="w-4 h-4 text-amber-500" /> Top Fast-Moving {sectorLabel} Items
         </h3>
 
         <div className="divide-y divide-slate-100">

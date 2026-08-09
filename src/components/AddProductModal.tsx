@@ -204,7 +204,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         <div className="bg-emerald-800 text-white p-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 font-bold text-base">
             <Package className="w-5 h-5 text-amber-300" />
-            <span>{productToEdit ? 'Edit Kirana Product' : 'Add New Kirana Product'}</span>
+            <span>{productToEdit ? `Edit ${sectorCfg.shortLabel} Product` : `Add New ${sectorCfg.shortLabel} Product`}</span>
           </div>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-emerald-700 text-emerald-200">
             <X className="w-5 h-5" />

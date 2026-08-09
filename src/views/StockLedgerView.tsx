@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Product, InventoryTransaction, Sale, Purchase, KiranaCategory, StoreSettings } from '../types';
 import { formatMoney } from '../lib/currency';
+import { getSectorConfig } from '../lib/sectorConfig';
 
 interface StockLedgerViewProps {
   products: Product[];
@@ -47,6 +48,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
   onOpenScanBill
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
+  const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
   // Period filter states
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('month');
   
@@ -344,7 +346,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
         <div>
           <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            <span>Kirana Stock Ledger & Audit Movement</span>
+            <span>{sectorLabel} Stock Ledger & Audit Movement</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Audit stock balances with exact opening stock, inward purchases, sales quantity, and closing stock valuation

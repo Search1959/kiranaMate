@@ -18,6 +18,7 @@ import {
 import { Product, KiranaCategory, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { formatMoney } from '../lib/currency';
+import { getSectorConfig } from '../lib/sectorConfig';
 
 interface ProductsViewProps {
   products: Product[];
@@ -56,6 +57,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   onRefreshData
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
+  const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'LOW' | 'OUT'>('ALL');
@@ -130,7 +132,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Package className="w-5 h-5 text-emerald-600" /> Kirana Stock & Product Inventory
+            <Package className="w-5 h-5 text-emerald-600" /> {sectorLabel} Stock & Product Inventory
           </h2>
           <p className="text-xs text-slate-500">
             Total {products.length} products listed in inventory
