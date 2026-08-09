@@ -316,7 +316,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2.5 pb-24">
+          <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2.5 pb-40">
             {filteredProducts.length === 0 ? (
               <div className="col-span-2 p-8 text-center text-slate-400 text-xs">No matching products found.</div>
             ) : (
@@ -349,7 +349,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
           {cart.length > 0 && (
             <button
               onClick={() => setStep('checkout')}
-              className="fixed bottom-3 left-3 right-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-2xl shadow-2xl flex items-center justify-between px-5 text-sm active:scale-98 transition-transform md:hidden"
+              className="fixed bottom-20 left-3 right-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-2xl shadow-2xl flex items-center justify-between px-5 text-sm active:scale-98 transition-transform md:hidden z-30"
             >
               <span className="flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4" />
@@ -372,7 +372,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
             <h2 className="font-bold text-sm">Checkout</h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 pb-32">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 pb-48">
             {/* Cart Items */}
             <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
               {cart.map(item => (
@@ -532,7 +532,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
           <button
             onClick={handleSubmitSale}
             disabled={isSubmitting || cart.length === 0}
-            className="fixed bottom-3 left-3 right-3 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold py-4 rounded-2xl shadow-2xl flex items-center justify-center gap-2 text-sm active:scale-98 transition-transform md:hidden"
+            className="fixed bottom-20 left-3 right-3 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold py-4 rounded-2xl shadow-2xl flex items-center justify-center gap-2 text-sm active:scale-98 transition-transform md:hidden z-30"
           >
             <CheckCircle2 className="w-5 h-5" />
             {isSubmitting ? 'Processing...' : `Complete Sale — ${money(grandTotal)}`}
