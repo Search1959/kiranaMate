@@ -146,8 +146,8 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               </>
             ) : (
               <>
-                <Store className="w-5 h-5 text-blue-400" />
-                <span>Trade<span className="text-blue-400">Mate</span></span>
+                <Store className="w-5 h-5 text-emerald-400" />
+                <span>Trade<span className="text-emerald-400">Mate</span></span>
               </>
             )}
           </h1>
@@ -164,15 +164,15 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             onClick={() => onTabChange('home')}
             className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-blue-400" />
+            <ArrowLeft className="w-3.5 h-3.5 text-emerald-400" />
             <span>Switch to TradeMate Trading</span>
           </button>
         ) : (
           <button
             onClick={() => onOpenQuickAction('new-sale')}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
           >
-            <ShoppingCart className="w-4 h-4 text-blue-200" />
+            <ShoppingCart className="w-4 h-4 text-emerald-200" />
             <span>+ Express 30s Sale POS</span>
           </button>
         )}
@@ -197,7 +197,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                       isActive
                         ? isServiceTab
                           ? 'bg-indigo-600 text-white font-bold shadow-md'
-                          : 'bg-blue-600 text-white font-bold shadow-md'
+                          : 'bg-emerald-600 text-white font-bold shadow-md'
                         : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
@@ -221,10 +221,10 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         {/* Multi-Sector Trading Info Banner (When in Trading ERP) */}
         {!isServiceTab && (
           <div className="pt-2 border-t border-slate-800">
-            <div className="w-full bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/20 rounded-xl p-3 text-left">
+            <div className="w-full bg-gradient-to-r from-emerald-900/40 to-indigo-900/40 border border-emerald-500/20 rounded-xl p-3 text-left">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-300 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-blue-400" />
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
                   Active Trading Sector
                 </span>
               </div>
@@ -243,7 +243,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       <div className="p-3 border-t border-slate-800">
         <div className="bg-slate-800 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className={`w-8 h-8 rounded-full ${isServiceTab ? 'bg-indigo-600' : 'bg-blue-500'} text-white flex items-center justify-center font-bold text-xs shrink-0`}>
+            <div className={`w-8 h-8 rounded-full ${isServiceTab ? 'bg-indigo-600' : 'bg-emerald-600'} text-white flex items-center justify-center font-bold text-xs shrink-0`}>
               {currentUser.name.charAt(0)}
             </div>
             <div className="overflow-hidden">

@@ -170,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
         ) : (
           <>
             {/* TRADING ERP BRAND & STORE */}
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer" onClick={onGoToLanding}>
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer" onClick={onGoToLanding}>
               <Store className="w-4 h-4 text-white" />
             </div>
 
@@ -186,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
                     Demo Store
                   </span>
                 ) : (
-                  <span className="bg-blue-100 text-blue-800 border border-blue-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0 hidden md:inline-block">
+                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0 hidden md:inline-block">
                     My Store
                   </span>
                 )}
