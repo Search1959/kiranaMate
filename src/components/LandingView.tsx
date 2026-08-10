@@ -20,7 +20,8 @@ import {
   Rocket,
   LineChart,
   Menu,
-  X
+  X,
+  LogIn
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
 
@@ -109,7 +110,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </button>
 
           <a href="#features" className="hover:text-white transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
           {onOpenHelp && (
             <button onClick={onOpenHelp} className="hover:text-white transition-colors cursor-pointer">
@@ -138,9 +138,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
           <button
             onClick={() => onOpenAuthModal('login')}
-            className="hidden sm:inline-flex px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 rounded-full transition-colors border border-slate-800 cursor-pointer"
+            className="hidden sm:flex items-center justify-center w-9 h-9 text-slate-200 hover:text-white hover:bg-slate-900 rounded-full transition-colors border border-slate-800 cursor-pointer shrink-0"
+            title="Login"
           >
-            Login
+            <LogIn className="w-4 h-4" />
           </button>
 
           <button
@@ -217,9 +218,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 </button>
               )}
 
-              <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="grid grid-cols-2 gap-2 pt-1">
                 <a href="#features" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-300 bg-slate-800/40 border border-slate-800 px-2 py-2.5 rounded-xl">Features</a>
-                <a href="#how-it-works" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-300 bg-slate-800/40 border border-slate-800 px-2 py-2.5 rounded-xl">How It Works</a>
                 <a href="#pricing" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-300 bg-slate-800/40 border border-slate-800 px-2 py-2.5 rounded-xl">Pricing</a>
               </div>
 
