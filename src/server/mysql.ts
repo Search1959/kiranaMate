@@ -34,7 +34,8 @@ export function getMysqlPool(): mysql.Pool | null {
       waitForConnections: true,
       connectionLimit: 8,
       queueLimit: 0,
-      dateStrings: true
+      dateStrings: true,
+      connectTimeout: 5000
     });
     console.log(`🐬 MySQL pool created — database: ${DB_NAME}`);
     return pool;
