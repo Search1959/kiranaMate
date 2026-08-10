@@ -760,20 +760,21 @@ RULES:
     });
   }
 
-  try {
-    // Hard cap regardless of what the MySQL driver's own timeouts do internally —
-    // a hung TCP handshake (e.g. connection-limit exhaustion on a shared host)
-    // must never be able to stall the whole app boot indefinitely.
-    await Promise.race([
-      ensureMysqlSchema(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('MySQL schema init timed out after 8s')), 8000))
-    ]);
-  } catch (err) {
-    console.error('⚠️ MySQL schema init failed or timed out — continuing without it (Firestore-backed features are unaffected):', err);
-  }
-
+  // Bind to the port FIRST, unconditionally — the host's health check needs
+  // this to happen fast (well under a second), and MySQL connecting slowly
+  // or hanging (e.g. connection-limit pressure on shared hosting) must never
+  // be able to delay that, or the platform's own supervisor kills the process
+  // for "not starting" before our own MySQL timeout logic ever gets a chance
+  // to run. Schema init now happens in the background, after listen().
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`KiranaMate Full-Stack Server running on http://0.0.0.0:${PORT}`);
+  });
+
+  Promise.race([
+    ensureMysqlSchema(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('MySQL schema init timed out after 8s')), 8000))
+  ]).catch((err) => {
+    console.error('⚠️ MySQL schema init failed or timed out — continuing without it (Firestore-backed features are unaffected):', err);
   });
 }
 
