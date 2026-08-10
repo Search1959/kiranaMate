@@ -760,7 +760,11 @@ RULES:
     });
   }
 
-  await ensureMysqlSchema();
+  try {
+    await ensureMysqlSchema();
+  } catch (err) {
+    console.error('⚠️ MySQL schema init failed — continuing without it (Firestore-backed features are unaffected):', err);
+  }
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`KiranaMate Full-Stack Server running on http://0.0.0.0:${PORT}`);
