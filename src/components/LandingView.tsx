@@ -269,38 +269,29 @@ export const LandingView: React.FC<LandingViewProps> = ({
               Create GST invoices, manage inventory automatically, collect payments, monitor profit, and run your complete trading business from any device — tailored for <strong className="text-slate-200 font-semibold">Kirana, Metals & Steel, Agri Mandi, Textiles, Chemicals, Jewellery, Hardware & General Trading</strong>.
             </p>
 
-            {/* Key CTA Buttons */}
-            <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-stretch sm:items-center gap-3 pt-2">
-              <button
-                onClick={() => onStartDemo('owner')}
-                className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-full shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm"
-              >
-                <Zap className="w-4 h-4 shrink-0" />
-                <span>Try Instant Live Demo</span>
-              </button>
-
-              <button
-                onClick={() => onOpenAuthModal('register')}
-                className="px-6 py-3.5 bg-transparent hover:bg-slate-900 text-white font-bold rounded-full border border-slate-700 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm"
-              >
-                <Store className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Sign Up (Start Clean Shop)</span>
-              </button>
+            {/* Trust line — real, substantiated product facts (sector counts shown
+                elsewhere on this page, actual feature set) rather than invented
+                social-proof numbers. Replaces what used to be three hero buttons
+                (Try Demo / Sign Up / System Admin Login) — Sign Up already lives
+                in the header, System Admin Login moved to the footer, and the
+                live-demo CTA was dropped per direct request. */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2">
+              {[
+                '23 Trading Sectors',
+                '34 Service Sectors',
+                'GST-Ready Invoicing',
+                'AI Bill Scanning',
+              ].map((item) => (
+                <span key={item} className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-300 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  {item}
+                </span>
+              ))}
             </div>
 
-            <div className="pt-1 flex items-center justify-between gap-2">
-              <button
-                onClick={() => onOpenAuthModal('admin')}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-semibold rounded-full flex items-center gap-1.5 transition-all cursor-pointer text-xs"
-              >
-                <ShieldCheck className="w-4 h-4 text-slate-400" />
-                <span>System Admin Login</span>
-              </button>
-
-              <span className="text-[11px] text-slate-500">
-                No card required • Free to start
-              </span>
-            </div>
+            <p className="text-[11px] text-slate-500 pt-1">
+              No card required • Free to start
+            </p>
           </div>
 
           {/* Right Panel: Multi-Sector Trading Industry Support Showcase */}
@@ -821,7 +812,16 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <span className="font-display font-bold text-white">TradeMate</span>
             <span>— Universal Business ERP, POS Billing & Khata System</span>
           </div>
-          <p>© {new Date().getFullYear()} TradeMate POS. Built for Wholesale & Retail Traders across India.</p>
+          <div className="flex items-center gap-4">
+            <p>© {new Date().getFullYear()} TradeMate POS. Built for Wholesale & Retail Traders across India.</p>
+            <button
+              onClick={() => onOpenAuthModal('admin')}
+              className="flex items-center gap-1 text-slate-600 hover:text-slate-300 transition-colors cursor-pointer shrink-0"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>System Admin</span>
+            </button>
+          </div>
         </div>
       </footer>
     </div>
