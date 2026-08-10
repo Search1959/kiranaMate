@@ -214,3 +214,68 @@ export async function insertStockLedgerEntriesToMysql(storeId: string, entries: 
     console.error(`MySQL dual-write failed for stock ledger (store [${storeId}], ${entries.length} entries):`, err);
   }
 }
+
+/**
+ * Migration phase (Phase 3) — one-time backfill of a real account's
+ * pre-existing history into MySQL. Reuses the exact same upsert functions
+ * already proven correct by the dual-write phase, so this is provably the
+ * same code path, not a second implementation that could drift.
+ *
+ * Safe to run more than once for the same store: sales/purchases upsert on
+ * their unique key either way, and stock_ledger is deleted-then-reinserted
+ * for this store_id first (it has no natural unique key of its own) so a
+ * re-run replaces rather than duplicates.
+ */
+export async function migrateStoreHistoryToMysql(
+  storeId: string,
+  sales: Sale[],
+  purchases: Purchase[],
+  inventoryTransactions: InventoryTransaction[]
+): Promise<{ salesAttempted: number; purchasesAttempted: number; ledgerEntriesAttempted: number }> {
+  const pool = getMysqlPool();
+  if (!pool) return { salesAttempted: 0, purchasesAttempted: 0, ledgerEntriesAttempted: 0 };
+
+  for (const sale of sales) {
+    await upsertSaleToMysql(storeId, sale);
+  }
+  for (const purchase of purchases) {
+    await upsertPurchaseToMysql(storeId, purchase);
+  }
+  try {
+    await pool.query('DELETE FROM stock_ledger WHERE store_id = ?', [storeId]);
+  } catch (err) {
+    console.error(`Failed to clear existing stock_ledger rows for store [${storeId}] before migration:`, err);
+  }
+  // Batch in chunks — a very active store's full history could be thousands
+  // of rows, past a single INSERT statement's practical size.
+  const CHUNK = 500;
+  for (let i = 0; i < inventoryTransactions.length; i += CHUNK) {
+    await insertStockLedgerEntriesToMysql(storeId, inventoryTransactions.slice(i, i + CHUNK));
+  }
+
+  return {
+    salesAttempted: sales.length,
+    purchasesAttempted: purchases.length,
+    ledgerEntriesAttempted: inventoryTransactions.length
+  };
+}
+
+/** Row counts actually present in MySQL for a store — the way to verify a
+ * migration actually landed everything, not just that it didn't throw. */
+export async function getMysqlRowCounts(storeId: string): Promise<{ sales: number; purchases: number; stockLedger: number } | null> {
+  const pool = getMysqlPool();
+  if (!pool) return null;
+  try {
+    const [salesRows] = await pool.query('SELECT COUNT(*) AS c FROM sales WHERE store_id = ?', [storeId]);
+    const [purchaseRows] = await pool.query('SELECT COUNT(*) AS c FROM purchases WHERE store_id = ?', [storeId]);
+    const [ledgerRows] = await pool.query('SELECT COUNT(*) AS c FROM stock_ledger WHERE store_id = ?', [storeId]);
+    return {
+      sales: (salesRows as any[])[0].c,
+      purchases: (purchaseRows as any[])[0].c,
+      stockLedger: (ledgerRows as any[])[0].c
+    };
+  } catch (err) {
+    console.error(`Failed to get MySQL row counts for store [${storeId}]:`, err);
+    return null;
+  }
+}

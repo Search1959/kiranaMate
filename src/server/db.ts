@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { saveStoreToCloud, fetchStoreFromCloud, saveUsernameDirectory, lookupUsernameDirectory, listAllUsernameDirectoryEntries } from './firestore';
-import { upsertSaleToMysql, upsertPurchaseToMysql, insertStockLedgerEntriesToMysql } from './mysql';
+import { upsertSaleToMysql, upsertPurchaseToMysql, insertStockLedgerEntriesToMysql, migrateStoreHistoryToMysql, getMysqlRowCounts } from './mysql';
 import {
   User,
   Customer,
@@ -1373,6 +1373,37 @@ class Database {
   // --- INVENTORY LOGS ---
   public getInventoryTransactions(storeId: string = 'store-demo'): InventoryTransaction[] {
     return [...this.getStore(storeId).inventoryTransactions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  /**
+   * One-time migration of an existing store's full sales/purchases/stock
+   * ledger history into MySQL — Phase 3 of the plan, run per account with
+   * explicit verification, not an automatic bulk operation. Returns both
+   * what was attempted (from the source, the current in-memory store — which
+   * on server startup is hydrated from Firestore, so this covers real
+   * historical data, not just whatever happened after this server booted)
+   * and what MySQL actually reports afterward, so a mismatch is visible
+   * immediately rather than assumed away.
+   */
+  public async migrateStoreToMysql(storeId: string) {
+    const store = this.getStore(storeId);
+    const attempted = await migrateStoreHistoryToMysql(
+      storeId,
+      store.sales,
+      store.purchases,
+      store.inventoryTransactions
+    );
+    const actual = await getMysqlRowCounts(storeId);
+    return {
+      storeId,
+      sourceCounts: {
+        sales: store.sales.length,
+        purchases: store.purchases.length,
+        stockLedger: store.inventoryTransactions.length
+      },
+      attempted,
+      mysqlCountsAfter: actual
+    };
   }
 
   // --- NOTIFICATIONS ---

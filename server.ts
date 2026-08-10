@@ -732,6 +732,19 @@ RULES:
     }
   });
 
+  // One-time backfill of an existing store's history into MySQL — run per
+  // account, not automatically for everyone. Safe to call more than once
+  // for the same store (sales/purchases upsert; stock_ledger is replaced,
+  // not duplicated). :storeId identifies which account to migrate.
+  app.post('/api/admin/migrate-to-mysql/:storeId', async (req, res) => {
+    try {
+      const result = await db.migrateStoreToMysql(req.params.storeId);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // --- VITE MIDDLEWARE OR STATIC SERVING ---
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
