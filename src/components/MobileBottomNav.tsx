@@ -24,7 +24,8 @@ import {
   Calendar,
   ShieldCheck,
   ArrowLeftRight,
-  MessageCircle
+  MessageCircle,
+  Camera
 } from 'lucide-react';
 import { LanguageCode, DailyStats } from '../types';
 import { translations } from '../lib/translations';
@@ -89,6 +90,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'new-order', label: t.newOrder, icon: ShoppingBag, bg: 'bg-blue-600 text-white', category: 'Billing' },
     { id: 'collect-payment', label: t.collectPayment, icon: Receipt, bg: 'bg-amber-600 text-white', category: 'Billing' },
     { id: 'add-stock', label: t.addStock, icon: ArrowUpRight, bg: 'bg-indigo-600 text-white', category: 'Inventory' },
+    { id: 'scan-bill', label: 'Scan Bill (Camera)', icon: Camera, bg: 'bg-cyan-600 text-white', category: 'Inventory' },
     { id: 'add-product', label: t.addProduct, icon: PlusCircle, bg: 'bg-purple-600 text-white', category: 'Inventory' },
     { id: 'add-customer', label: t.addCustomer, icon: UserPlus, bg: 'bg-teal-600 text-white', category: 'Customers' },
     { id: 'whatsapp-udhaar-reminder', label: 'WhatsApp Udhaar Reminder', icon: MessageCircle, bg: 'bg-green-600 text-white', category: 'Customers' },

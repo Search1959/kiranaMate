@@ -552,6 +552,9 @@ export default function App() {
         setStockProductTarget(null);
         setIsAddStockOpen(true);
         break;
+      case 'scan-bill':
+        setIsScanPurchaseBillOpen(true);
+        break;
       case 'add-product':
         setEditingProductTarget(null);
         setIsAddProductOpen(true);
