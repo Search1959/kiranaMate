@@ -74,7 +74,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </div>
           <div>
             <span className="text-xl font-display font-extrabold tracking-tight text-white flex items-center gap-1">
-              Trade<span className="text-blue-400">Mate</span>
+              Trade<span className="text-blue-400">POSX</span>
             </span>
             <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-semibold leading-none">
               Universal Business ERP & POS
