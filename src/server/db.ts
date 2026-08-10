@@ -122,15 +122,29 @@ class Database {
    * a username to an existing storeId that wasn't already loaded. */
   public hydrateStoreFromData(storeId: string, data: DatabaseSchema) {
     this.storeMap[storeId] = data;
-    this.saveData();
+    this.saveData(storeId);
   }
 
-  public saveData() {
+  /**
+   * @param changedStoreId When the caller knows exactly which store just
+   * changed, pass it here so only that one store gets re-synced to Firestore
+   * — not every store this process happens to have loaded. Without this,
+   * a single sale in Store A was pushing Store A, B, C, and D's ENTIRE
+   * history to Firestore on every mutation, anywhere in the app: O(numStores)
+   * redundant writes per change, and every write's payload size grows with
+   * each store's total accumulated history, not just what actually changed.
+   * That multiplies badly as both store count and per-store history grow —
+   * real scaling risk, not theoretical. Omit it only for genuinely
+   * store-agnostic saves (e.g. bulk hydration) where syncing everything is
+   * actually the intent.
+   */
+  public saveData(changedStoreId?: string) {
     try {
       fs.writeFileSync(DB_FILE, JSON.stringify({ stores: this.storeMap }, null, 2), 'utf-8');
-      
-      // Asynchronously push all stores to Cloud Firestore
-      Object.keys(this.storeMap).forEach(storeId => {
+
+      const storeIds = changedStoreId ? [changedStoreId] : Object.keys(this.storeMap);
+      storeIds.forEach(storeId => {
+        if (!this.storeMap[storeId]) return;
         saveStoreToCloud(storeId, this.storeMap[storeId]).catch(err => {
           console.error(`Error saving store [${storeId}] to Cloud Firestore:`, err);
         });
@@ -216,7 +230,7 @@ class Database {
       settings: seed.settings
     };
 
-    this.saveData();
+    this.saveData('store-demo');
   }
 
   private getStore(storeId: string = 'store-demo'): DatabaseSchema {
@@ -316,7 +330,7 @@ class Database {
           notifications: [],
           settings: seed.settings
         };
-        this.saveData();
+        this.saveData(storeId);
       } else {
         // Fallback or initialize empty store for new user
         this.storeMap[storeId] = {
@@ -347,7 +361,7 @@ class Database {
             sector: 'GENERAL_TRADING'
           }
         };
-        this.saveData();
+        this.saveData(storeId);
       }
     }
     return this.storeMap[storeId];
@@ -452,7 +466,7 @@ class Database {
       settings: newSettings
     };
 
-    this.saveData();
+    this.saveData(newStoreId);
     // Register this username's storeId in the durable cloud directory so a
     // later login — even after this server process restarts — finds THIS
     // store again instead of silently creating a new empty one.
@@ -500,7 +514,7 @@ class Database {
   public updateSettings(storeId: string = 'store-demo', newSettings: Partial<StoreSettings>): StoreSettings {
     const store = this.getStore(storeId);
     store.settings = { ...store.settings, ...newSettings };
-    this.saveData();
+    this.saveData(storeId);
     return store.settings;
   }
 
@@ -514,7 +528,7 @@ class Database {
     const user = store.users.find(u => u.id === userId);
     if (!user) return null;
     user.permissions = { ...permissions };
-    this.saveData();
+    this.saveData(storeId);
     return user;
   }
 
@@ -564,7 +578,7 @@ class Database {
       });
     }
 
-    this.saveData();
+    this.saveData(storeId);
     return newCust;
   }
 
@@ -573,7 +587,7 @@ class Database {
     const cust = store.customers.find(c => c.id === id);
     if (!cust) return null;
     Object.assign(cust, updates, { updatedAt: new Date().toISOString() });
-    this.saveData();
+    this.saveData(storeId);
     return cust;
   }
 
@@ -583,7 +597,7 @@ class Database {
     if (idx === -1) return false;
     store.customers.splice(idx, 1);
     store.customerTransactions = store.customerTransactions.filter(t => t.customerId !== id);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -624,7 +638,7 @@ class Database {
     };
 
     store.customerTransactions.push(tx);
-    this.saveData();
+    this.saveData(storeId);
     return tx;
   }
 
@@ -684,7 +698,7 @@ class Database {
       });
     }
 
-    this.saveData();
+    this.saveData(storeId);
     return newProd;
   }
 
@@ -693,7 +707,7 @@ class Database {
     const p = store.products.find(prod => prod.id === id);
     if (!p) return null;
     Object.assign(p, updates, { updatedAt: new Date().toISOString() });
-    this.saveData();
+    this.saveData(storeId);
     return p;
   }
 
@@ -703,7 +717,7 @@ class Database {
     const idx = store.products.findIndex(p => String(p.id).trim() === targetId);
     if (idx === -1) return false;
     store.products.splice(idx, 1);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -728,7 +742,7 @@ class Database {
       createdAt: new Date().toISOString()
     });
 
-    this.saveData();
+    this.saveData(storeId);
     return p;
   }
 
@@ -764,7 +778,7 @@ class Database {
       count++;
     });
 
-    this.saveData();
+    this.saveData(storeId);
     return { addedCount: count, errors };
   }
 
@@ -841,7 +855,7 @@ class Database {
       }
     }
 
-    this.saveData();
+    this.saveData(storeId);
     // Fire-and-forget dual-write — see mysql.ts's comment for why this never
     // blocks or can fail the actual sale, which has already succeeded above.
     upsertSaleToMysql(storeId, newSale);
@@ -854,7 +868,7 @@ class Database {
     const sale = store.sales.find(s => s.id === id);
     if (!sale) return null;
     Object.assign(sale, updates);
-    this.saveData();
+    this.saveData(storeId);
     upsertSaleToMysql(storeId, sale);
     return sale;
   }
@@ -864,7 +878,7 @@ class Database {
     const idx = store.sales.findIndex(s => s.id === id);
     if (idx === -1) return false;
     store.sales.splice(idx, 1);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -931,7 +945,7 @@ class Database {
     sale.cancelReason = reason;
     sale.cancelledAt = new Date().toISOString();
 
-    this.saveData();
+    this.saveData(storeId);
     upsertSaleToMysql(storeId, sale);
     insertStockLedgerEntriesToMysql(storeId, voidLedgerEntries);
     return sale;
@@ -979,7 +993,7 @@ class Database {
       createdAt: new Date().toISOString()
     });
 
-    this.saveData();
+    this.saveData(storeId);
     return newOrder;
   }
 
@@ -992,7 +1006,7 @@ class Database {
     if (paymentStatus) order.paymentStatus = paymentStatus as any;
     order.updatedAt = new Date().toISOString();
 
-    this.saveData();
+    this.saveData(storeId);
     return order;
   }
 
@@ -1001,7 +1015,7 @@ class Database {
     const order = store.orders.find(o => o.id === id);
     if (!order) return null;
     Object.assign(order, updates, { updatedAt: new Date().toISOString() });
-    this.saveData();
+    this.saveData(storeId);
     return order;
   }
 
@@ -1010,7 +1024,7 @@ class Database {
     const idx = store.orders.findIndex(o => o.id === id);
     if (idx === -1) return false;
     store.orders.splice(idx, 1);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -1027,7 +1041,7 @@ class Database {
       createdAt: new Date().toISOString()
     };
     store.expenses.push(newExp);
-    this.saveData();
+    this.saveData(storeId);
     return newExp;
   }
 
@@ -1036,7 +1050,7 @@ class Database {
     const exp = store.expenses.find(e => e.id === id);
     if (!exp) return null;
     Object.assign(exp, updates);
-    this.saveData();
+    this.saveData(storeId);
     return exp;
   }
 
@@ -1045,7 +1059,7 @@ class Database {
     const idx = store.expenses.findIndex(e => e.id === id);
     if (idx === -1) return false;
     store.expenses.splice(idx, 1);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -1062,7 +1076,7 @@ class Database {
       createdAt: new Date().toISOString()
     };
     store.suppliers.push(sup);
-    this.saveData();
+    this.saveData(storeId);
     return sup;
   }
 
@@ -1071,7 +1085,7 @@ class Database {
     const sup = store.suppliers.find(s => s.id === id);
     if (!sup) return null;
     Object.assign(sup, updates);
-    this.saveData();
+    this.saveData(storeId);
     return sup;
   }
 
@@ -1080,7 +1094,7 @@ class Database {
     const idx = store.suppliers.findIndex(s => s.id === id);
     if (idx === -1) return false;
     store.suppliers.splice(idx, 1);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -1089,7 +1103,7 @@ class Database {
     const pur = store.purchases.find(p => p.id === id);
     if (!pur) return null;
     Object.assign(pur, updates);
-    this.saveData();
+    this.saveData(storeId);
     upsertPurchaseToMysql(storeId, pur);
     return pur;
   }
@@ -1100,7 +1114,7 @@ class Database {
     const idx = store.purchases.findIndex(p => String(p.id).trim() === targetId);
     if (idx === -1) return false;
     store.purchases.splice(idx, 1);
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -1161,7 +1175,7 @@ class Database {
       }
     }
 
-    this.saveData();
+    this.saveData(storeId);
     upsertPurchaseToMysql(storeId, newPur);
     insertStockLedgerEntriesToMysql(storeId, purLedgerEntries);
     return newPur;
@@ -1356,7 +1370,7 @@ class Database {
       supplier.outstandingBalance = (supplier.outstandingBalance || 0) + unpaidBal;
     }
 
-    this.saveData();
+    this.saveData(storeId);
     upsertPurchaseToMysql(storeId, newPurchase);
     insertStockLedgerEntriesToMysql(storeId, scanLedgerEntries);
 
@@ -1416,7 +1430,7 @@ class Database {
     const notif = store.notifications.find(n => n.id === id);
     if (!notif) return false;
     notif.isRead = true;
-    this.saveData();
+    this.saveData(storeId);
     return true;
   }
 
@@ -1520,7 +1534,7 @@ class Database {
       const parsed = JSON.parse(jsonStr);
       if (parsed.customers && parsed.products && parsed.settings) {
         this.storeMap[storeId] = parsed;
-        this.saveData();
+        this.saveData(storeId);
         return true;
       }
       return false;
