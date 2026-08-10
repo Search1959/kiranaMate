@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { saveStoreToCloud, fetchStoreFromCloud, saveUsernameDirectory, lookupUsernameDirectory, listAllUsernameDirectoryEntries } from './firestore';
+import { upsertSaleToMysql, upsertPurchaseToMysql, insertStockLedgerEntriesToMysql } from './mysql';
 import {
   User,
   Customer,
@@ -794,6 +795,7 @@ class Database {
     store.sales.push(newSale);
 
     // Reduce product stock automatically
+    const newLedgerEntries: InventoryTransaction[] = [];
     newSale.items.forEach(item => {
       const p = store.products.find(prod => prod.id === item.productId);
       if (p) {
@@ -801,7 +803,7 @@ class Database {
         p.currentStock = newStock;
         p.updatedAt = new Date().toISOString();
 
-        store.inventoryTransactions.push({
+        const entry: InventoryTransaction = {
           id: `inv-sale-${Date.now()}`,
           productId: p.id,
           productName: p.name,
@@ -811,7 +813,9 @@ class Database {
           referenceId: saleNum,
           createdBy: newSale.createdByName || 'Shop Owner',
           createdAt: new Date().toISOString()
-        });
+        };
+        store.inventoryTransactions.push(entry);
+        newLedgerEntries.push(entry);
       }
     });
 
@@ -838,6 +842,10 @@ class Database {
     }
 
     this.saveData();
+    // Fire-and-forget dual-write — see mysql.ts's comment for why this never
+    // blocks or can fail the actual sale, which has already succeeded above.
+    upsertSaleToMysql(storeId, newSale);
+    insertStockLedgerEntriesToMysql(storeId, newLedgerEntries);
     return newSale;
   }
 
@@ -847,6 +855,7 @@ class Database {
     if (!sale) return null;
     Object.assign(sale, updates);
     this.saveData();
+    upsertSaleToMysql(storeId, sale);
     return sale;
   }
 
@@ -873,6 +882,7 @@ class Database {
     const sale = store.sales.find(s => s.id === id);
     if (!sale || sale.status === 'CANCELLED') return sale || null;
 
+    const voidLedgerEntries: InventoryTransaction[] = [];
     sale.items.forEach(item => {
       const p = store.products.find(prod => prod.id === item.productId);
       if (p) {
@@ -880,7 +890,7 @@ class Database {
         p.currentStock = newStock;
         p.updatedAt = new Date().toISOString();
 
-        store.inventoryTransactions.push({
+        const entry: InventoryTransaction = {
           id: `inv-void-${Date.now()}`,
           productId: p.id,
           productName: p.name,
@@ -890,7 +900,9 @@ class Database {
           referenceId: sale.saleNumber,
           createdBy: 'Shop Owner',
           createdAt: new Date().toISOString()
-        });
+        };
+        store.inventoryTransactions.push(entry);
+        voidLedgerEntries.push(entry);
       }
     });
 
@@ -920,6 +932,8 @@ class Database {
     sale.cancelledAt = new Date().toISOString();
 
     this.saveData();
+    upsertSaleToMysql(storeId, sale);
+    insertStockLedgerEntriesToMysql(storeId, voidLedgerEntries);
     return sale;
   }
 
@@ -1076,6 +1090,7 @@ class Database {
     if (!pur) return null;
     Object.assign(pur, updates);
     this.saveData();
+    upsertPurchaseToMysql(storeId, pur);
     return pur;
   }
 
@@ -1107,6 +1122,7 @@ class Database {
     store.purchases.push(newPur);
 
     // Increase product stock & update pricing
+    const purLedgerEntries: InventoryTransaction[] = [];
     newPur.items.forEach((item, idx) => {
       const p = store.products.find(prod => prod.id === item.productId);
       if (p) {
@@ -1118,7 +1134,7 @@ class Database {
         if (item.gstPercent !== undefined) p.gstPercent = Number(item.gstPercent);
         p.updatedAt = now;
 
-        store.inventoryTransactions.push({
+        const entry: InventoryTransaction = {
           id: `inv-pur-${Date.now()}-${idx}`,
           productId: p.id,
           productName: p.name,
@@ -1128,7 +1144,9 @@ class Database {
           referenceId: purNum,
           createdBy: 'Shop Owner',
           createdAt: now
-        });
+        };
+        store.inventoryTransactions.push(entry);
+        purLedgerEntries.push(entry);
       }
     });
 
@@ -1144,6 +1162,8 @@ class Database {
     }
 
     this.saveData();
+    upsertPurchaseToMysql(storeId, newPur);
+    insertStockLedgerEntriesToMysql(storeId, purLedgerEntries);
     return newPur;
   }
 
@@ -1203,6 +1223,7 @@ class Database {
     let updatedProductsCount = 0;
     const purchaseItems: PurchaseItem[] = [];
     const now = new Date().toISOString();
+    const scanLedgerEntries: InventoryTransaction[] = [];
 
     payload.items.forEach((item, idx) => {
       let product: Product | undefined;
@@ -1228,17 +1249,21 @@ class Database {
         if (item.sellingPrice && item.sellingPrice > 0) product.sellingPrice = Number(item.sellingPrice);
         product.updatedAt = now;
 
-        store.inventoryTransactions.push({
-          id: `inv-pur-${Date.now()}-${idx}`,
-          productId: product.id,
-          productName: product.name,
-          type: 'STOCK_IN_PURCHASE',
-          quantityChange: Number(item.quantity),
-          stockAfter: newStock,
-          referenceId: payload.invoiceNumber || 'AI-SCAN',
-          createdBy: 'Shop Owner',
-          createdAt: now
-        });
+        {
+          const entry: InventoryTransaction = {
+            id: `inv-pur-${Date.now()}-${idx}`,
+            productId: product.id,
+            productName: product.name,
+            type: 'STOCK_IN_PURCHASE',
+            quantityChange: Number(item.quantity),
+            stockAfter: newStock,
+            referenceId: payload.invoiceNumber || 'AI-SCAN',
+            createdBy: 'Shop Owner',
+            createdAt: now
+          };
+          store.inventoryTransactions.push(entry);
+          scanLedgerEntries.push(entry);
+        }
 
         updatedProductsCount++;
         purchaseItems.push({
@@ -1276,17 +1301,21 @@ class Database {
 
         store.products.push(newProd);
 
-        store.inventoryTransactions.push({
-          id: `inv-init-${Date.now()}-${idx}`,
-          productId: newProd.id,
-          productName: newProd.name,
-          type: 'STOCK_IN_PURCHASE',
-          quantityChange: Number(item.quantity),
-          stockAfter: Number(item.quantity),
-          referenceId: payload.invoiceNumber || 'AI-SCAN',
-          createdBy: 'Shop Owner',
-          createdAt: now
-        });
+        {
+          const entry: InventoryTransaction = {
+            id: `inv-init-${Date.now()}-${idx}`,
+            productId: newProd.id,
+            productName: newProd.name,
+            type: 'STOCK_IN_PURCHASE',
+            quantityChange: Number(item.quantity),
+            stockAfter: Number(item.quantity),
+            referenceId: payload.invoiceNumber || 'AI-SCAN',
+            createdBy: 'Shop Owner',
+            createdAt: now
+          };
+          store.inventoryTransactions.push(entry);
+          scanLedgerEntries.push(entry);
+        }
 
         newProductsCount++;
         purchaseItems.push({
@@ -1328,6 +1357,8 @@ class Database {
     }
 
     this.saveData();
+    upsertPurchaseToMysql(storeId, newPurchase);
+    insertStockLedgerEntriesToMysql(storeId, scanLedgerEntries);
 
     return {
       success: true,

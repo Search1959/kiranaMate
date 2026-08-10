@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise';
+import { Sale, Purchase, InventoryTransaction } from '../types';
 
 /**
  * MySQL (Hostinger) — the incremental first step of moving off Firestore's
@@ -124,5 +125,92 @@ export async function ensureMysqlSchema(): Promise<void> {
     console.log('🐬 MySQL schema verified (sales, purchases, stock_ledger).');
   } catch (err) {
     console.error('Failed to create MySQL schema:', err);
+  }
+}
+
+/**
+ * Dual-write phase: every function below is fire-and-forget from db.ts's
+ * perspective (called without awaiting, same pattern already used for the
+ * Firestore cloud sync in saveData()) — a MySQL failure here NEVER blocks or
+ * breaks the real user-facing operation, which has already succeeded against
+ * Firestore/the local JSON file by the time these run. This is deliberate:
+ * the goal right now is building up verified-matching data in MySQL, not yet
+ * depending on it for anything real. Reads still come entirely from the
+ * existing store — see db.ts's getSales()/getPurchases()/etc., unchanged.
+ *
+ * Upsert (ON DUPLICATE KEY UPDATE) on the store_id+*_id unique key so the
+ * same function covers both the initial create AND later corrections
+ * (voidSale, updateSale, updatePurchase) — call it again, it just overwrites.
+ */
+
+export async function upsertSaleToMysql(storeId: string, sale: Sale): Promise<void> {
+  const pool = getMysqlPool();
+  if (!pool) return;
+  try {
+    await pool.query(
+      `INSERT INTO sales (
+         store_id, sale_id, sale_number, customer_id, customer_name, customer_mobile,
+         items, subtotal, discount, tax_amount, grand_total, payment_method, payment_status,
+         status, cancel_reason, cancelled_at, notes, created_by_name, created_at
+       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       ON DUPLICATE KEY UPDATE
+         items = VALUES(items), subtotal = VALUES(subtotal), discount = VALUES(discount),
+         tax_amount = VALUES(tax_amount), grand_total = VALUES(grand_total),
+         payment_method = VALUES(payment_method), payment_status = VALUES(payment_status),
+         status = VALUES(status), cancel_reason = VALUES(cancel_reason),
+         cancelled_at = VALUES(cancelled_at), notes = VALUES(notes)`,
+      [
+        storeId, sale.id, sale.saleNumber, sale.customerId || null, sale.customerName || null, sale.customerMobile || null,
+        JSON.stringify(sale.items || []), sale.subtotal || 0, sale.discount || 0, sale.totalTaxAmount || 0, sale.grandTotal,
+        sale.paymentMethod || null, sale.paymentStatus || null, sale.status || null, sale.cancelReason || null,
+        sale.cancelledAt ? new Date(sale.cancelledAt) : null, sale.notes || null, sale.createdByName || null,
+        new Date(sale.createdAt)
+      ]
+    );
+  } catch (err) {
+    console.error(`MySQL dual-write failed for sale [${sale.id}]:`, err);
+  }
+}
+
+export async function upsertPurchaseToMysql(storeId: string, purchase: Purchase): Promise<void> {
+  const pool = getMysqlPool();
+  if (!pool) return;
+  try {
+    await pool.query(
+      `INSERT INTO purchases (
+         store_id, purchase_id, invoice_number, supplier_id, supplier_name,
+         items, subtotal, tax_amount, grand_total, paid_amount, payment_status,
+         notes, purchase_date, created_at
+       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       ON DUPLICATE KEY UPDATE
+         items = VALUES(items), subtotal = VALUES(subtotal), tax_amount = VALUES(tax_amount),
+         grand_total = VALUES(grand_total), paid_amount = VALUES(paid_amount),
+         payment_status = VALUES(payment_status), notes = VALUES(notes)`,
+      [
+        storeId, purchase.id, purchase.invoiceNumber || null, purchase.supplierId || null, purchase.supplierName || null,
+        JSON.stringify(purchase.items || []), purchase.subtotal || 0, purchase.taxAmount || 0,
+        purchase.grandTotal ?? purchase.totalAmount ?? 0, purchase.paidAmount || 0, purchase.paymentStatus || null,
+        purchase.notes || null, purchase.purchaseDate ? new Date(purchase.purchaseDate) : null, new Date(purchase.createdAt)
+      ]
+    );
+  } catch (err) {
+    console.error(`MySQL dual-write failed for purchase [${purchase.id}]:`, err);
+  }
+}
+
+export async function insertStockLedgerEntriesToMysql(storeId: string, entries: InventoryTransaction[]): Promise<void> {
+  const pool = getMysqlPool();
+  if (!pool || entries.length === 0) return;
+  try {
+    const values = entries.map(e => [
+      storeId, e.productId, e.productName, e.quantityChange, e.stockAfter ?? null,
+      e.type, e.referenceId || null, e.notes || null, e.createdBy || null, new Date(e.createdAt)
+    ]);
+    await pool.query(
+      `INSERT INTO stock_ledger (store_id, product_id, product_name, change_qty, stock_after, reason, reference_id, notes, created_by, created_at) VALUES ?`,
+      [values]
+    );
+  } catch (err) {
+    console.error(`MySQL dual-write failed for stock ledger (store [${storeId}], ${entries.length} entries):`, err);
   }
 }
