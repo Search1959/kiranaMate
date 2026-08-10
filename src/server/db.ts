@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 import { saveStoreToCloud, fetchStoreFromCloud, saveUsernameDirectory, lookupUsernameDirectory, listAllUsernameDirectoryEntries } from './firestore';
 import { upsertSaleToMysql, upsertPurchaseToMysql, insertStockLedgerEntriesToMysql, migrateStoreHistoryToMysql, getMysqlRowCounts } from './mysql';
 import {
@@ -399,6 +400,12 @@ class Database {
       id: newUserId,
       name: data.ownerName,
       username: cleanUsername,
+      // password kept in plaintext deliberately (System Admin panel still
+      // shows/copies it) alongside passwordHash, which is what login actually
+      // verifies against. A password is now required for every registration —
+      // server.ts's /api/auth/register defaults to '123456' if none is given.
+      password: data.password!,
+      passwordHash: bcrypt.hashSync(data.password!, 10),
       role: 'owner',
       mobile: data.mobile || '9876543210',
       storeId: newStoreId,
@@ -520,7 +527,13 @@ class Database {
 
   // --- USERS & AUTH ---
   public getUsers(storeId: string = 'store-demo'): User[] {
-    return this.getStore(storeId).users.map(u => ({ ...u }));
+    // This powers /api/auth/me and general user lists — never the System
+    // Admin credentials registry (that reads Firestore directly client-side
+    // and is meant to show the plaintext password). Strip both fields here.
+    return this.getStore(storeId).users.map(u => {
+      const { password: _pw, passwordHash: _ph, ...safeUser } = u;
+      return safeUser as User;
+    });
   }
 
   public updateUserPermissions(storeId: string = 'store-demo', userId: string, permissions: User['permissions']): User | null {

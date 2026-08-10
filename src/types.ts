@@ -42,7 +42,13 @@ export interface User {
   id: string;
   name: string;
   username: string;
+  // Plaintext, kept only so the System Admin panel can still show/copy a
+  // client's password like it always has (deliberate, lower-security choice
+  // for now — see passwordHash for what login actually checks against).
   password?: string;
+  // Bcrypt hash — this is what /api/auth/login actually verifies against.
+  // Never sent to any client.
+  passwordHash?: string;
   createdAt?: string;
   role: UserRole;
   mobile: string;

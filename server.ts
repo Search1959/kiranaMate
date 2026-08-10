@@ -7,6 +7,7 @@ import { db } from './src/server/db';
 import { lookupUsernameDirectory, fetchStoreFromCloud } from './src/server/firestore';
 import { getMysqlPool, ensureMysqlSchema } from './src/server/mysql';
 import { UserRole, User } from './src/types';
+import bcrypt from 'bcryptjs';
 
 async function startServer() {
   const app = express();
@@ -54,11 +55,14 @@ async function startServer() {
     if (!username || !shopName || !ownerName) {
       return res.status(400).json({ error: 'Username, Shop Name, and Owner Name are required' });
     }
+    // A password is now mandatory for every account, including ones created via
+    // a raw API call that bypasses the UI's own '123456' fallback default.
+    const cleanPassword = (password || '').trim() || '123456';
 
     try {
       const result = db.registerStore({
         username,
-        password,
+        password: cleanPassword,
         shopName,
         ownerName,
         mobile: mobile || '9876543210',
@@ -67,9 +71,10 @@ async function startServer() {
         acceptLanguage: req.headers['accept-language'] as string
       });
       const token = `token-owner-${Date.now()}`;
+      const { password: _pw, passwordHash: _ph, ...safeUser } = result.user;
       res.status(201).json({
         success: true,
-        user: { ...result.user, token },
+        user: { ...safeUser, token },
         storeId: result.storeId
       });
     } catch (err: any) {
@@ -86,6 +91,18 @@ async function startServer() {
 
     const cleanUser = username.trim().toLowerCase();
     if (cleanUser === 'apex7tech@gmail.com' || cleanUser === 'admin') {
+      // Plaintext env var, same pattern as DB_PASSWORD — a single server-side
+      // secret that's never stored in a database or shown in any UI, so a
+      // bcrypt hash would add setup friction (pre-hashing it) without adding
+      // real protection here.
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (!adminPassword) {
+        console.error('⚠️ ADMIN_PASSWORD not set — System Admin login is disabled until it is configured.');
+        return res.status(503).json({ error: 'System Admin login is not configured on this server.' });
+      }
+      if (!password || password !== adminPassword) {
+        return res.status(401).json({ error: 'Incorrect System Admin password.' });
+      }
       const adminUser: User = {
         id: 'user-admin',
         name: 'System Administrator',
@@ -139,32 +156,24 @@ async function startServer() {
       }
     }
 
+    // No silent auto-registration here anymore — that used to create a
+    // brand-new, empty duplicate store any time a username didn't exactly
+    // match an existing one (a typo, different capitalization, anything),
+    // silently orphaning the real account. New accounts must go through the
+    // dedicated /api/auth/register endpoint instead, which the Register tab
+    // already uses — this path never needed the fallback to begin with.
     if (!found) {
-      if (username.includes('@') || username.trim().length >= 3) {
-        const cleanName = username.trim().toLowerCase();
-        let shopName = 'Commercial Enterprise';
-        if (cleanName.includes('deshna')) shopName = 'Deshna Global';
-        else if (cleanName.includes('arun')) shopName = 'Deinrim Solutionss (P) Ltd.';
-        else shopName = `${username.split('@')[0].toUpperCase()} Enterprise`;
+      return res.status(401).json({ error: 'Account not found. Please check your username or register a new store.' });
+    }
 
-        const ownerName = username.split('@')[0];
-        try {
-          const regResult = db.registerStore({
-            username: username.trim(),
-            password: password || '123456',
-            shopName,
-            ownerName,
-            mobile: '9836130393',
-            sector: sector || (cleanName.includes('arun') || cleanName.includes('deshna') ? 'METALS_STEEL' : 'KIRANA_FMCG'),
-            acceptLanguage: req.headers['accept-language'] as string
-          });
-          found = { user: regResult.user, storeId: regResult.storeId };
-        } catch (err) {
-          return res.status(401).json({ error: 'Account not found. Please check username or register a new store.' });
-        }
-      } else {
-        return res.status(401).json({ error: 'Account not found. Please check username or register a new store.' });
-      }
+    if (!found.user.passwordHash) {
+      // Pre-existing account from before password verification existed.
+      // Never silently accept — surface clearly so it gets a real password
+      // set (via System Admin) rather than staying permanently open.
+      return res.status(401).json({ error: 'This account needs a password set before logging in. Contact your administrator.' });
+    }
+    if (!password || !bcrypt.compareSync(password, found.user.passwordHash)) {
+      return res.status(401).json({ error: 'Incorrect password.' });
     }
 
     if (sector) {
@@ -172,9 +181,14 @@ async function startServer() {
     }
 
     const token = `token-${found.user.role}-${Date.now()}`;
+    // The session object gets persisted to localStorage client-side — never
+    // put password or passwordHash in it, even though the user already knows
+    // their own password. (System Admin's separate credentials view still
+    // shows it via its own direct Firestore read, untouched by this.)
+    const { password: _pw, passwordHash: _ph, ...safeUser } = found.user;
     return res.json({
       success: true,
-      user: { ...found.user, token },
+      user: { ...safeUser, token },
       storeId: found.storeId
     });
   });
@@ -189,7 +203,8 @@ async function startServer() {
     const { permissions } = req.body;
     const updated = db.updateUserPermissions(req.storeId, userId, permissions);
     if (!updated) return res.status(404).json({ error: 'User not found' });
-    res.json({ success: true, user: updated });
+    const { password: _pw, passwordHash: _ph, ...safeUser } = updated;
+    res.json({ success: true, user: safeUser });
   });
 
   // System Admin Stores Overview
