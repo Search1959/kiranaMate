@@ -43,6 +43,7 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [sectorFilter, setSectorFilter] = useState<string>('all');
+  const [workspaceFilter, setWorkspaceFilter] = useState<'all' | 'trading' | 'service'>('all');
   
   // UI States
   const [visiblePasswords, setVisiblePasswords] = useState<{ [key: string]: boolean }>({});
@@ -249,8 +250,11 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
 
     const matchesRole = roleFilter === 'all' || acc.role === roleFilter;
     const matchesSector = sectorFilter === 'all' || acc.storeSector === sectorFilter;
+    const matchesWorkspace =
+      workspaceFilter === 'all' ||
+      (workspaceFilter === 'service' ? acc.workspaceType === 'service' : acc.workspaceType !== 'service');
 
-    return matchesSearch && matchesRole && matchesSector;
+    return matchesSearch && matchesRole && matchesSector && matchesWorkspace;
   });
 
   return (
@@ -366,6 +370,26 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1 text-xs shrink-0">
+            {(['all', 'trading', 'service'] as const).map(w => (
+              <button
+                key={w}
+                onClick={() => setWorkspaceFilter(w)}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  workspaceFilter === w
+                    ? w === 'service'
+                      ? 'bg-indigo-500 text-white'
+                      : w === 'trading'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-amber-500 text-slate-950'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {w === 'all' ? 'All' : w === 'trading' ? 'Trading ERP' : 'Service ERP'}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1.5 rounded-xl text-xs text-slate-400">
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Role:</span>
