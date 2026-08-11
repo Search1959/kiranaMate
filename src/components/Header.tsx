@@ -197,29 +197,35 @@ export const Header: React.FC<HeaderProps> = ({
               </p>
             </div>
 
-            {/* Active Trading Sector Badge */}
-            <button
-              onClick={onOpenSectorModal}
-              className="ml-1 flex items-center bg-gradient-to-r from-slate-900 to-indigo-950 hover:from-slate-800 hover:to-indigo-900 text-white border border-slate-700/80 hover:border-blue-400 rounded-lg shadow-xs px-2.5 py-1 shrink-0 cursor-pointer transition-all"
-              title={`Click to switch Trading Sector (Current: ${sectorInfo.name})`}
-            >
-              <Layers className="w-3.5 h-3.5 text-blue-400 mr-1.5 shrink-0" />
-              <span className="hidden sm:inline text-xs font-semibold text-slate-300 mr-1">Sector:</span>
-              <span className="text-xs font-extrabold text-blue-200 max-w-[110px] sm:max-w-[160px] truncate mr-1">
-                {sectorInfo.shortLabel}
-              </span>
-              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-0.5" />
-            </button>
-
-            {/* Service ERP Switcher Button */}
-            <button
-              onClick={onOpenServiceSectorModal || (() => onNavigateToTab('service_dashboard'))}
-              className="hidden lg:flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg shadow-xs px-2.5 py-1 text-xs font-extrabold transition-all border border-indigo-400/30 shrink-0 cursor-pointer"
-              title="Open Universal Service Business ERP (34 Sectors)"
-            >
-              <Wrench className="w-3.5 h-3.5 text-indigo-200" />
-              <span>Service ERP (34)</span>
-            </button>
+            {/* Active Trading Sector Badge — a demo account is meant to be
+                explored, so it stays a clickable switcher; a real registered
+                shop's sector isn't something you'd casually switch (it drives
+                unit types, categories, workflow), so it's just a label. */}
+            {isDemo ? (
+              <button
+                onClick={onOpenSectorModal}
+                className="ml-1 flex items-center bg-gradient-to-r from-slate-900 to-indigo-950 hover:from-slate-800 hover:to-indigo-900 text-white border border-slate-700/80 hover:border-blue-400 rounded-lg shadow-xs px-2.5 py-1 shrink-0 cursor-pointer transition-all"
+                title={`Click to switch Trading Sector (Current: ${sectorInfo.name})`}
+              >
+                <Layers className="w-3.5 h-3.5 text-blue-400 mr-1.5 shrink-0" />
+                <span className="hidden sm:inline text-xs font-semibold text-slate-300 mr-1">Sector:</span>
+                <span className="text-xs font-extrabold text-blue-200 max-w-[110px] sm:max-w-[160px] truncate mr-1">
+                  {sectorInfo.shortLabel}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-0.5" />
+              </button>
+            ) : (
+              <div
+                className="ml-1 flex items-center bg-gradient-to-r from-slate-900 to-indigo-950 text-white border border-slate-700/80 rounded-lg shadow-xs px-2.5 py-1 shrink-0"
+                title={`Trading Sector: ${sectorInfo.name}`}
+              >
+                <Layers className="w-3.5 h-3.5 text-blue-400 mr-1.5 shrink-0" />
+                <span className="hidden sm:inline text-xs font-semibold text-slate-300 mr-1">Sector:</span>
+                <span className="text-xs font-extrabold text-blue-200 max-w-[110px] sm:max-w-[160px] truncate">
+                  {sectorInfo.shortLabel}
+                </span>
+              </div>
+            )}
 
             {/* System Admin Store Switcher Dropdown */}
             {isAdmin && adminStoresList.length > 0 && onAdminSwitchStore && (
