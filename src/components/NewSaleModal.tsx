@@ -25,6 +25,7 @@ import { Product, Customer, PaymentMethod, PaymentStatus, Sale, StoreSettings } 
 import { api } from '../lib/api';
 import { getWhatsAppWebLink, getSmsLink, generateInvoiceWhatsAppText, copyToClipboard } from '../lib/whatsapp';
 import { formatMoney } from '../lib/currency';
+import { BarcodeScannerModal } from './BarcodeScannerModal';
 
 interface NewSaleModalProps {
   isOpen: boolean;
@@ -79,6 +80,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastCreatedSale, setLastCreatedSale] = useState<Sale | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -145,6 +147,19 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
         }
       ];
     });
+  };
+
+  // Real-time barcode scan while the sale is open — adds straight to cart
+  // and, since the scanner runs in continuousMode, keeps the camera live
+  // so the next item can be scanned right after (a real checkout flow,
+  // not one scan-then-close per item). An unrecognized barcode is just
+  // surfaced by the scanner itself (nothing to add) — the cashier can add
+  // it as a new product afterward from the regular Add Product screen.
+  const handleScanDetected = (barcode: string) => {
+    const product = products.find(p => p.barcode === barcode);
+    if (product) {
+      addToCart(product);
+    }
   };
 
   const updateQuantity = (productId: string, delta: number) => {
@@ -274,6 +289,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   };
 
   return (
+    <>
     <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
         {/* Modal Header */}
@@ -453,7 +469,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
               </div>
               <button
                 type="button"
-                onClick={onOpenBarcodeScanner}
+                onClick={() => setIsScannerOpen(true)}
                 className="bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shrink-0"
               >
                 <Scan className="w-4 h-4" /> Scan
@@ -844,5 +860,15 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
         )}
       </div>
     </div>
+
+    <BarcodeScannerModal
+      isOpen={isScannerOpen}
+      onClose={() => setIsScannerOpen(false)}
+      onBarcodeDetected={handleScanDetected}
+      products={products}
+      settings={settings}
+      continuousMode
+    />
+    </>
   );
 };

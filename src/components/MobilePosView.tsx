@@ -20,6 +20,7 @@ import { Product, Customer, PaymentMethod, PaymentStatus, Sale, StoreSettings } 
 import { api } from '../lib/api';
 import { getWhatsAppWebLink, getSmsLink, generateInvoiceWhatsAppText, copyToClipboard } from '../lib/whatsapp';
 import { formatMoney } from '../lib/currency';
+import { BarcodeScannerModal } from './BarcodeScannerModal';
 
 interface MobilePosViewProps {
   products: Product[];
@@ -78,6 +79,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastCreatedSale, setLastCreatedSale] = useState<Sale | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const filteredProducts = products.filter(p => {
     if (!search.trim()) return true;
@@ -100,6 +102,15 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
       }
       return [...prev, { product, quantity: 1, unitPrice: product.sellingPrice, mrp: product.mrp }];
     });
+  };
+
+  // Same continuous-scan-to-cart flow as NewSaleModal — see its comment for
+  // why the scanner stays open between scans instead of closing per item.
+  const handleScanDetected = (barcode: string) => {
+    const product = products.find(p => p.barcode === barcode);
+    if (product) {
+      addToCart(product);
+    }
   };
 
   const updateQuantity = (productId: string, delta: number) => {
@@ -212,6 +223,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-[45] bg-slate-50 flex flex-col md:hidden">
       {/* ===== Success Screen ===== */}
       {lastCreatedSale ? (
@@ -320,7 +332,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
               />
             </div>
             <button
-              onClick={onOpenBarcodeScanner}
+              onClick={() => setIsScannerOpen(true)}
               className="bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold px-3.5 rounded-xl flex items-center gap-1.5 shrink-0"
             >
               <Scan className="w-5 h-5" />
@@ -560,5 +572,15 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
         </>
       )}
     </div>
+
+    <BarcodeScannerModal
+      isOpen={isScannerOpen}
+      onClose={() => setIsScannerOpen(false)}
+      onBarcodeDetected={handleScanDetected}
+      products={products}
+      settings={settings}
+      continuousMode
+    />
+    </>
   );
 };
