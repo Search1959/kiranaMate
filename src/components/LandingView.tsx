@@ -48,6 +48,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
 }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showSignUpChooser, setShowSignUpChooser] = useState(false);
 
   // Soft, best-effort framing only — not authoritative (that's the signup
   // form's explicit country field). A visitor whose browser locale doesn't
@@ -145,7 +146,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </button>
 
           <button
-            onClick={() => onOpenAuthModal('register')}
+            onClick={() => setShowSignUpChooser(true)}
             className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
           >
             <Sparkles className="w-4 h-4 text-white" />
@@ -238,6 +239,93 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   <option value="ta" className="bg-white">தமிழ் (Tamil)</option>
                 </select>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sign Up Chooser — the single "Sign Up" button used to jump straight
+          into the Trading registration form, leaving Service ERP reachable
+          only via the hamburger menu (3 extra taps). Now it opens this
+          chooser instead, so both paths are one tap away and equally
+          visible. */}
+      {showSignUpChooser && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowSignUpChooser(false)}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowSignUpChooser(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-emerald-50 text-slate-500 hover:text-slate-900 hover:bg-emerald-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-display text-xl sm:text-2xl font-black text-slate-900 text-center">
+              What are you setting up?
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 text-center mt-1.5 mb-6">
+              Choose the ERP built for your kind of business — both are free to start.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={() => { setShowSignUpChooser(false); onOpenAuthModal('register'); }}
+                className="group flex flex-col items-center text-center gap-2.5 p-5 rounded-2xl border-2 border-green-100 hover:border-emerald-400 hover:bg-emerald-50 transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                  <Store className="w-6 h-6" />
+                </div>
+                <div className="font-display font-bold text-sm text-slate-900">TradeMate</div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Buying &amp; selling goods — Kirana, Steel, Textiles, Agri, Hardware &amp; 23 trading sectors
+                </p>
+                <span className="mt-1 text-[11px] font-bold text-emerald-600 group-hover:text-emerald-700 flex items-center gap-1">
+                  Sign Up <ChevronRight className="w-3.5 h-3.5" />
+                </span>
+              </button>
+
+              <button
+                onClick={() => { setShowSignUpChooser(false); onOpenServiceSectorModal?.(); }}
+                className="group flex flex-col items-center text-center gap-2.5 p-5 rounded-2xl border-2 border-indigo-100 hover:border-indigo-400 hover:bg-indigo-50 transition-all cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                  <Wrench className="w-6 h-6" />
+                </div>
+                <div className="font-display font-bold text-sm text-slate-900">Service ERP</div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Providing a service — Salon, Clinic, Repair, Education &amp; 34 service sectors
+                </p>
+                <span className="mt-1 text-[11px] font-bold text-indigo-600 group-hover:text-indigo-700 flex items-center gap-1">
+                  Sign Up <ChevronRight className="w-3.5 h-3.5" />
+                </span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-6 pt-5 border-t border-green-100 text-xs font-semibold text-slate-600">
+              <button
+                onClick={() => { setShowSignUpChooser(false); onOpenAuthModal('login'); }}
+                className="hover:text-emerald-600 transition-colors cursor-pointer"
+              >
+                Already have an account? Login
+              </button>
+              <span className="text-green-200">•</span>
+              {onOpenHelp && (
+                <button
+                  onClick={() => { setShowSignUpChooser(false); onOpenHelp(); }}
+                  className="hover:text-emerald-600 transition-colors cursor-pointer"
+                >
+                  Help &amp; Guide
+                </button>
+              )}
+              <span className="text-green-200">•</span>
+              <a href="#features" onClick={() => setShowSignUpChooser(false)} className="hover:text-emerald-600 transition-colors">Features</a>
+              <span className="text-green-200">•</span>
+              <a href="#pricing" onClick={() => setShowSignUpChooser(false)} className="hover:text-emerald-600 transition-colors">Pricing</a>
             </div>
           </div>
         </div>
