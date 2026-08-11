@@ -307,13 +307,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-6 pt-5 border-t border-green-100 text-xs font-semibold text-slate-600">
-              <button
-                onClick={() => { setShowSignUpChooser(false); onOpenAuthModal('login'); }}
-                className="hover:text-emerald-600 transition-colors cursor-pointer"
-              >
-                Already have an account? Login
-              </button>
-              <span className="text-green-200">•</span>
               {onOpenHelp && (
                 <button
                   onClick={() => { setShowSignUpChooser(false); onOpenHelp(); }}
