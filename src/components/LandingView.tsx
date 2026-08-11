@@ -100,7 +100,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <Store className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xl font-display font-extrabold tracking-tight text-slate-900 flex items-center gap-1">
+            <span className="text-xl font-display font-extrabold tracking-tight text-slate-900">
               Trade<span className="text-emerald-600">POSX</span>
             </span>
             <span className="text-[10px] text-slate-500 uppercase tracking-widest block font-semibold leading-none">
@@ -111,31 +111,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
         {/* Nav Links & Actions */}
         <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-600">
-          <button
-            onClick={onOpenSectorModal}
-            className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold transition-all bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-300 px-3 py-1.5 rounded-full cursor-pointer"
-            title="Browse all 23 Industry ERP Templates & Demo Environments"
-          >
-            <Layers className="w-4 h-4 text-emerald-600" />
-            <span>23 Trading Templates</span>
-            <span className="bg-emerald-500/20 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">
-              Hub
-            </span>
-          </button>
-
-          {/* Service ERP Directory Button */}
-          <button
-            onClick={onOpenServiceSectorModal}
-            className="flex items-center gap-1.5 text-indigo-300 hover:text-slate-900 font-extrabold transition-all bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-400/40 px-3.5 py-1.5 rounded-full cursor-pointer shadow-sm hover:shadow-indigo-500/20"
-            title="Open Universal Service Business ERP (34 Service Sectors)"
-          >
-            <Wrench className="w-4 h-4 text-indigo-400" />
-            <span>Service ERP</span>
-            <span className="bg-indigo-500/30 text-indigo-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">
-              34 Sectors
-            </span>
-          </button>
-
           <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
           <a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a>
           {onOpenHelp && (
@@ -209,24 +184,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
 
             <div className="space-y-2 text-sm">
-              <button
-                onClick={() => { setShowMobileMenu(false); onOpenServiceSectorModal?.(); }}
-                className="w-full flex items-center gap-2.5 text-indigo-300 bg-indigo-600/10 border border-indigo-500/30 px-4 py-3 rounded-2xl font-bold text-left"
-              >
-                <Wrench className="w-4 h-4 text-indigo-400 shrink-0" />
-                <span className="flex-1">Service ERP</span>
-                <span className="bg-indigo-500/30 text-indigo-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">34 Sectors</span>
-              </button>
-
-              <button
-                onClick={() => { setShowMobileMenu(false); onOpenSectorModal?.(); }}
-                className="w-full flex items-center gap-2.5 text-emerald-600 bg-emerald-500/10 border border-emerald-300 px-4 py-3 rounded-2xl font-bold text-left"
-              >
-                <Layers className="w-4 h-4 shrink-0" />
-                <span className="flex-1">Trading Industry Hub</span>
-                <span className="bg-emerald-500/20 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase">23 Sectors</span>
-              </button>
-
               <button
                 onClick={() => { setShowMobileMenu(false); onOpenAuthModal('login'); }}
                 className="w-full flex items-center gap-2.5 text-slate-700 bg-emerald-50 border border-green-200 px-4 py-3 rounded-2xl font-bold text-left"
