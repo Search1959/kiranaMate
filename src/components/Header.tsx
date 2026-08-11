@@ -145,17 +145,35 @@ export const Header: React.FC<HeaderProps> = ({
               </p>
             </div>
 
-            {/* Active Service Sector Display (Text only, no click) */}
-            <div
-              className="ml-1 flex items-center bg-slate-800/80 text-white border border-indigo-500/30 rounded-lg px-2.5 py-1 shrink-0"
-              title={`Active Sector: ${serviceCfg.name}`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400 mr-1.5 shrink-0" />
-              <span className="hidden sm:inline text-xs font-semibold text-indigo-200 mr-1">Sector:</span>
-              <span className="text-xs font-extrabold text-white max-w-[120px] sm:max-w-[200px] truncate">
-                {serviceCfg.name}
-              </span>
-            </div>
+            {/* Active Service Sector Display — same rule as the Trading
+                side's badge: clickable switcher only for System Admin
+                (previewing sectors), static label for every regular
+                owner/staff login. */}
+            {isAdmin ? (
+              <button
+                onClick={onOpenServiceSectorModal}
+                className="ml-1 flex items-center bg-slate-800/80 hover:bg-slate-700 text-white border border-indigo-500/30 hover:border-indigo-400 rounded-lg px-2.5 py-1 shrink-0 cursor-pointer transition-all"
+                title={`Click to browse all Service Sectors (Current: ${serviceCfg.name})`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400 mr-1.5 shrink-0" />
+                <span className="hidden sm:inline text-xs font-semibold text-indigo-200 mr-1">Sector:</span>
+                <span className="text-xs font-extrabold text-white max-w-[120px] sm:max-w-[200px] truncate mr-1">
+                  {serviceCfg.name}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-0.5" />
+              </button>
+            ) : (
+              <div
+                className="ml-1 flex items-center bg-slate-800/80 text-white border border-indigo-500/30 rounded-lg px-2.5 py-1 shrink-0"
+                title={`Active Sector: ${serviceCfg.name}`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400 mr-1.5 shrink-0" />
+                <span className="hidden sm:inline text-xs font-semibold text-indigo-200 mr-1">Sector:</span>
+                <span className="text-xs font-extrabold text-white max-w-[120px] sm:max-w-[200px] truncate">
+                  {serviceCfg.name}
+                </span>
+              </div>
+            )}
 
             {/* Switch to Trading Button */}
             <button
