@@ -137,11 +137,20 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Camera Viewfinder Box */}
+          {/* Camera Viewfinder Box — the <video> element is ALWAYS rendered
+              (never conditionally on cameraActive) so its ref exists the
+              moment startCamera() runs. It used to only render once
+              cameraActive was already true, which meant startCamera()'s own
+              `if (!videoRef.current) return` always bailed out immediately —
+              the camera could never actually start, stuck forever on
+              "Initializing camera...". The not-yet-active state is now just
+              an overlay drawn on top of the (blank/black) video element,
+              not a replacement for it. */}
           <div className="relative w-full h-52 bg-slate-950 rounded-2xl overflow-hidden border-2 border-dashed border-emerald-500/50 flex flex-col items-center justify-center text-slate-400">
-            {cameraActive ? (
+            <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+
+            {cameraActive && (
               <>
-                <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
                 <div className="absolute inset-0 border-2 border-amber-400/80 rounded-2xl pointer-events-none flex items-center justify-center">
                   <div className="w-48 h-24 border-2 border-red-500/80 rounded-lg flex items-center justify-center">
                     <span className="text-[11px] text-amber-300 bg-black/60 px-2 py-0.5 rounded font-mono">
@@ -170,8 +179,10 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
                   </div>
                 )}
               </>
-            ) : (
-              <div className="text-center p-4">
+            )}
+
+            {!cameraActive && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 text-center p-4">
                 <Camera className="w-8 h-8 text-slate-500 mb-2 mx-auto" />
                 <p className="text-xs font-semibold text-slate-300">
                   {cameraError || 'Initializing camera...'}
