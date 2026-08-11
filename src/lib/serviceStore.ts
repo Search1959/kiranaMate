@@ -832,6 +832,26 @@ export class ServiceStoreManager {
     return newInv;
   }
 
+  // Only non-financial fields are editable once an invoice is issued —
+  // amounts/items stay fixed for GST record integrity, same reasoning as
+  // why Trading Sales are voided rather than freely edited. A mistaken
+  // amount gets corrected by voiding this invoice and issuing a new one.
+  updateInvoice(id: string, updates: Partial<Pick<ServiceInvoice, 'customerName' | 'mobile' | 'paymentMethod' | 'notes'>>) {
+    this.data.invoices = this.data.invoices.map(inv => (inv.id === id ? { ...inv, ...updates } : inv));
+    this.saveToStorage();
+  }
+
+  // Keeps the invoice in the list (audit trail, GST compliance) rather than
+  // deleting it — mirrors voidSale()'s reasoning on the Trading side exactly.
+  voidInvoice(id: string, reason: string) {
+    this.data.invoices = this.data.invoices.map(inv =>
+      inv.id === id
+        ? { ...inv, status: 'CANCELLED' as const, cancelReason: reason, cancelledAt: new Date().toISOString() }
+        : inv
+    );
+    this.saveToStorage();
+  }
+
   // Quotations
   getQuotations(): ServiceQuotation[] {
     return this.data.quotations || [];

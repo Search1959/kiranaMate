@@ -4,8 +4,6 @@ import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceCustomer } from '../../types';
 
-import { ServiceWorkspaceHeader } from '../../components/ServiceWorkspaceHeader';
-
 interface ServiceCustomersViewProps {
   onNavigateTab?: (tab: string) => void;
 }
@@ -86,13 +84,6 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
-      {onNavigateTab && (
-        <ServiceWorkspaceHeader
-          activeTab="service_customers"
-          onNavigateTab={onNavigateTab}
-          onSectorChange={(s) => setSector(s)}
-        />
-      )}
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
         <div>

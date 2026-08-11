@@ -619,11 +619,13 @@ export interface ServiceInvoice {
   paidAmount: number;
   balanceAmount: number;
   paymentMethod: PaymentMethod;
-  status: 'PAID' | 'PARTIAL' | 'UNPAID';
+  status: 'PAID' | 'PARTIAL' | 'UNPAID' | 'CANCELLED';
   jobCardId?: string;
   appointmentId?: string;
   notes?: string;
   createdAt: string;
+  cancelReason?: string;
+  cancelledAt?: string;
 }
 
 export interface ServiceQuotation {

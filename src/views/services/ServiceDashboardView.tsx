@@ -40,8 +40,6 @@ import {
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceSector } from '../../types';
-import { ServiceWorkspaceHeader } from '../../components/ServiceWorkspaceHeader';
-
 interface ServiceDashboardViewProps {
   onNavigateTab: (tab: string) => void;
   onOpenQuickAction?: (action: string) => void;
@@ -84,13 +82,6 @@ export const ServiceDashboardView: React.FC<ServiceDashboardViewProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
-      {/* Service Workspace Header with Sub-tabs */}
-      <ServiceWorkspaceHeader
-        activeTab="service_dashboard"
-        onNavigateTab={onNavigateTab}
-        onSectorChange={handleSectorChange}
-      />
-
       {/* Floating Toast Notification */}
       {showToast && (
         <div className="fixed top-16 right-4 z-50 bg-blue-600 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl border border-blue-400 flex items-center gap-2 animate-bounce">
