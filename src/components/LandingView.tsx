@@ -21,9 +21,35 @@ import {
   LineChart,
   Menu,
   X,
-  LogIn
+  LogIn,
+  Stethoscope,
+  Scissors,
+  Briefcase,
+  GraduationCap,
+  Server,
+  Camera,
+  Hotel,
+  Building,
+  Shirt,
+  Shield,
+  Sprout,
+  Truck,
+  Landmark,
+  Building2,
+  Sun,
+  Gamepad2
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
+import { SERVICE_SECTOR_GROUPS } from '../lib/serviceSectorConfig';
+
+// serviceSectorConfig.ts stores each group's icon as a name string (shared
+// with the in-app sector browser) rather than a component reference — this
+// maps the ones actually used to their lucide-react component.
+const SERVICE_GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Stethoscope, Scissors, Briefcase, GraduationCap, Smartphone, Wrench, Zap,
+  Server, Camera, Hotel, Building, Shirt, Shield, Sprout, Truck, Landmark,
+  Building2, Sun, Gamepad2, Layers
+};
 
 interface LandingViewProps {
   onOpenAuthModal: (mode: 'login' | 'register' | 'admin') => void;
@@ -410,18 +436,18 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
               <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 pt-3">
                 {[
-                  { id: 'FOOTWEAR_GARMENTS', title: 'Footwear & Garments', units: 'Pair, UK Size, pcs, Box', color: 'text-rose-200 bg-rose-950/30 border-rose-800/40', demoStoreId: 'store-demo-footwear' },
-                  { id: 'PHARMACY', title: 'Pharmacy & Medical', units: 'Strip, Tablet, Bottle, Box', color: 'text-emerald-200 bg-emerald-950/30 border-emerald-800/40', demoStoreId: 'store-demo-pharmacy' },
-                  { id: 'ELECTRICAL_ELECTRONICS', title: 'Electricals & Electronics', units: 'Piece, Coil, Meter, Box', color: 'text-emerald-700 bg-emerald-100 border-emerald-200', demoStoreId: 'store-demo-electrical' },
-                  { id: 'AUTO_PARTS', title: 'Auto Parts & Spares', units: 'Set, Piece, Pair, Box', color: 'text-orange-200 bg-orange-950/30 border-orange-800/40', demoStoreId: 'store-demo-auto' },
-                  { id: 'METALS_STEEL', title: 'Iron & Steel / Metals', units: 'MT, Quintal, kg, Length', color: 'text-slate-700 bg-emerald-100/70 border-green-200', demoStoreId: 'store-demo-steel' },
-                  { id: 'AGRICULTURE', title: 'Agri Commodities', units: 'Quintal, MT, Bag, kg', color: 'text-emerald-200 bg-emerald-950/30 border-emerald-800/40', demoStoreId: 'store-demo-agri' },
-                  { id: 'KIRANA_FMCG', title: 'FMCG & Kirana', units: 'pkt, kg, pouch, bottle', color: 'text-cyan-200 bg-cyan-950/30 border-cyan-800/40', demoStoreId: 'store-demo-kirana' },
-                  { id: 'TEXTILES', title: 'Textiles & Fabrics', units: 'Meter, Roll, Bale, pcs', color: 'text-teal-200 bg-teal-950/30 border-teal-800/40', demoStoreId: 'store-demo-textile' },
-                  { id: 'JEWELLERY', title: 'Jewellery & Gems', units: 'Gram, Carat, Tola, pcs', color: 'text-yellow-200 bg-amber-100 border-amber-300', demoStoreId: 'store-demo-jewellery' },
-                  { id: 'COSMETICS', title: 'Cosmetics & Beauty', units: 'Bottle, Tube, Box, Piece', color: 'text-purple-200 bg-purple-950/30 border-purple-800/40', demoStoreId: 'store-demo-cosmetics' },
-                  { id: 'BUILDING_HARDWARE', title: 'Building & Hardware', units: 'Bag, Piece, Box, Meter', color: 'text-stone-200 bg-stone-900/50 border-stone-700', demoStoreId: 'store-demo-hardware' },
-                  { id: 'STATIONERY', title: 'Stationery & Books', units: 'Ream, Box, Pack, pcs', color: 'text-indigo-200 bg-indigo-950/30 border-indigo-800/40', demoStoreId: 'store-demo-stationery' },
+                  { id: 'FOOTWEAR_GARMENTS', title: 'Footwear & Garments', units: 'Pair, UK Size, pcs, Box', color: 'text-rose-700 bg-rose-50 border-rose-200', demoStoreId: 'store-demo-footwear' },
+                  { id: 'PHARMACY', title: 'Pharmacy & Medical', units: 'Strip, Tablet, Bottle, Box', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', demoStoreId: 'store-demo-pharmacy' },
+                  { id: 'ELECTRICAL_ELECTRONICS', title: 'Electricals & Electronics', units: 'Piece, Coil, Meter, Box', color: 'text-sky-700 bg-sky-50 border-sky-200', demoStoreId: 'store-demo-electrical' },
+                  { id: 'AUTO_PARTS', title: 'Auto Parts & Spares', units: 'Set, Piece, Pair, Box', color: 'text-orange-700 bg-orange-50 border-orange-200', demoStoreId: 'store-demo-auto' },
+                  { id: 'METALS_STEEL', title: 'Iron & Steel / Metals', units: 'MT, Quintal, kg, Length', color: 'text-slate-700 bg-slate-100 border-slate-200', demoStoreId: 'store-demo-steel' },
+                  { id: 'AGRICULTURE', title: 'Agri Commodities', units: 'Quintal, MT, Bag, kg', color: 'text-lime-700 bg-lime-50 border-lime-200', demoStoreId: 'store-demo-agri' },
+                  { id: 'KIRANA_FMCG', title: 'FMCG & Kirana', units: 'pkt, kg, pouch, bottle', color: 'text-cyan-700 bg-cyan-50 border-cyan-200', demoStoreId: 'store-demo-kirana' },
+                  { id: 'TEXTILES', title: 'Textiles & Fabrics', units: 'Meter, Roll, Bale, pcs', color: 'text-teal-700 bg-teal-50 border-teal-200', demoStoreId: 'store-demo-textile' },
+                  { id: 'JEWELLERY', title: 'Jewellery & Gems', units: 'Gram, Carat, Tola, pcs', color: 'text-amber-700 bg-amber-50 border-amber-200', demoStoreId: 'store-demo-jewellery' },
+                  { id: 'COSMETICS', title: 'Cosmetics & Beauty', units: 'Bottle, Tube, Box, Piece', color: 'text-purple-700 bg-purple-50 border-purple-200', demoStoreId: 'store-demo-cosmetics' },
+                  { id: 'BUILDING_HARDWARE', title: 'Building & Hardware', units: 'Bag, Piece, Box, Meter', color: 'text-stone-700 bg-stone-100 border-stone-200', demoStoreId: 'store-demo-hardware' },
+                  { id: 'STATIONERY', title: 'Stationery & Books', units: 'Ream, Box, Pack, pcs', color: 'text-indigo-700 bg-indigo-50 border-indigo-200', demoStoreId: 'store-demo-stationery' },
                 ].map((s) => (
                   <div
                     key={s.title}
@@ -515,6 +541,85 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <div className="text-2xl sm:text-3xl font-display font-black text-amber-600">₹0</div>
             <div className="text-xs font-semibold text-slate-600 mt-1">Free to Start</div>
             <div className="text-[10px] text-slate-500 mt-0.5">No card required</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Service ERP Showcase — Trading gets deep coverage above (hero,
+          feature grid, comparison table, pricing); Service ERP previously
+          only appeared as a header pill and one stat line, which badly
+          undersold 34 real service sectors. This gives it comparable
+          visual weight, mirroring the Trading showcase's own card pattern. */}
+      <section className="py-16 px-4 sm:px-8 bg-white border-t border-green-100">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-indigo-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-indigo-500/15 text-indigo-600 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border border-indigo-300">
+                    Universal Service Platform
+                  </span>
+                  <h3 className="font-display text-sm sm:text-base font-bold text-slate-900">Built for Any Service Business</h3>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Not selling goods — providing a service? ServiceERP covers 34 real sectors, from salons to law firms.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={onOpenServiceSectorModal}
+                  className="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-slate-900 font-extrabold text-xs rounded-full shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-200"
+                >
+                  <Wrench className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>View All 34 Sectors →</span>
+                </button>
+                <button
+                  onClick={onOpenServiceSectorModal}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-full shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Try Service Demo</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 pt-4">
+              {[
+                { color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
+                { color: 'text-rose-700 bg-rose-50 border-rose-200' },
+                { color: 'text-amber-700 bg-amber-50 border-amber-200' },
+                { color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+                { color: 'text-sky-700 bg-sky-50 border-sky-200' },
+                { color: 'text-orange-700 bg-orange-50 border-orange-200' },
+                { color: 'text-purple-700 bg-purple-50 border-purple-200' },
+                { color: 'text-teal-700 bg-teal-50 border-teal-200' },
+                { color: 'text-pink-700 bg-pink-50 border-pink-200' },
+                { color: 'text-cyan-700 bg-cyan-50 border-cyan-200' },
+                { color: 'text-stone-700 bg-stone-100 border-stone-200' },
+                { color: 'text-violet-700 bg-violet-50 border-violet-200' }
+              ].map((style, idx) => {
+                const group = SERVICE_SECTOR_GROUPS[idx];
+                if (!group) return null;
+                const Icon = SERVICE_GROUP_ICONS[group.icon] || Layers;
+                return (
+                  <div
+                    key={group.name}
+                    onClick={onOpenServiceSectorModal}
+                    className={`p-2.5 rounded-xl border ${style.color} hover:border-indigo-400 cursor-pointer transition-all flex flex-col justify-between hover:scale-[1.02]`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <div className="font-bold text-xs truncate text-slate-900">{group.name}</div>
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1 line-clamp-2">{group.description}</div>
+                    <div className="text-[9px] font-bold text-indigo-600 mt-1.5 flex items-center gap-0.5">
+                      <span>{group.count} Sectors</span>
+                      <ChevronRight className="w-2.5 h-2.5" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
