@@ -197,11 +197,14 @@ export const Header: React.FC<HeaderProps> = ({
               </p>
             </div>
 
-            {/* Active Trading Sector Badge — a demo account is meant to be
-                explored, so it stays a clickable switcher; a real registered
-                shop's sector isn't something you'd casually switch (it drives
-                unit types, categories, workflow), so it's just a label. */}
-            {isDemo ? (
+            {/* Active Trading Sector Badge — clickable switcher only for
+                System Admin (who legitimately previews different sector
+                templates); every regular owner/staff login sees a static
+                label instead, since a real shop's sector isn't something to
+                casually switch, and store-demo is Arun's own real working
+                account too, not just the public seed demo — so this has to
+                key off role, not storeId. */}
+            {isAdmin ? (
               <button
                 onClick={onOpenSectorModal}
                 className="ml-1 flex items-center bg-gradient-to-r from-slate-900 to-indigo-950 hover:from-slate-800 hover:to-indigo-900 text-white border border-slate-700/80 hover:border-blue-400 rounded-lg shadow-xs px-2.5 py-1 shrink-0 cursor-pointer transition-all"
@@ -265,28 +268,20 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* Global Search Bar & Camera Barcode Scanner */}
-      <div className="flex-1 max-w-xs sm:max-w-md mx-2 sm:mx-3">
-        <div className="relative flex items-center">
-          <Search className="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none" />
-          <input
-            type="text"
-            value={globalSearchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={searchPlaceholder}
-            className={`w-full ${isServiceTab ? 'bg-slate-800 text-white placeholder-slate-400 border-slate-700 focus:ring-indigo-500' : 'bg-slate-100 text-slate-900 placeholder-slate-400 border-slate-200 focus:ring-blue-500'} text-xs sm:text-sm pl-9 pr-9 py-1.5 rounded-md border focus:outline-none focus:ring-2 transition-all`}
-          />
-          {!isServiceTab && (
-            <button
-              onClick={onOpenBarcodeScanner}
-              title={t.scanBarcode}
-              className="absolute right-1.5 p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold transition-colors cursor-pointer"
-            >
-              <Scan className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
+      {/* The header search box was unused, so it's gone -- but camera
+          barcode scanning is a real, marketed feature, so it stays as a
+          standalone icon button rather than being lost along with it. */}
+      {!isServiceTab && (
+        <button
+          onClick={onOpenBarcodeScanner}
+          title={t.scanBarcode}
+          className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors cursor-pointer shrink-0"
+        >
+          <Scan className="w-4 h-4" />
+        </button>
+      )}
+
+      <div className="flex-1" />
 
       {/* Header Actions */}
       <div className="flex items-center gap-1.5 sm:gap-2">
