@@ -121,23 +121,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Language Switcher (desktop/tablet only — lives in the mobile menu sheet below) */}
-          <div className="hidden sm:flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-full border border-green-100 text-xs">
-            <Globe className="w-3.5 h-3.5 text-emerald-600" />
-            <select
-              value={lang}
-              onChange={(e) => onLanguageChange(e.target.value as LanguageCode)}
-              className="bg-transparent text-slate-900 focus:outline-none text-xs cursor-pointer"
-            >
-              <option value="en" className="bg-white">English</option>
-              <option value="hi" className="bg-white">हिन्दी (Hindi)</option>
-              <option value="bn" className="bg-white">বাংলা (Bengali)</option>
-              <option value="mr" className="bg-white">मराठी (Marathi)</option>
-              <option value="gu" className="bg-white">ગુજરાதી (Gujarati)</option>
-              <option value="ta" className="bg-white">தமிழ் (Tamil)</option>
-            </select>
-          </div>
-
+          {/* Language switcher removed from the landing page — this page's
+              own marketing copy was never actually wired into the
+              translation system (it's all hardcoded English), so the
+              dropdown selecting Hindi/Bengali/etc. here did nothing and was
+              misleading. The in-app dashboard's own language switcher is
+              untouched and still works correctly. */}
           <button
             onClick={() => onOpenAuthModal('login')}
             className="hidden sm:flex items-center justify-center w-9 h-9 text-slate-700 hover:text-slate-900 hover:bg-white rounded-full transition-colors border border-green-100 cursor-pointer shrink-0"
@@ -205,22 +194,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <a href="#features" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-600 bg-emerald-50/70 border border-green-100 px-2 py-2.5 rounded-xl">Features</a>
                 <a href="#pricing" onClick={() => setShowMobileMenu(false)} className="text-center text-xs font-semibold text-slate-600 bg-emerald-50/70 border border-green-100 px-2 py-2.5 rounded-xl">Pricing</a>
-              </div>
-
-              <div className="flex items-center gap-2 bg-emerald-50 border border-green-200 px-4 py-3 rounded-2xl mt-1">
-                <Globe className="w-4 h-4 text-emerald-600 shrink-0" />
-                <select
-                  value={lang}
-                  onChange={(e) => onLanguageChange(e.target.value as LanguageCode)}
-                  className="bg-transparent text-slate-900 focus:outline-none text-sm font-semibold flex-1 cursor-pointer"
-                >
-                  <option value="en" className="bg-white">English</option>
-                  <option value="hi" className="bg-white">हिन्दी (Hindi)</option>
-                  <option value="bn" className="bg-white">বাংলা (Bengali)</option>
-                  <option value="mr" className="bg-white">मराठी (Marathi)</option>
-                  <option value="gu" className="bg-white">ગુજરાதી (Gujarati)</option>
-                  <option value="ta" className="bg-white">தமிழ் (Tamil)</option>
-                </select>
               </div>
             </div>
           </div>
