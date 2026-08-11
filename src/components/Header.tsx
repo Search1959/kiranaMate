@@ -175,15 +175,20 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            {/* Switch to Trading Button */}
-            <button
-              onClick={() => onNavigateToTab('home')}
-              className="hidden lg:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold transition-all shrink-0 cursor-pointer"
-              title="Switch to TradeMate Trading ERP"
-            >
-              <Store className="w-3.5 h-3.5 text-blue-400" />
-              <span>Switch to Trading</span>
-            </button>
+            {/* Switch to Trading Button — System Admin only. A real Service
+                ERP client (a salon, a law firm, a clinic) has no legitimate
+                reason to jump into Trading mode; only admin previews across
+                both, same reasoning as the sector badge fix. */}
+            {isAdmin && (
+              <button
+                onClick={() => onNavigateToTab('home')}
+                className="hidden lg:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold transition-all shrink-0 cursor-pointer"
+                title="Switch to TradeMate Trading ERP"
+              >
+                <Store className="w-3.5 h-3.5 text-blue-400" />
+                <span>Switch to Trading</span>
+              </button>
+            )}
           </>
         ) : (
           <>

@@ -157,26 +157,32 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         </div>
       </div>
 
-      {/* Mode Action Button */}
-      <div className="px-3 pt-3 pb-2 space-y-2">
-        {isServiceTab ? (
-          <button
-            onClick={() => onTabChange('home')}
-            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Switch to TradeMate Trading</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => onOpenQuickAction('new-sale')}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
-          >
-            <ShoppingCart className="w-4 h-4 text-emerald-200" />
-            <span>+ Express 30s Sale POS</span>
-          </button>
-        )}
-      </div>
+      {/* Mode Action Button — the Trading<->Service switch only makes sense
+          for System Admin previewing both; a real Service ERP client (a
+          salon, a law firm) has no reason to jump into Trading mode, so
+          this whole slot is simply empty for them rather than showing an
+          action that doesn't apply. */}
+      {(isServiceTab ? currentUser?.role === 'admin' : true) && (
+        <div className="px-3 pt-3 pb-2 space-y-2">
+          {isServiceTab ? (
+            <button
+              onClick={() => onTabChange('home')}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Switch to TradeMate Trading</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenQuickAction('new-sale')}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg shadow-xs flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer"
+            >
+              <ShoppingCart className="w-4 h-4 text-emerald-200" />
+              <span>+ Express 30s Sale POS</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-4">
