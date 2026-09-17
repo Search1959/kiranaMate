@@ -11,6 +11,11 @@ interface ServiceCustomersViewProps {
 export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNavigateTab }) => {
   const [sector, setSector] = useState(serviceStore.getActiveSector());
   const cfg = getServiceSectorConfig(sector);
+  const isEducationSector = cfg.group === 'Education & Training';
+  const notesLabel = isEducationSector ? 'Course / Batch & Notes' : 'Notes';
+  const notesPlaceholder = isEducationSector
+    ? `e.g. ${cfg.categories[0]}, Morning Batch, Guardian: Mr. Sharma (9876543210)`
+    : 'Any additional notes about this ' + cfg.customerTerm.toLowerCase() + '...';
   const [refreshTick, setRefreshTick] = useState(0);
   const customers = serviceStore.getCustomers();
 
@@ -220,6 +225,16 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
                   className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white"
                 />
               </div>
+              <div>
+                <label className="block text-slate-400 mb-1">{notesLabel}</label>
+                <textarea
+                  rows={2}
+                  placeholder={notesPlaceholder}
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white resize-none"
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2">
@@ -234,7 +249,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
                 type="submit"
                 className="flex-1 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30"
               >
-                {editingCustomerId ? 'Save Changes' : 'Save Client'}
+                {editingCustomerId ? 'Save Changes' : `Save ${cfg.customerTerm}`}
               </button>
             </div>
           </form>
