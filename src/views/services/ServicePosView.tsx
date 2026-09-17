@@ -87,6 +87,11 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const [materialCharges, setMaterialCharges] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  // 'AUTO' taxes each cart item at its own configured GST% (set in Add/Edit
+  // Service); picking a fixed slab here overrides that for this bill only —
+  // e.g. an exempt/composition-scheme client who needs 0% regardless of what
+  // the catalog normally charges.
+  const [gstRateOverride, setGstRateOverride] = useState<'AUTO' | number>('AUTO');
 
   // Completed Invoice Modal state
   const [completedInvoice, setCompletedInvoice] = useState<ServiceInvoice | null>(null);
@@ -155,19 +160,28 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const grossSubtotal = servicesSubtotal + labourCharges + materialCharges;
   const afterDiscount = Math.max(0, grossSubtotal - discountAmount);
 
-  // GST at each service's own configured rate (set in Add/Edit Service — can be 0%),
-  // not a blanket 18% — labour/material still default to 18% since they carry no rate of their own.
-  const grossServicesGst = cart.reduce((acc, item) => {
-    const lineTotal = (item.customPrice || item.service.price) * item.quantity;
-    const rate = item.service.gstPercent ?? 18;
-    return acc + lineTotal * (rate / 100);
-  }, 0);
-  const grossLabourMaterialGst = (labourCharges + materialCharges) * 0.18;
-  const grossGst = grossServicesGst + grossLabourMaterialGst;
-  const discountFactor = grossSubtotal > 0 ? afterDiscount / grossSubtotal : 1;
-  const gstAmount = Math.round(grossGst * discountFactor);
+  // Default: GST at each service's own configured rate (set in Add/Edit
+  // Service — can be 0%), not a blanket 18% — labour/material still default
+  // to 18% since they carry no rate of their own. Picking a fixed slab from
+  // the GST Rate dropdown below overrides this for the whole bill instead.
+  let gstAmount: number;
+  let effectiveGstPercent: number;
+  if (gstRateOverride === 'AUTO') {
+    const grossServicesGst = cart.reduce((acc, item) => {
+      const lineTotal = (item.customPrice || item.service.price) * item.quantity;
+      const rate = item.service.gstPercent ?? 18;
+      return acc + lineTotal * (rate / 100);
+    }, 0);
+    const grossLabourMaterialGst = (labourCharges + materialCharges) * 0.18;
+    const grossGst = grossServicesGst + grossLabourMaterialGst;
+    const discountFactor = grossSubtotal > 0 ? afterDiscount / grossSubtotal : 1;
+    gstAmount = Math.round(grossGst * discountFactor);
+    effectiveGstPercent = afterDiscount > 0 ? Math.round((gstAmount / afterDiscount) * 100) : 0;
+  } else {
+    gstAmount = Math.round(afterDiscount * (gstRateOverride / 100));
+    effectiveGstPercent = gstRateOverride;
+  }
   const grandTotal = Math.round(afterDiscount + gstAmount);
-  const effectiveGstPercent = afterDiscount > 0 ? Math.round((gstAmount / afterDiscount) * 100) : 0;
 
   const handleSelectExistingCustomer = (custMobile: string) => {
     const found = customers.find(c => c.mobile === custMobile);
@@ -239,6 +253,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
     setLabourCharges(0);
     setMaterialCharges(0);
     setDiscountAmount(0);
+    setGstRateOverride('AUTO');
   };
 
   return (
@@ -518,6 +533,22 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                     className="w-full px-2 py-1 bg-slate-900 border border-slate-700 rounded text-white text-xs focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-slate-400 block mb-0.5">GST Rate for this Bill</label>
+                <select
+                  value={gstRateOverride}
+                  onChange={e => setGstRateOverride(e.target.value === 'AUTO' ? 'AUTO' : Number(e.target.value))}
+                  className="w-full px-2 py-1 bg-slate-900 border border-slate-700 rounded text-white text-xs focus:outline-none"
+                >
+                  <option value="AUTO">Auto (per service's own rate)</option>
+                  <option value={0}>0% (Exempt)</option>
+                  <option value={5}>5%</option>
+                  <option value={12}>12%</option>
+                  <option value={18}>18%</option>
+                  <option value={28}>28%</option>
+                </select>
               </div>
             </div>
           </div>
