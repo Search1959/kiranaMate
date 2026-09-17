@@ -391,6 +391,7 @@ export function generateSeedServiceData(sector: ServiceSector): ServiceStoreData
 
 export const SERVICE_EXPENSE_CATEGORIES: (ExpenseCategory | string)[] = [
   'Staff Salary',
+  'Staff Commission',
   'Office/Shop Rent',
   'Software & Subscriptions',
   'Marketing & Advertising',
@@ -849,6 +850,29 @@ export class ServiceStoreManager {
     this.saveToStorage();
   }
 
+  /** Records a real commission payout to a staff member: reduces their
+   * running payable balance and logs it as a genuine "Staff Commission"
+   * Expense (so it counts in Total Expenses / Net Profit like any other
+   * business cost), instead of the rate just sitting there unused. */
+  payStaffCommission(staffId: string, amount: number, paymentMethod: PaymentMethod) {
+    const staffMember = this.data.staff.find(s => s.id === staffId);
+    if (!staffMember || amount <= 0) return;
+
+    this.data.staff = this.data.staff.map(s =>
+      s.id === staffId ? { ...s, commissionPayable: (s.commissionPayable || 0) - amount } : s
+    );
+
+    this.addExpense({
+      category: 'Staff Commission',
+      amount,
+      date: new Date().toISOString().split('T')[0],
+      description: `Commission payout to ${staffMember.name}`,
+      paymentMethod,
+      payeeName: staffMember.name,
+      recordedBy: this.data.ownerName || 'Owner'
+    });
+  }
+
   // Packages
   getPackages(): ServicePackage[] {
     return this.data.packages || [];
@@ -919,6 +943,20 @@ export class ServiceStoreManager {
       createdAt: new Date().toISOString().split('T')[0]
     };
     this.data.invoices = [newInv, ...this.data.invoices];
+
+    // Auto-accrue each assigned staff member's commission on the exact
+    // billed amount for their line — this is what lets "Commission Payable"
+    // on the Staff Roster be a real, accurate running balance instead of
+    // just a configured rate that was never tied to actual billing.
+    newInv.items.forEach(item => {
+      if (item.type !== 'SERVICE' || !item.staffId) return;
+      const staffMember = this.data.staff.find(s => s.id === item.staffId);
+      if (!staffMember) return;
+      const commissionEarned = item.total * (staffMember.commissionPercent / 100);
+      this.data.staff = this.data.staff.map(s =>
+        s.id === item.staffId ? { ...s, commissionPayable: (s.commissionPayable || 0) + commissionEarned } : s
+      );
+    });
 
     // If payment made, record payment log
     if (newInv.paidAmount > 0) {

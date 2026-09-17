@@ -220,7 +220,8 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
       type: 'SERVICE' as const,
       price: item.customPrice || item.service.price,
       quantity: item.quantity,
-      total: (item.customPrice || item.service.price) * item.quantity
+      total: (item.customPrice || item.service.price) * item.quantity,
+      staffId: item.assignedStaffId
     }));
 
     if (labourCharges > 0) {

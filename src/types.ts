@@ -563,6 +563,10 @@ export interface ServiceStaff {
   commissionPercent: number;
   dailyTarget: number;
   status: 'Active' | 'On-Leave' | 'Busy';
+  /** Running balance owed to this staff member, auto-accrued from their
+   * commission% on every service invoice they're assigned to, reduced by
+   * each recorded commission payout (see serviceStore.payStaffCommission). */
+  commissionPayable?: number;
 }
 
 export interface ServicePackage {
@@ -601,6 +605,9 @@ export interface ServiceInvoiceItem {
   price: number;
   quantity: number;
   total: number;
+  /** Staff member who performed this line — lets createInvoice() auto-accrue
+   * their commission on this exact billed amount. */
+  staffId?: string;
 }
 
 export interface ServiceInvoice {

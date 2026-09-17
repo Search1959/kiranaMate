@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Users, Plus, Star, Phone, Award, DollarSign, CheckCircle, Pencil, Trash2 } from 'lucide-react';
+import { Users, Plus, Star, Phone, Award, DollarSign, CheckCircle, Pencil, Trash2, Wallet } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
-import { ServiceStaff } from '../../types';
+import { ServiceStaff, PaymentMethod } from '../../types';
 
 export const ServiceStaffView: React.FC = () => {
   const activeSector = serviceStore.getActiveSector();
@@ -18,6 +18,10 @@ export const ServiceStaffView: React.FC = () => {
   const [specialty, setSpecialty] = useState<string>('');
   const [commission, setCommission] = useState<number>(20);
   const [status, setStatus] = useState<ServiceStaff['status']>('Active');
+
+  const [payingStaff, setPayingStaff] = useState<ServiceStaff | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0);
+  const [payMethod, setPayMethod] = useState<PaymentMethod>('CASH');
 
   const resetForm = () => {
     setName('');
@@ -48,6 +52,20 @@ export const ServiceStaffView: React.FC = () => {
   const handleDeleteStaff = (st: ServiceStaff) => {
     if (!window.confirm(`Remove ${st.name} from your ${cfg.staffTerm.toLowerCase()} roster? This can't be undone.`)) return;
     serviceStore.deleteStaff(st.id);
+    setRefreshTick(t => t + 1);
+  };
+
+  const handleOpenPayCommission = (st: ServiceStaff) => {
+    setPayingStaff(st);
+    setPayAmount(Math.round(st.commissionPayable || 0));
+    setPayMethod('CASH');
+  };
+
+  const handleConfirmPayCommission = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!payingStaff || payAmount <= 0) return;
+    serviceStore.payStaffCommission(payingStaff.id, payAmount, payMethod);
+    setPayingStaff(null);
     setRefreshTick(t => t + 1);
   };
 
@@ -136,7 +154,23 @@ export const ServiceStaffView: React.FC = () => {
                 <span className="text-slate-400">Commission Rate:</span>
                 <span className="font-bold text-blue-400">{st.commissionPercent}%</span>
               </div>
+              <div className="flex justify-between pt-1 border-t border-slate-700/50">
+                <span className="text-slate-400">Commission Payable:</span>
+                <span className={`font-bold ${(st.commissionPayable || 0) > 0 ? 'text-amber-400' : 'text-slate-500'}`}>
+                  ₹{Math.round(st.commissionPayable || 0)}
+                </span>
+              </div>
             </div>
+
+            {(st.commissionPayable || 0) > 0 && (
+              <button
+                onClick={() => handleOpenPayCommission(st)}
+                className="w-full py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-600/40 font-bold text-[11px] rounded-lg flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                <span>Pay Commission</span>
+              </button>
+            )}
 
             <div className="flex items-center justify-between pt-1">
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -246,6 +280,63 @@ export const ServiceStaffView: React.FC = () => {
                 className="flex-1 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30"
               >
                 {editingStaffId ? 'Save Changes' : 'Save Staff'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {payingStaff && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <form onSubmit={handleConfirmPayCommission} className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 text-white">
+            <h3 className="text-sm font-bold flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-emerald-400" />
+              <span>Pay Commission — {payingStaff.name}</span>
+            </h3>
+            <p className="text-[11px] text-slate-400 -mt-2">
+              Owed: ₹{Math.round(payingStaff.commissionPayable || 0)} — recording this creates a real "Staff Commission" expense and reduces what's owed.
+            </p>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Amount to Pay (₹)</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={payAmount || ''}
+                  onChange={e => setPayAmount(Number(e.target.value))}
+                  className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 mb-1">Payment Method</label>
+                <select
+                  value={payMethod}
+                  onChange={e => setPayMethod(e.target.value as PaymentMethod)}
+                  className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                >
+                  <option value="CASH">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="BANK">Bank Transfer</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setPayingStaff(null)}
+                className="flex-1 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 cursor-pointer"
+              >
+                Record Payout
               </button>
             </div>
           </form>

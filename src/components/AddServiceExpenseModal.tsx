@@ -15,7 +15,8 @@ import {
   Landmark,
   Receipt,
   Tag,
-  DollarSign
+  DollarSign,
+  Percent
 } from 'lucide-react';
 import { Expense, ExpenseCategory, PaymentMethod } from '../types';
 import { serviceStore } from '../lib/serviceStore';
@@ -31,6 +32,7 @@ interface AddServiceExpenseModalProps {
 
 const SERVICE_EXPENSE_CATEGORY_META: { label: ExpenseCategory | string; icon: any; color: string }[] = [
   { label: 'Staff Salary', icon: Users, color: 'bg-indigo-500/10 border-indigo-500/40 text-indigo-300' },
+  { label: 'Staff Commission', icon: Percent, color: 'bg-cyan-500/10 border-cyan-500/40 text-cyan-300' },
   { label: 'Office/Shop Rent', icon: Building2, color: 'bg-purple-500/10 border-purple-500/40 text-purple-300' },
   { label: 'Software & Subscriptions', icon: Laptop, color: 'bg-sky-500/10 border-sky-500/40 text-sky-300' },
   { label: 'Marketing & Advertising', icon: Megaphone, color: 'bg-pink-500/10 border-pink-500/40 text-pink-300' },
