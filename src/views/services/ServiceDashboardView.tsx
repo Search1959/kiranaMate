@@ -7,35 +7,9 @@ import {
   IndianRupee,
   Users,
   Star,
-  PlusCircle,
   ShoppingCart,
-  FileText,
   Sparkles,
-  TrendingUp,
-  ArrowRight,
-  Shield,
-  Layers,
-  Search,
-  Zap,
-  Briefcase,
-  GraduationCap,
-  Smartphone,
-  Smile,
-  Droplets,
-  Server,
-  Camera,
-  Printer,
-  Hotel,
-  Building,
-  Shirt,
-  Sprout,
-  Truck,
-  Landmark,
-  Building2,
-  Sun,
-  Gamepad2,
-  Check,
-  ChevronRight
+  ArrowRight
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -67,18 +41,6 @@ export const ServiceDashboardView: React.FC<ServiceDashboardViewProps> = ({
     setShowToast(`Switched Workspace to ${newCfg.name}! Custom params & demo data loaded.`);
     setTimeout(() => setShowToast(null), 3500);
   };
-
-  // High-value SaaS modules list
-  const premiumModules = [
-    { title: 'AMC Management', desc: 'Annual Maintenance Contracts, Renewal Alerts & Schedule', icon: Shield, badge: 'Popular' },
-    { title: 'Subscription & Memberships', desc: 'Monthly/Annual Passes, Auto-renewal & Passes', icon: Sparkles, badge: 'High Retention' },
-    { title: 'Appointment Booking & Queue', desc: 'Slot Booking, Live Token Queue & Reminders', icon: Calendar, badge: 'Live' },
-    { title: 'Service Contracts & Warranty', desc: 'Service Level Agreements, Warranty Claim Records', icon: FileText, badge: 'Enterprise' },
-    { title: 'Help Desk & Ticket Management', desc: 'Customer Complaints, SLA Timer & Escalation', icon: Wrench, badge: 'SaaS' },
-    { title: 'Field Service & Technician Tracking', desc: 'Doorstep Tech Dispatch, Onsite Job Completion', icon: Truck, badge: 'Field Duty' },
-    { title: 'Lead CRM & Quotations', desc: 'Inbound Inquiries, Quotations to Invoice Flow', icon: TrendingUp, badge: 'Growth' },
-    { title: 'Customer & Vendor Portal', desc: 'Self-service Job Status, Online Invoices & History', icon: Users, badge: 'Portal' }
-  ];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
@@ -337,44 +299,6 @@ export const ServiceDashboardView: React.FC<ServiceDashboardViewProps> = ({
                 ))
               )}
             </div>
-          </div>
-        </div>
-
-        {/* ⭐ HIGH-VALUE SAAS PREMIUM MODULES HUB */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 text-amber-400 text-xs font-extrabold uppercase tracking-widest mb-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Premium SaaS Features</span>
-              </div>
-              <h2 className="text-xl font-black text-white">Enterprise Service ERP Modules</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Built-in high value modules for AMC, subscriptions, field tracking, appointment queues, and customer portals.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {premiumModules.map((mod, idx) => {
-              const Icon = mod.icon;
-              return (
-                <div key={idx} className="bg-slate-800/40 border border-slate-700/60 p-4 rounded-2xl space-y-2.5 hover:border-blue-500/40 transition-all">
-                  <div className="flex items-center justify-between">
-                    <div className="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
-                      <Icon className="w-4 h-4 text-blue-400" />
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[9px] font-black text-amber-400 border border-amber-500/20">
-                      {mod.badge}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-white">{mod.title}</h4>
-                    <p className="text-[11px] text-slate-400 mt-1">{mod.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
 
