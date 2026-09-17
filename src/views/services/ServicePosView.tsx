@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   Clock,
   IndianRupee,
-  Share2,
   Wrench,
   X,
   Pencil
@@ -23,6 +22,7 @@ import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceItem, ServiceStaff, PaymentMethod, ServiceInvoice, ServiceInvoiceItem } from '../../types';
 
 import { AddEditServiceModal } from '../../components/AddEditServiceModal';
+import { ServiceInvoicePrintModal } from '../../components/ServiceInvoicePrintModal';
 
 interface CartItem {
   service: ServiceItem;
@@ -90,6 +90,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
 
   // Completed Invoice Modal state
   const [completedInvoice, setCompletedInvoice] = useState<ServiceInvoice | null>(null);
+  const [printInvoice, setPrintInvoice] = useState<ServiceInvoice | null>(null);
 
   const categories = ['ALL', ...cfg.categories];
 
@@ -154,9 +155,19 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const grossSubtotal = servicesSubtotal + labourCharges + materialCharges;
   const afterDiscount = Math.max(0, grossSubtotal - discountAmount);
 
-  // Average GST 18% calculation
-  const gstAmount = Math.round(afterDiscount * 0.18);
+  // GST at each service's own configured rate (set in Add/Edit Service — can be 0%),
+  // not a blanket 18% — labour/material still default to 18% since they carry no rate of their own.
+  const grossServicesGst = cart.reduce((acc, item) => {
+    const lineTotal = (item.customPrice || item.service.price) * item.quantity;
+    const rate = item.service.gstPercent ?? 18;
+    return acc + lineTotal * (rate / 100);
+  }, 0);
+  const grossLabourMaterialGst = (labourCharges + materialCharges) * 0.18;
+  const grossGst = grossServicesGst + grossLabourMaterialGst;
+  const discountFactor = grossSubtotal > 0 ? afterDiscount / grossSubtotal : 1;
+  const gstAmount = Math.round(grossGst * discountFactor);
   const grandTotal = Math.round(afterDiscount + gstAmount);
+  const effectiveGstPercent = afterDiscount > 0 ? Math.round((gstAmount / afterDiscount) * 100) : 0;
 
   const handleSelectExistingCustomer = (custMobile: string) => {
     const found = customers.find(c => c.mobile === custMobile);
@@ -356,12 +367,18 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                     </div>
                   </div>
 
-                  {inCart && (
-                    <div className="flex items-center justify-between pt-1.5 text-[10px] font-extrabold text-blue-400">
-                      <span>In Cart: {inCart.quantity}</span>
-                      <span>Click to Add More</span>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between pt-1.5 text-[10px] font-extrabold">
+                    {inCart ? (
+                      <>
+                        <span className="text-blue-400">In Cart: {inCart.quantity}</span>
+                        <span className="text-blue-400">Click to Add More</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-500 flex items-center gap-1 ml-auto">
+                        <Plus className="w-3 h-3" /> Add to Bill
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -524,7 +541,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
               </div>
             )}
             <div className="flex items-center justify-between text-xs text-slate-400">
-              <span>GST (18%):</span>
+              <span>GST ({effectiveGstPercent}%):</span>
               <span className="font-bold text-white">+ ₹{gstAmount}</span>
             </div>
 
@@ -604,30 +621,18 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                <span>Print Invoice</span>
-              </button>
-              <button
-                onClick={() => {
-                  const msg = `Hello ${completedInvoice.customerName}, your service invoice ${completedInvoice.invoiceNo} for ₹${completedInvoice.grandTotal} is paid. Thank you!`;
-                  window.open(`https://wa.me/91${completedInvoice.mobile}?text=${encodeURIComponent(msg)}`, '_blank');
-                }}
-                className="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>WhatsApp Invoice</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setPrintInvoice(completedInvoice)}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Printer className="w-4 h-4" />
+              <span>View, Print & Share Invoice</span>
+            </button>
           </div>
         </div>
       )}
+
+      <ServiceInvoicePrintModal invoice={printInvoice} onClose={() => setPrintInvoice(null)} />
 
       {/* Add/Edit Service Modal */}
       <AddEditServiceModal

@@ -3,6 +3,7 @@ import { FileText, Search, Printer, Share2, Pencil, Ban } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceInvoice, PaymentMethod } from '../../types';
+import { ServiceInvoicePrintModal } from '../../components/ServiceInvoicePrintModal';
 
 const PAYMENT_METHODS: PaymentMethod[] = ['CASH', 'UPI', 'BANK', 'OTHER'];
 
@@ -147,40 +148,7 @@ export const ServiceInvoicesView: React.FC = () => {
         })}
       </div>
 
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 text-white">
-            <h3 className="text-sm font-bold">Invoice Details ({selectedInvoice.invoiceNo})</h3>
-
-            <div className="bg-slate-800/80 p-3 rounded-xl space-y-2 text-xs border border-slate-700">
-              <p><strong>Client:</strong> {selectedInvoice.customerName} ({selectedInvoice.mobile})</p>
-              <p><strong>Date:</strong> {selectedInvoice.date}</p>
-              {selectedInvoice.status === 'CANCELLED' && (
-                <p className="text-rose-400"><strong>Cancelled:</strong> {selectedInvoice.cancelReason}</p>
-              )}
-              <div className="pt-2 border-t border-slate-700 space-y-1">
-                {selectedInvoice.items.map((it, idx) => (
-                  <div key={idx} className="flex justify-between text-slate-300">
-                    <span>{it.name} x{it.quantity}</span>
-                    <span>₹{it.total}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-2 border-t border-slate-700 flex justify-between font-bold text-emerald-400">
-                <span>Total Amount:</span>
-                <span>₹{selectedInvoice.grandTotal}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSelectedInvoice(null)}
-              className="w-full py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <ServiceInvoicePrintModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
 
       {editingInvoice && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
