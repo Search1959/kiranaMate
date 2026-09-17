@@ -31,6 +31,19 @@ export interface ServiceStoreData {
   username?: string;
   businessName?: string;
   ownerName?: string;
+  /** Business profile fields shown on WhatsApp invoices/work orders/receipts
+   * — previously only businessName/ownerName existed here, so the Settings
+   * screen's phone/GSTIN/address/country/tagline fields had nowhere real to
+   * be saved and silently fell back to whatever unrelated Trading ERP
+   * settings happened to be in memory. */
+  phone?: string;
+  gstin?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  tagline?: string;
+  currencyCode?: string;
+  currencySymbol?: string;
   services: ServiceItem[];
   appointments: Appointment[];
   jobCards: JobCard[];
@@ -443,19 +456,58 @@ export class ServiceStoreManager {
     return this.data;
   }
 
-  getCompanyMeta(): { companyId?: string; businessName?: string; ownerName?: string } {
+  getCompanyMeta(): {
+    companyId?: string;
+    businessName?: string;
+    ownerName?: string;
+    phone?: string;
+    gstin?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    tagline?: string;
+    currencyCode?: string;
+    currencySymbol?: string;
+  } {
     return {
       companyId: this.data.companyId,
       businessName: this.data.businessName,
-      ownerName: this.data.ownerName
+      ownerName: this.data.ownerName,
+      phone: this.data.phone,
+      gstin: this.data.gstin,
+      address: this.data.address,
+      city: this.data.city,
+      country: this.data.country,
+      tagline: this.data.tagline,
+      currencyCode: this.data.currencyCode,
+      currencySymbol: this.data.currencySymbol
     };
   }
 
   /** Updates business profile fields for a real registered company (no-op for shared demo datasets). */
-  updateCompanyProfile(updates: { businessName?: string; ownerName?: string }) {
+  updateCompanyProfile(updates: {
+    businessName?: string;
+    ownerName?: string;
+    phone?: string;
+    gstin?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    tagline?: string;
+    currencyCode?: string;
+    currencySymbol?: string;
+  }) {
     if (!this.data.companyId) return;
     if (updates.businessName !== undefined) this.data.businessName = updates.businessName;
     if (updates.ownerName !== undefined) this.data.ownerName = updates.ownerName;
+    if (updates.phone !== undefined) this.data.phone = updates.phone;
+    if (updates.gstin !== undefined) this.data.gstin = updates.gstin;
+    if (updates.address !== undefined) this.data.address = updates.address;
+    if (updates.city !== undefined) this.data.city = updates.city;
+    if (updates.country !== undefined) this.data.country = updates.country;
+    if (updates.tagline !== undefined) this.data.tagline = updates.tagline;
+    if (updates.currencyCode !== undefined) this.data.currencyCode = updates.currencyCode;
+    if (updates.currencySymbol !== undefined) this.data.currencySymbol = updates.currencySymbol;
 
     const accounts = loadServiceAccounts();
     const idx = accounts.findIndex(a => a.companyId === this.data.companyId);

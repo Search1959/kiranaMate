@@ -21,24 +21,51 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const activeServiceSector = serviceStore.getActiveSector();
   const serviceCfg = getServiceSectorConfig(activeServiceSector);
-  
+
   const isServiceWorkspace =
     isServiceMode ||
     localStorage.getItem('trademate_active_workspace') === 'service' ||
     Boolean(activeServiceSector);
 
-  const [storeName, setStoreName] = useState(settings.storeName);
-  const [ownerName, setOwnerName] = useState(settings.ownerName);
-  const [phone, setPhone] = useState(settings.phone);
-  const [address, setAddress] = useState(settings.address);
-  const [city, setCity] = useState(settings.city);
-  const [gstin, setGstin] = useState(settings.gstin || '');
-  const [tagline, setTagline] = useState(settings.tagline);
+  // Service ERP's business profile lives entirely in serviceStore (client-side),
+  // never in the Trading `settings` prop passed in here — that prop is
+  // Trading-account data from a completely different backend (Firestore via
+  // the server API). Reading it for a Service session was showing whatever
+  // unrelated Trading account happened to be in memory (e.g. a steel-trading
+  // tagline on a beauty salon's profile). Same reasoning applies to the save
+  // handler below.
+  const companyMeta = serviceStore.getCompanyMeta();
+
+  const [storeName, setStoreName] = useState(
+    isServiceWorkspace ? (companyMeta.businessName || serviceCfg.name) : settings.storeName
+  );
+  const [ownerName, setOwnerName] = useState(
+    isServiceWorkspace ? (companyMeta.ownerName || '') : settings.ownerName
+  );
+  const [phone, setPhone] = useState(
+    isServiceWorkspace ? (companyMeta.phone || '') : settings.phone
+  );
+  const [address, setAddress] = useState(
+    isServiceWorkspace ? (companyMeta.address || '') : settings.address
+  );
+  const [city, setCity] = useState(
+    isServiceWorkspace ? (companyMeta.city || '') : settings.city
+  );
+  const [gstin, setGstin] = useState(
+    isServiceWorkspace ? (companyMeta.gstin || '') : (settings.gstin || '')
+  );
+  const [tagline, setTagline] = useState(
+    isServiceWorkspace ? (companyMeta.tagline || serviceCfg.tagline) : settings.tagline
+  );
   const [sector, setSector] = useState<TradingSector>(settings.sector || 'KIRANA_FMCG');
   const [currencyCode, setCurrencyCode] = useState<string>(
-    settings.currencyCode || getCurrencyBySymbol(settings.currencySymbol).code
+    isServiceWorkspace
+      ? (companyMeta.currencyCode || getCurrencyBySymbol(companyMeta.currencySymbol).code)
+      : (settings.currencyCode || getCurrencyBySymbol(settings.currencySymbol).code)
   );
-  const [country, setCountry] = useState<string>(settings.country || 'IN');
+  const [country, setCountry] = useState<string>(
+    isServiceWorkspace ? (companyMeta.country || 'IN') : (settings.country || 'IN')
+  );
   const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -50,19 +77,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
     try {
       const currency = getCurrencyByCode(currencyCode);
-      await api.updateSettings({
-        storeName,
-        ownerName,
-        phone,
-        address,
-        city,
-        gstin,
-        tagline,
-        sector,
-        country,
-        currencyCode: currency.code,
-        currencySymbol: currency.symbol
-      });
+
+      if (isServiceWorkspace) {
+        // Client-side, synchronous — serviceStore is the actual source of
+        // truth Service ERP reads its profile from (Header, invoices, work
+        // orders). Previously this branch didn't exist at all: saving here
+        // called api.updateSettings() unconditionally, which writes to the
+        // Trading server/Firestore backend — completely disconnected from
+        // a Service account, so the change appeared to succeed but never
+        // actually took effect anywhere in the Service ERP UI.
+        serviceStore.updateCompanyProfile({
+          businessName: storeName,
+          ownerName,
+          phone,
+          address,
+          city,
+          gstin,
+          tagline,
+          country,
+          currencyCode: currency.code,
+          currencySymbol: currency.symbol
+        });
+      } else {
+        await api.updateSettings({
+          storeName,
+          ownerName,
+          phone,
+          address,
+          city,
+          gstin,
+          tagline,
+          sector,
+          country,
+          currencyCode: currency.code,
+          currencySymbol: currency.symbol
+        });
+      }
       onRefreshData();
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
