@@ -57,6 +57,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [tagline, setTagline] = useState(
     isServiceWorkspace ? (companyMeta.tagline || serviceCfg.tagline) : settings.tagline
   );
+  const [upiId, setUpiId] = useState(
+    isServiceWorkspace ? (companyMeta.upiId || '') : ''
+  );
   const [sector, setSector] = useState<TradingSector>(settings.sector || 'KIRANA_FMCG');
   const [currencyCode, setCurrencyCode] = useState<string>(
     isServiceWorkspace
@@ -96,7 +99,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           tagline,
           country,
           currencyCode: currency.code,
-          currencySymbol: currency.symbol
+          currencySymbol: currency.symbol,
+          upiId
         });
       } else {
         await api.updateSettings({
@@ -269,6 +273,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             />
           </div>
         </div>
+
+        {isServiceWorkspace && (
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">UPI ID (Optional)</label>
+            <input
+              type="text"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
+              placeholder="e.g. yourshop@upi or 9876543210@paytm"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Adds a scannable payment QR to your invoices so a client can pay straight from their phone.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="font-bold text-slate-700 block mb-1">Business Country</label>

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Printer, Share2 } from 'lucide-react';
 import { serviceStore } from '../lib/serviceStore';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 import { ServiceInvoice } from '../types';
 import { formatMoney, COUNTRIES } from '../lib/currency';
 import { generateServiceInvoiceWhatsAppText, getWhatsAppWebLink } from '../lib/whatsapp';
+import { buildUpiPaymentLink, generateUpiQrDataUrl } from '../lib/upiQr';
 
 interface ServiceInvoicePrintModalProps {
   invoice: ServiceInvoice | null;
@@ -12,15 +13,32 @@ interface ServiceInvoicePrintModalProps {
 }
 
 export const ServiceInvoicePrintModal: React.FC<ServiceInvoicePrintModalProps> = ({ invoice, onClose }) => {
-  if (!invoice) return null;
-
   const company = serviceStore.getCompanyMeta();
   const displayName = company.businessName || getServiceSectorConfig(serviceStore.getActiveSector()).name;
+  const isCancelled = invoice?.status === 'CANCELLED';
+
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!invoice || !company.upiId || isCancelled) {
+      setQrDataUrl(null);
+      return;
+    }
+    const link = buildUpiPaymentLink({
+      upiId: company.upiId,
+      payeeName: displayName,
+      amount: invoice.grandTotal,
+      note: `Invoice ${invoice.invoiceNo}`
+    });
+    generateUpiQrDataUrl(link).then(setQrDataUrl).catch(() => setQrDataUrl(null));
+  }, [invoice?.id, company.upiId, isCancelled]);
+
+  if (!invoice) return null;
+
   const money = (v: number) => formatMoney(v, company.currencySymbol, company.currencyCode);
   const countryName = company.country === 'IN'
     ? undefined // domestic business — address/city already say enough, skip the redundant country line
     : COUNTRIES.find(c => c.code === company.country)?.name;
-  const isCancelled = invoice.status === 'CANCELLED';
 
   const handlePrint = () => window.print();
   const handleWhatsApp = () => {
@@ -147,6 +165,15 @@ export const ServiceInvoicePrintModal: React.FC<ServiceInvoicePrintModalProps> =
               Payment Mode: <strong className="text-slate-800 uppercase">{invoice.paymentMethod}</strong>
             </div>
           </div>
+
+          {/* UPI Payment QR */}
+          {qrDataUrl && (
+            <div className="flex flex-col items-center gap-1.5 pt-4">
+              <img src={qrDataUrl} alt="UPI payment QR code" className="w-32 h-32" />
+              <p className="text-[10px] font-bold text-slate-700">Scan to Pay {money(invoice.grandTotal)} via UPI</p>
+              <p className="text-[9px] text-slate-400">{company.upiId}</p>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="mt-6 pt-3 border-t border-dashed border-slate-300 text-center text-[10px] text-slate-500 space-y-1">

@@ -44,6 +44,9 @@ export interface ServiceStoreData {
   tagline?: string;
   currencyCode?: string;
   currencySymbol?: string;
+  /** UPI VPA (e.g. "yourshop@upi") — lets the printed/WhatsApp invoice show
+   * a scannable payment QR so a client can pay straight from their phone. */
+  upiId?: string;
   /** Account-specific categories added on top of the sector's fixed preset
    * list (e.g. serviceSectorConfig.ts's cfg.categories) — that list is
    * shared config for the whole sector, not something one account should
@@ -489,6 +492,7 @@ export class ServiceStoreManager {
     tagline?: string;
     currencyCode?: string;
     currencySymbol?: string;
+    upiId?: string;
   } {
     return {
       companyId: this.data.companyId,
@@ -501,7 +505,8 @@ export class ServiceStoreManager {
       country: this.data.country,
       tagline: this.data.tagline,
       currencyCode: this.data.currencyCode,
-      currencySymbol: this.data.currencySymbol
+      currencySymbol: this.data.currencySymbol,
+      upiId: this.data.upiId
     };
   }
 
@@ -520,6 +525,7 @@ export class ServiceStoreManager {
     tagline?: string;
     currencyCode?: string;
     currencySymbol?: string;
+    upiId?: string;
   }) {
     if (updates.businessName !== undefined) this.data.businessName = updates.businessName;
     if (updates.ownerName !== undefined) this.data.ownerName = updates.ownerName;
@@ -531,6 +537,7 @@ export class ServiceStoreManager {
     if (updates.tagline !== undefined) this.data.tagline = updates.tagline;
     if (updates.currencyCode !== undefined) this.data.currencyCode = updates.currencyCode;
     if (updates.currencySymbol !== undefined) this.data.currencySymbol = updates.currencySymbol;
+    if (updates.upiId !== undefined) this.data.upiId = updates.upiId;
 
     const accounts = loadServiceAccounts();
     const idx = accounts.findIndex(a => a.companyId === this.data.companyId);
