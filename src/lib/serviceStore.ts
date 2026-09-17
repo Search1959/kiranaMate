@@ -44,6 +44,12 @@ export interface ServiceStoreData {
   tagline?: string;
   currencyCode?: string;
   currencySymbol?: string;
+  /** Account-specific categories added on top of the sector's fixed preset
+   * list (e.g. serviceSectorConfig.ts's cfg.categories) — that list is
+   * shared config for the whole sector, not something one account should
+   * mutate, so custom ones live here instead and get merged in when
+   * building the picker. */
+  customCategories?: string[];
   services: ServiceItem[];
   appointments: Appointment[];
   jobCards: JobCard[];
@@ -708,6 +714,19 @@ export class ServiceStoreManager {
 
   deleteService(id: string) {
     this.data.services = this.data.services.filter(s => s.id !== id);
+    this.saveToStorage();
+  }
+
+  getCustomCategories(): string[] {
+    return this.data.customCategories || [];
+  }
+
+  addCustomCategory(name: string) {
+    const clean = name.trim();
+    if (!clean) return;
+    const existing = this.data.customCategories || [];
+    if (existing.some(c => c.toLowerCase() === clean.toLowerCase())) return;
+    this.data.customCategories = [...existing, clean];
     this.saveToStorage();
   }
 

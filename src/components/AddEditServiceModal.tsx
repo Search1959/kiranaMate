@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Wrench, Check, RefreshCw, Star } from 'lucide-react';
+import { X, Wrench, Check, RefreshCw, Star, Plus } from 'lucide-react';
 import { ServiceItem } from '../types';
 import { serviceStore } from '../lib/serviceStore';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
@@ -29,6 +29,14 @@ export const AddEditServiceModal: React.FC<AddEditServiceModalProps> = ({
   const [description, setDescription] = useState('');
   const [isPopular, setIsPopular] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCustomCatInput, setShowCustomCatInput] = useState(false);
+  const [customCatValue, setCustomCatValue] = useState('');
+  // The sector's category list (cfg.categories) is shared config for every
+  // account in that sector, not something one business should be able to
+  // mutate -- custom ones an account adds live in serviceStore instead and
+  // get merged in here, so the picker was never editable before this.
+  const [customCategories, setCustomCategories] = useState<string[]>(serviceStore.getCustomCategories());
+  const allCategories = [...cfg.categories, ...customCategories.filter(c => !cfg.categories.includes(c))];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,6 +57,9 @@ export const AddEditServiceModal: React.FC<AddEditServiceModalProps> = ({
       setDescription('');
       setIsPopular(false);
     }
+    setShowCustomCatInput(false);
+    setCustomCatValue('');
+    setCustomCategories(serviceStore.getCustomCategories());
   }, [isOpen, editingService]);
 
   if (!isOpen) return null;
@@ -129,7 +140,7 @@ export const AddEditServiceModal: React.FC<AddEditServiceModalProps> = ({
           <div>
             <label className="font-bold text-slate-300 block mb-1.5">Category *</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {cfg.categories.map(cat => (
+              {allCategories.map(cat => (
                 <button
                   key={cat}
                   type="button"
@@ -143,7 +154,67 @@ export const AddEditServiceModal: React.FC<AddEditServiceModalProps> = ({
                   {cat}
                 </button>
               ))}
+              {!showCustomCatInput && (
+                <button
+                  type="button"
+                  onClick={() => setShowCustomCatInput(true)}
+                  className="px-2.5 py-2 rounded-xl border border-dashed border-slate-600 text-slate-400 hover:text-blue-300 hover:border-blue-500/40 font-bold text-left flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Add Category</span>
+                </button>
+              )}
             </div>
+
+            {showCustomCatInput && (
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  autoFocus
+                  value={customCatValue}
+                  onChange={e => setCustomCatValue(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const clean = customCatValue.trim();
+                      if (!clean) return;
+                      serviceStore.addCustomCategory(clean);
+                      setCustomCategories(serviceStore.getCustomCategories());
+                      setCategory(clean);
+                      setShowCustomCatInput(false);
+                      setCustomCatValue('');
+                    }
+                  }}
+                  placeholder="e.g. Home Visit Consultation"
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 font-medium text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = customCatValue.trim();
+                    if (!clean) return;
+                    serviceStore.addCustomCategory(clean);
+                    setCustomCategories(serviceStore.getCustomCategories());
+                    setCategory(clean);
+                    setShowCustomCatInput(false);
+                    setCustomCatValue('');
+                  }}
+                  className="px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl cursor-pointer"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowCustomCatInput(false); setCustomCatValue(''); }}
+                  className="px-3 bg-slate-800 text-slate-400 font-bold rounded-xl cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <p className="text-[11px] text-slate-500 mt-1.5">
+              Custom categories you add here are saved for your business and reusable on future services too.
+            </p>
           </div>
 
           <div className="bg-blue-500/5 p-4 rounded-2xl border border-blue-500/20 space-y-2">
