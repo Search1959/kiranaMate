@@ -247,7 +247,7 @@ export const AddEditServiceModal: React.FC<AddEditServiceModalProps> = ({
               <input
                 type="number"
                 min="0"
-                max="28"
+                max="40"
                 value={gstPercent}
                 onChange={e => setGstPercent(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="18"
