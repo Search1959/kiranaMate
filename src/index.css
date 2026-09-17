@@ -10,3 +10,20 @@
 html {
   font-feature-settings: 'tnum' 1, 'cv11' 1;
 }
+
+/* Print-isolation: when a `.print-area` is on the page, hide everything else
+   (app shell, sidebar, other modals) so only that element reaches paper/PDF. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+}

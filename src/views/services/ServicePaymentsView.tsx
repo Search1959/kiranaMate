@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { IndianRupee, Plus, CreditCard, Search, Pencil, Trash2 } from 'lucide-react';
+import { IndianRupee, Plus, CreditCard, Search, Pencil, Trash2, Printer } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { PaymentMethod, ServicePayment } from '../../types';
+import { ServicePaymentReceiptModal } from '../../components/ServicePaymentReceiptModal';
 
 export const ServicePaymentsView: React.FC = () => {
   const activeSector = serviceStore.getActiveSector();
@@ -11,6 +12,7 @@ export const ServicePaymentsView: React.FC = () => {
   const payments = serviceStore.getPayments();
 
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [receiptPayment, setReceiptPayment] = useState<ServicePayment | null>(null);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [custName, setCustName] = useState<string>('');
   const [amount, setAmount] = useState<number>(1000);
@@ -113,6 +115,13 @@ export const ServicePaymentsView: React.FC = () => {
             <div className="flex items-center gap-3">
               <span className="text-sm font-black text-emerald-400">+ ₹{p.amount}</span>
               <button
+                onClick={() => setReceiptPayment(p)}
+                title="Print / Download PDF Receipt"
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+              </button>
+              <button
                 onClick={() => handleOpenEdit(p)}
                 title="Edit payment"
                 className="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white border border-slate-700 cursor-pointer"
@@ -208,6 +217,8 @@ export const ServicePaymentsView: React.FC = () => {
           </form>
         </div>
       )}
+
+      <ServicePaymentReceiptModal payment={receiptPayment} onClose={() => setReceiptPayment(null)} />
     </div>
   );
 };
