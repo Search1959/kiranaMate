@@ -822,6 +822,16 @@ export class ServiceStoreManager {
     return newPkg;
   }
 
+  updatePackage(id: string, updates: Partial<Omit<ServicePackage, 'id' | 'sector'>>) {
+    this.data.packages = this.data.packages.map(p => (p.id === id ? { ...p, ...updates } : p));
+    this.saveToStorage();
+  }
+
+  deletePackage(id: string) {
+    this.data.packages = this.data.packages.filter(p => p.id !== id);
+    this.saveToStorage();
+  }
+
   // Customers
   getCustomers(): ServiceCustomer[] {
     return this.data.customers || [];
