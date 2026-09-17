@@ -95,16 +95,31 @@ function saveServiceAccounts(accounts: ServiceAccountEntry[]) {
   }
 }
 
+/**
+ * The sector's built-in starter catalog (cfg.defaultServices), converted to
+ * real ServiceItem records. Used both for the shared demo dataset AND for
+ * a brand-new real "Zero Data" registration -- a fresh business having a
+ * completely empty services catalog meant there was nothing to bill from
+ * day one; this gives them the same sector-appropriate starting point the
+ * demo shows, which they can then freely edit, delete, or add to (a
+ * service seeded this way is a normal ServiceItem, no different from one
+ * added by hand).
+ */
+export function getStarterServices(sector: ServiceSector): ServiceItem[] {
+  const cfg = getServiceSectorConfig(sector);
+  return cfg.defaultServices.map((s, idx) => ({
+    ...s,
+    id: `srv-${idx + 1}`,
+    sector
+  }));
+}
+
 export function generateSeedServiceData(sector: ServiceSector): ServiceStoreData {
   const cfg = getServiceSectorConfig(sector);
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
 
-  const services: ServiceItem[] = cfg.defaultServices.map((s, idx) => ({
-    ...s,
-    id: `srv-${idx + 1}`,
-    sector
-  }));
+  const services: ServiceItem[] = getStarterServices(sector);
 
   const staff: ServiceStaff[] = cfg.defaultStaff.map((st, idx) => ({
     ...st,
@@ -553,7 +568,7 @@ export class ServiceStoreManager {
         username: cleanUsername,
         businessName: payload.businessName,
         ownerName: payload.ownerName,
-        services: [], appointments: [], jobCards: [], staff: [], packages: [],
+        services: getStarterServices(res.sector), appointments: [], jobCards: [], staff: [], packages: [],
         customers: [], invoices: [], quotations: [], payments: [], expenses: []
       };
       this.saveToStorage();
@@ -641,7 +656,7 @@ export class ServiceStoreManager {
       username: cleanUsername,
       businessName: payload.businessName,
       ownerName: payload.ownerName,
-      services: [],
+      services: getStarterServices(payload.sector),
       appointments: [],
       jobCards: [],
       staff: [],
