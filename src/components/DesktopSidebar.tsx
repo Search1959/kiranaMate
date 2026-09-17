@@ -21,7 +21,8 @@ import {
   Wrench,
   Layers,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Megaphone
 } from 'lucide-react';
 import { LanguageCode, DailyStats, User, TradingSector } from '../types';
 import { translations } from '../lib/translations';
@@ -111,6 +112,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       title: "2. CLIENTS & ROSTER",
       items: [
         { id: 'service_customers', label: `${serviceCfg.customerTerm}s`, icon: Users },
+        { id: 'service_outreach', label: 'Client Outreach & Offers', icon: Megaphone },
         { id: 'service_staff', label: `${serviceCfg.staffTerm} Roster`, icon: ShieldCheck },
         { id: 'service_packages', label: 'Service Packages & AMC', icon: Package },
       ]

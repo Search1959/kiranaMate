@@ -187,6 +187,20 @@ export function generateSubscriptionBillText(params: {
   return `Hello ${ownerName || 'there'},\n\nThis is your TradeMate subscription bill for "${storeName}".\n\nMonthly Fee: ${rupee(monthlyFee)}\nMonths Billed: ${monthsBilled}\nTotal Billed: ${rupee(totalDue)}\nTotal Paid: ${rupee(totalPaid)}\n\nOutstanding Balance: ${rupee(balance)}\n\nPlease clear the pending amount at your earliest convenience to continue uninterrupted service.\n\nThank you for using TradeMate!\n— Deinrim Solutionss`;
 }
 
+/** Default, owner-editable outreach templates for ServiceOutreachView. Curly
+ * placeholders are filled per-client via fillMessageTemplate() below —
+ * kept as plain editable text (not a fixed generator function) since the
+ * whole point of that screen is letting the owner tweak the wording. */
+export const DEFAULT_FEEDBACK_REQUEST_TEMPLATE =
+  `Hi {clientName}, thank you for visiting {businessName}! We'd love to hear about your experience — your feedback helps us serve you better. 🙏 Please reply and let us know how we did!`;
+
+export const DEFAULT_WINBACK_OFFER_TEMPLATE =
+  `Hi {clientName}, we miss you at {businessName}! Here's a special {discount}% OFF on your next visit, just for you. Come back soon and treat yourself 🎉`;
+
+export function fillMessageTemplate(template: string, vars: Record<string, string>): string {
+  return Object.entries(vars).reduce((text, [key, value]) => text.split(`{${key}}`).join(value), template);
+}
+
 export function getWhatsAppWebLink(mobile: string, text: string): string {
   const formattedMobile = sanitizeMobile(mobile);
   const encodedText = encodeURIComponent(text);

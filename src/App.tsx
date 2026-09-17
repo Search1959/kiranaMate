@@ -134,6 +134,7 @@ import { ServicePosView } from './views/services/ServicePosView';
 import { ServiceAppointmentsView } from './views/services/ServiceAppointmentsView';
 import { ServiceJobCardsView } from './views/services/ServiceJobCardsView';
 import { ServiceCustomersView } from './views/services/ServiceCustomersView';
+import { ServiceOutreachView } from './views/services/ServiceOutreachView';
 import { ServiceStaffView } from './views/services/ServiceStaffView';
 import { ServicePackagesView } from './views/services/ServicePackagesView';
 import { ServicePaymentsView } from './views/services/ServicePaymentsView';
@@ -956,6 +957,9 @@ export default function App() {
           )}
           {activeTab === 'service_customers' && (
             <ServiceCustomersView onNavigateTab={setActiveTab} />
+          )}
+          {activeTab === 'service_outreach' && (
+            <ServiceOutreachView />
           )}
           {activeTab === 'service_staff' && (
             <ServiceStaffView />
