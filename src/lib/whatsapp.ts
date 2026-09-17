@@ -1,4 +1,4 @@
-import { Customer, Order, Sale, StoreSettings, LanguageCode } from '../types';
+import { Customer, Order, Sale, StoreSettings, LanguageCode, ServiceInvoice } from '../types';
 import { formatMoney } from './currency';
 
 export function sanitizeMobile(mobile: string): string {
@@ -146,6 +146,27 @@ export function generateInvoiceWhatsAppText(
   }
 
   return `Hello ${sale?.customerName || 'Valued Customer'},\n\nBill Invoice #${sale?.saleNumber || ''} from ${settings?.storeName || 'Our Store'}:\n\n${itemsText}\n\n${breakdownText}Grand Total: ${totalStr}\nPayment Method: ${sale?.paymentMethod || ''}\n\nThank you for shopping with us!`;
+}
+
+/** Detailed itemized text for a Service ERP invoice — a wa.me click-to-chat
+ * link can only pre-fill text (no file/image attachment without WhatsApp's
+ * paid Business API), so this stands in as the "share the invoice" message,
+ * mirroring generateInvoiceWhatsAppText's level of detail on the Trading side. */
+export function generateServiceInvoiceWhatsAppText(
+  invoice: ServiceInvoice,
+  businessName: string,
+  currencySymbol?: string,
+  currencyCode?: string
+): string {
+  const money = (v: number) => formatMoney(v, currencySymbol, currencyCode);
+  const itemsText = invoice.items.map(i => `• ${i.name} x${i.quantity} = ${money(i.total)}`).join('\n');
+
+  const breakdownLines: string[] = [];
+  if (invoice.discount > 0) breakdownLines.push(`Discount: -${money(invoice.discount)}`);
+  if (invoice.gstAmount > 0) breakdownLines.push(`GST: +${money(invoice.gstAmount)}`);
+  const breakdownText = breakdownLines.length > 0 ? breakdownLines.join('\n') + '\n' : '';
+
+  return `Hello ${invoice.customerName || 'Valued Customer'},\n\nInvoice ${invoice.invoiceNo} from ${businessName}:\n\n${itemsText}\n\n${breakdownText}Grand Total: ${money(invoice.grandTotal)}\nPayment Mode: ${invoice.paymentMethod}\n\nThank you for your business!\n${businessName}`;
 }
 
 /** Platform subscription bill sent by the System Admin to a Trading/Service

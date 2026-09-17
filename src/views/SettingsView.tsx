@@ -243,7 +243,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              required
             />
           </div>
         </div>
@@ -256,7 +255,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              required
             />
           </div>
 

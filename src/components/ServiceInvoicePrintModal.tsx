@@ -1,8 +1,10 @@
 import React from 'react';
 import { X, Printer, Share2 } from 'lucide-react';
 import { serviceStore } from '../lib/serviceStore';
+import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 import { ServiceInvoice } from '../types';
 import { formatMoney, COUNTRIES } from '../lib/currency';
+import { generateServiceInvoiceWhatsAppText, getWhatsAppWebLink } from '../lib/whatsapp';
 
 interface ServiceInvoicePrintModalProps {
   invoice: ServiceInvoice | null;
@@ -13,6 +15,7 @@ export const ServiceInvoicePrintModal: React.FC<ServiceInvoicePrintModalProps> =
   if (!invoice) return null;
 
   const company = serviceStore.getCompanyMeta();
+  const displayName = company.businessName || getServiceSectorConfig(serviceStore.getActiveSector()).name;
   const money = (v: number) => formatMoney(v, company.currencySymbol, company.currencyCode);
   const countryName = company.country === 'IN'
     ? undefined // domestic business — address/city already say enough, skip the redundant country line
@@ -21,8 +24,8 @@ export const ServiceInvoicePrintModal: React.FC<ServiceInvoicePrintModalProps> =
 
   const handlePrint = () => window.print();
   const handleWhatsApp = () => {
-    const msg = `Hello ${invoice.customerName}, your service invoice ${invoice.invoiceNo} for ${money(invoice.grandTotal)} from ${company.businessName || 'us'} is ready. Thank you!`;
-    window.open(`https://wa.me/91${invoice.mobile}?text=${encodeURIComponent(msg)}`, '_blank');
+    const text = generateServiceInvoiceWhatsAppText(invoice, displayName, company.currencySymbol, company.currencyCode);
+    window.open(getWhatsAppWebLink(invoice.mobile, text), '_blank');
   };
 
   return (
@@ -58,7 +61,7 @@ export const ServiceInvoicePrintModal: React.FC<ServiceInvoicePrintModalProps> =
           {/* Company Letterhead */}
           <div className="text-center pb-4 border-b-2 border-slate-900">
             <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">
-              {company.businessName || 'Your Business'}
+              {displayName}
             </h2>
             {company.tagline && (
               <p className="text-[11px] font-medium text-slate-600 leading-snug mt-0.5">{company.tagline}</p>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Printer, Receipt as ReceiptIcon } from 'lucide-react';
 import { serviceStore } from '../lib/serviceStore';
+import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 import { ServicePayment } from '../types';
 import { formatMoney, COUNTRIES } from '../lib/currency';
 
@@ -13,6 +14,7 @@ export const ServicePaymentReceiptModal: React.FC<ServicePaymentReceiptModalProp
   if (!payment) return null;
 
   const company = serviceStore.getCompanyMeta();
+  const displayName = company.businessName || getServiceSectorConfig(serviceStore.getActiveSector()).name;
   const money = (v: number) => formatMoney(v, company.currencySymbol, company.currencyCode);
   const countryName = company.country === 'IN'
     ? undefined // domestic business — address/city already say enough, skip the redundant country line
@@ -47,7 +49,7 @@ export const ServicePaymentReceiptModal: React.FC<ServicePaymentReceiptModalProp
           {/* Company Letterhead */}
           <div className="text-center pb-4 border-b-2 border-slate-900">
             <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">
-              {company.businessName || 'Your Business'}
+              {displayName}
             </h2>
             {company.tagline && (
               <p className="text-[11px] font-medium text-slate-600 leading-snug mt-0.5">{company.tagline}</p>

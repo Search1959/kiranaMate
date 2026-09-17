@@ -505,7 +505,10 @@ export class ServiceStoreManager {
     };
   }
 
-  /** Updates business profile fields for a real registered company (no-op for shared demo datasets). */
+  /** Updates business profile fields. Works for a real registered company AND
+   * for a shared demo/sector workspace being used as someone's actual working
+   * account (no companyId yet) — only the accounts-directory sync below needs
+   * a companyId, since that's a lookup into the registered-company list. */
   updateCompanyProfile(updates: {
     businessName?: string;
     ownerName?: string;
@@ -518,7 +521,6 @@ export class ServiceStoreManager {
     currencyCode?: string;
     currencySymbol?: string;
   }) {
-    if (!this.data.companyId) return;
     if (updates.businessName !== undefined) this.data.businessName = updates.businessName;
     if (updates.ownerName !== undefined) this.data.ownerName = updates.ownerName;
     if (updates.phone !== undefined) this.data.phone = updates.phone;
