@@ -10,35 +10,34 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { api } from '../lib/api';
+import { getSectorConfig } from '../lib/sectorConfig';
+import { TradingSector } from '../types';
 
 interface EmptyStateWizardProps {
   storeName: string;
+  sector: TradingSector;
   onNavigateTab: (tab: string) => void;
   onRefreshData: () => void;
 }
 
 export const EmptyStateWizard: React.FC<EmptyStateWizardProps> = ({
   storeName,
+  sector,
   onNavigateTab,
   onRefreshData
 }) => {
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [starterAdded, setStarterAdded] = useState(false);
+  // This used to be a hardcoded grocery-only list, so a Metals & Steel (or
+  // any other non-Kirana) store's "starter pack" loaded Atta/Rice/Milk into
+  // an account for TMT bars and steel coils — now pulled from that sector's
+  // own curated sampleProducts, same list its "Demo Available" card uses.
+  const sectorCfg = getSectorConfig(sector);
+  const starterItems = sectorCfg.sampleProducts;
 
   const handleAddStarterPack = async () => {
     try {
       setLoadingSeed(true);
-      const starterItems = [
-        { name: 'Basmati Rice 1kg', category: 'Rice & Grains', brand: 'India Gate', unit: 'kg', purchasePrice: 90, sellingPrice: 110, mrp: 120, currentStock: 25, minStock: 5 },
-        { name: 'Chakki Fresh Atta 5kg', category: 'Atta & Flours', brand: 'Aashirvaad', unit: 'pkt', purchasePrice: 210, sellingPrice: 245, mrp: 260, currentStock: 15, minStock: 3 },
-        { name: 'Amul Taaza Milk 500ml', category: 'Dairy & Bakery', brand: 'Amul', unit: 'pouch', purchasePrice: 24, sellingPrice: 27, mrp: 27, currentStock: 30, minStock: 5 },
-        { name: 'Mustard Oil 1 Litre', category: 'Edible Oils & Ghee', brand: 'Fortune', unit: 'bottle', purchasePrice: 135, sellingPrice: 155, mrp: 170, currentStock: 20, minStock: 4 },
-        { name: 'Tata Salt 1kg', category: 'Spices & Masalas', brand: 'Tata', unit: 'pkt', purchasePrice: 22, sellingPrice: 28, mrp: 28, currentStock: 40, minStock: 10 },
-        { name: 'Refined Sugar 1kg', category: 'Rice & Grains', brand: 'Loose', unit: 'kg', purchasePrice: 38, sellingPrice: 44, mrp: 48, currentStock: 50, minStock: 10 },
-        { name: 'Toor Dal Premium 1kg', category: 'Dals & Pulses', brand: 'Tata Sampann', unit: 'pkt', purchasePrice: 125, sellingPrice: 145, mrp: 160, currentStock: 20, minStock: 5 },
-        { name: 'Good Day Butter Biscuits 100g', category: 'Biscuits & Cookies', brand: 'Britannia', unit: 'pkt', purchasePrice: 16, sellingPrice: 20, mrp: 20, currentStock: 30, minStock: 5 }
-      ];
-
       await api.bulkImportProducts(starterItems);
       setStarterAdded(true);
       onRefreshData();
@@ -74,7 +73,7 @@ export const EmptyStateWizard: React.FC<EmptyStateWizardProps> = ({
             className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto shrink-0"
           >
             <PackageCheck className="w-4 h-4" />
-            <span>{loadingSeed ? 'Adding Products...' : 'Load 8 Starter Grocery Items'}</span>
+            <span>{loadingSeed ? 'Adding Products...' : `Load ${starterItems.length} Starter ${sectorCfg.shortLabel} Items`}</span>
           </button>
         )}
       </div>

@@ -66,6 +66,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {totalProductsCount === 0 && (
         <EmptyStateWizard
           storeName={settings.storeName}
+          sector={settings.sector}
           onNavigateTab={onNavigateToTab}
           onRefreshData={onRefreshData}
         />
