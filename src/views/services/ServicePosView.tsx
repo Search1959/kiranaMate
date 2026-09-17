@@ -76,6 +76,8 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [priceInputValue, setPriceInputValue] = useState<string>('');
 
   // Customer details
   const [customerName, setCustomerName] = useState<string>('Walk-in Client');
@@ -153,6 +155,19 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
 
   const handleRemoveFromCart = (serviceId: string) => {
     setCart(prev => prev.filter(item => item.service.id !== serviceId));
+  };
+
+  const handleUpdatePrice = (serviceId: string, newPrice: number) => {
+    setCart(prev =>
+      prev.map(item =>
+        item.service.id === serviceId
+          // Falling back to the catalog price when it matches keeps a bill
+          // that was negotiated back to the listed price from printing a
+          // confusing "(Negotiated)" tag for no reason.
+          ? { ...item, customPrice: newPrice === item.service.price ? undefined : newPrice }
+          : item
+      )
+    );
   };
 
   // Calculations
@@ -254,6 +269,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
     setMaterialCharges(0);
     setDiscountAmount(0);
     setGstRateOverride('AUTO');
+    setEditingPriceId(null);
   };
 
   return (
@@ -455,7 +471,48 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 pr-2">
                         <p className="text-xs font-bold text-white truncate">{item.service.name}</p>
-                        <p className="text-[10px] font-bold text-emerald-400">₹{item.service.price} x {item.quantity}</p>
+                        {editingPriceId === item.service.id ? (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-[10px] text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              autoFocus
+                              value={priceInputValue}
+                              onChange={e => setPriceInputValue(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  const parsed = Number(priceInputValue);
+                                  if (parsed > 0) handleUpdatePrice(item.service.id, parsed);
+                                  setEditingPriceId(null);
+                                } else if (e.key === 'Escape') {
+                                  setEditingPriceId(null);
+                                }
+                              }}
+                              onBlur={() => {
+                                const parsed = Number(priceInputValue);
+                                if (parsed > 0) handleUpdatePrice(item.service.id, parsed);
+                                setEditingPriceId(null);
+                              }}
+                              className="w-16 px-1.5 py-0.5 bg-slate-900 border border-blue-500 rounded text-[10px] font-bold text-emerald-400 focus:outline-none"
+                            />
+                            <span className="text-[10px] text-slate-400">x {item.quantity}</span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setEditingPriceId(item.service.id); setPriceInputValue(String(item.customPrice || item.service.price)); }}
+                            className="flex items-center gap-1 mt-0.5 cursor-pointer group"
+                            title="Edit agreed price for this bill"
+                          >
+                            {item.customPrice !== undefined && item.customPrice !== item.service.price && (
+                              <span className="text-[9px] text-slate-500 line-through">₹{item.service.price}</span>
+                            )}
+                            <span className="text-[10px] font-bold text-emerald-400">₹{item.customPrice ?? item.service.price} x {item.quantity}</span>
+                            {item.customPrice !== undefined && item.customPrice !== item.service.price && (
+                              <span className="text-[9px] font-bold text-amber-400">(Negotiated)</span>
+                            )}
+                            <Pencil className="w-2.5 h-2.5 text-slate-500 group-hover:text-blue-400" />
+                          </button>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-1 shrink-0">
