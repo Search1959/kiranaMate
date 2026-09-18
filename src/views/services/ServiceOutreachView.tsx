@@ -27,13 +27,39 @@ export const ServiceOutreachView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [visitFilter, setVisitFilter] = useState<VisitFilter>('ALL');
 
-  // Last real visit per client — matched by mobile, since walk-in invoices
-  // aren't always linked to a saved ServiceCustomer record, but mobile is
-  // the stable identifier either way (and the one we're messaging anyway).
-  const lastVisitByMobile = new Map<string, string>();
+  // Most billing never goes through "Add New Client" first — a walk-in gets
+  // billed with just a name + mobile typed straight into POS, which never
+  // creates a saved ServiceCustomer record. Building this list from
+  // getCustomers() alone meant a lab with real WhatsApp history everywhere
+  // in its invoices still showed an empty outreach list. Mobile number is
+  // the one stable identifier either source can key on, so contacts are
+  // unified — and deduplicated — by mobile across both sources.
+  interface OutreachContact { name: string; mobile: string; totalSpent: number; lastVisit?: string }
+  const contactsByMobile = new Map<string, OutreachContact>();
+
+  customers.forEach(c => {
+    contactsByMobile.set(c.mobile, { name: c.name, mobile: c.mobile, totalSpent: c.totalSpent });
+  });
+
+  // Invoice history is the authoritative record of real spend/visits, so it
+  // overwrites (rather than adds to) whatever a stale customer record says —
+  // avoids double-counting a client who has both a saved record and bills.
+  const invoiceStatsByMobile = new Map<string, { totalSpent: number; lastVisit: string; name: string }>();
   invoices.forEach(inv => {
-    const existing = lastVisitByMobile.get(inv.mobile);
-    if (!existing || inv.date > existing) lastVisitByMobile.set(inv.mobile, inv.date);
+    const prev = invoiceStatsByMobile.get(inv.mobile);
+    const isNewer = !prev || inv.date >= prev.lastVisit;
+    invoiceStatsByMobile.set(inv.mobile, {
+      totalSpent: (prev?.totalSpent || 0) + inv.grandTotal,
+      lastVisit: isNewer ? inv.date : prev.lastVisit,
+      name: isNewer ? inv.customerName : prev.name
+    });
+  });
+
+  invoiceStatsByMobile.forEach((stats, mobile) => {
+    const existing = contactsByMobile.get(mobile);
+    // Prefer a real saved name over the generic "Walk-in Client" placeholder.
+    const name = existing && existing.name !== 'Walk-in Client' ? existing.name : stats.name;
+    contactsByMobile.set(mobile, { name, mobile, totalSpent: stats.totalSpent, lastVisit: stats.lastVisit });
   });
 
   const today = new Date();
@@ -43,13 +69,13 @@ export const ServiceOutreachView: React.FC = () => {
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   };
 
-  const rows = customers.map(c => {
-    const lastVisit = lastVisitByMobile.get(c.mobile);
-    return { customer: c, lastVisit, days: daysSince(lastVisit) };
+  const rows = Array.from(contactsByMobile.values()).map(contact => {
+    const days = daysSince(contact.lastVisit);
+    return { contact, days };
   });
 
-  const filtered = rows.filter(({ customer, days }) => {
-    const matchesSearch = customer.name.toLowerCase().includes(search.toLowerCase()) || customer.mobile.includes(search);
+  const filtered = rows.filter(({ contact, days }) => {
+    const matchesSearch = contact.name.toLowerCase().includes(search.toLowerCase()) || contact.mobile.includes(search);
     if (!matchesSearch) return false;
     switch (visitFilter) {
       case 'RECENT_7': return days !== null && days <= 7;
@@ -167,27 +193,27 @@ export const ServiceOutreachView: React.FC = () => {
             <p>No {cfg.customerTerm.toLowerCase()}s match this search/filter.</p>
           </div>
         )}
-        {filtered.map(({ customer, lastVisit, days }) => (
-          <div key={customer.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between gap-3">
+        {filtered.map(({ contact, days }) => (
+          <div key={contact.mobile} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                {customer.name.charAt(0)}
+                {contact.name.charAt(0)}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">{customer.name}</p>
-                <p className="text-[10px] text-slate-400">{customer.mobile}</p>
+                <p className="text-xs font-bold text-white truncate">{contact.name}</p>
+                <p className="text-[10px] text-slate-400">{contact.mobile}</p>
               </div>
             </div>
 
             <div className="text-right shrink-0 hidden sm:block">
               <p className="text-[10px] text-slate-400">
-                {lastVisit ? `Last visit: ${days} day${days === 1 ? '' : 's'} ago` : 'Never billed yet'}
+                {contact.lastVisit ? `Last visit: ${days} day${days === 1 ? '' : 's'} ago` : 'Never billed yet'}
               </p>
-              <p className="text-[10px] font-bold text-emerald-400">Total Spent: ₹{customer.totalSpent}</p>
+              <p className="text-[10px] font-bold text-emerald-400">Total Spent: ₹{contact.totalSpent}</p>
             </div>
 
             <button
-              onClick={() => handleSend(customer.name, customer.mobile)}
+              onClick={() => handleSend(contact.name, contact.mobile)}
               className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-xl flex items-center gap-1.5 shrink-0 cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
