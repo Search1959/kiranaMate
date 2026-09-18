@@ -19,7 +19,7 @@
 } from '../types';
 import { generateSectorSeedData } from '../server/seedData';
 import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
-import { detectCurrencyFromLocale, getCurrencyByCountry } from './currency';
+import { DEFAULT_CURRENCY, getCurrencyByCountry } from './currency';
 import { cloudFetchStore, cloudSaveStore, cloudLookupUsername, cloudRegisterUsername, cloudListAllTradingAccounts, cloudDeleteStore, cloudDeleteUsername } from './tradingCloud';
 
 interface StoreData {
@@ -1318,9 +1318,10 @@ export const clientStore = {
     const sectorKey = payload.sector || 'KIRANA_FMCG';
     const sectorConfig = getSectorConfig(sectorKey);
 
-    // An explicit country from the signup form is authoritative; fall back to
-    // a locale guess only when the user didn't pick one (e.g. quick sign-up).
-    const detectedCurrency = payload.country ? getCurrencyByCountry(payload.country) : detectCurrencyFromLocale();
+    // An explicit country from the signup form is authoritative; this app is
+    // built for Indian businesses, so a quick sign-up with no country picked
+    // defaults to INR rather than guessing from browser locale.
+    const detectedCurrency = payload.country ? getCurrencyByCountry(payload.country) : DEFAULT_CURRENCY;
 
     const newSettings: StoreSettings = {
       storeName: payload.shopName,

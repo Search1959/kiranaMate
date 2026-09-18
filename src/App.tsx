@@ -17,7 +17,7 @@ import {
 } from './types';
 import { api, getCurrentStoreId } from './lib/api';
 import { getSectorConfig, TRADING_SECTORS } from './lib/sectorConfig';
-import { detectCurrencyFromLocale } from './lib/currency';
+import { DEFAULT_CURRENCY } from './lib/currency';
 
 const DEFAULT_USER: User = {
   id: 'user-demo-owner',
@@ -75,8 +75,8 @@ function getFallbackSettings(storeIdStr: string): StoreSettings {
     address: 'Industrial Estate, Main Road',
     city: 'Jaipur',
     pincode: '302001',
-    currencySymbol: detectCurrencyFromLocale().symbol,
-    currencyCode: detectCurrencyFromLocale().code,
+    currencySymbol: DEFAULT_CURRENCY.symbol,
+    currencyCode: DEFAULT_CURRENCY.code,
     invoicePrefix: cfg.defaultSettings.invoicePrefix || 'TRD-2026-',
     invoiceFooterNote: 'Thank you for your business!',
     lowStockThresholdDefault: 10,

@@ -41,9 +41,14 @@ export const CURRENCIES: CurrencyDef[] = [
   { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', locale: 'zh-CN' }
 ];
 
-const DEFAULT_CURRENCY = CURRENCIES[0]; // INR
+// This product's home market — every new store defaults to this unless the
+// signup form's explicit country dropdown says otherwise (see
+// getCurrencyByCountry). No longer guessed from browser/Accept-Language
+// locale: that produced USD for plenty of real Indian shop owners whose
+// device locale just happened to be set to en-US or similar.
+export const DEFAULT_CURRENCY = CURRENCIES[0]; // INR
 
-/** ISO 3166-1 country code -> currency code, for locale-based auto-detect. */
+/** ISO 3166-1 country code -> currency code, for the explicit signup country dropdown. */
 const COUNTRY_TO_CURRENCY: Record<string, string> = {
   IN: 'INR', US: 'USD', GB: 'GBP', AE: 'AED', SA: 'SAR',
   AU: 'AUD', CA: 'CAD', SG: 'SGD', NZ: 'NZD', ZA: 'ZAR',
@@ -94,68 +99,13 @@ export const COUNTRIES: { code: string; name: string }[] = [
   { code: 'OTHER', name: 'Other / Not Listed' }
 ];
 
-/** Explicit country selection (e.g. from signup) is more reliable than a
- * locale guess — this is the authoritative lookup once a user has told us
- * where their business is, vs detectCurrencyFromLocale()'s best-effort guess. */
+/** Explicit country selection (e.g. from signup) is the authoritative lookup
+ * once a user has told us where their business is; DEFAULT_CURRENCY (INR)
+ * is used when no country was picked at all. */
 export function getCurrencyByCountry(countryCode?: string): CurrencyDef {
   if (!countryCode || countryCode === 'OTHER') return DEFAULT_CURRENCY;
   const currencyCode = COUNTRY_TO_CURRENCY[countryCode.toUpperCase()];
   return currencyCode ? getCurrencyByCode(currencyCode) : DEFAULT_CURRENCY;
-}
-
-/** Best-effort country guess from a BCP-47 locale/Accept-Language region tag
- * (e.g. "en-AE" -> "AE"). Used only to pre-select a sensible default in the
- * signup form's country dropdown — never treated as authoritative on its own. */
-export function guessCountryFromLocales(locales: string[]): string | undefined {
-  for (const loc of locales) {
-    const region = loc.split(';')[0]?.split('-')[1]?.toUpperCase();
-    if (region && COUNTRIES.some(c => c.code === region)) return region;
-  }
-  return undefined;
-}
-
-/**
- * Core detector: given a list of BCP-47 locale tags (most-preferred first,
- * e.g. ["en-US", "en;q=0.9"]), returns the matching currency. Shared by both
- * the browser-side and server-side detectors below — no IP lookup, no
- * third-party geolocation service, no network call either way. Falls back
- * to INR (this product's home market) when no region can be determined.
- */
-export function detectCurrencyFromLocales(locales: string[]): CurrencyDef {
-  for (const loc of locales) {
-    const region = loc.split(';')[0]?.split('-')[1]?.toUpperCase();
-    if (region && COUNTRY_TO_CURRENCY[region]) {
-      return getCurrencyByCode(COUNTRY_TO_CURRENCY[region]);
-    }
-  }
-  return DEFAULT_CURRENCY;
-}
-
-/**
- * Detects a currency from the browser's own locale (e.g. "en-US" -> USD).
- * Use this in client-side code (React components, clientStore.ts).
- */
-export function detectCurrencyFromLocale(): CurrencyDef {
-  try {
-    const locales = (typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length)
-      ? Array.from(navigator.languages)
-      : [typeof navigator !== 'undefined' ? navigator.language : 'en-IN'];
-    return detectCurrencyFromLocales(locales);
-  } catch {
-    return DEFAULT_CURRENCY;
-  }
-}
-
-/**
- * Detects a currency from a raw `Accept-Language` request header
- * (e.g. "en-US,en;q=0.9,hi;q=0.8"). Use this on the server (Express),
- * where there is no `navigator` — the browser sends this header on every
- * request based on the visitor's own OS/browser locale.
- */
-export function detectCurrencyFromAcceptLanguage(header?: string | null): CurrencyDef {
-  if (!header) return DEFAULT_CURRENCY;
-  const locales = header.split(',').map(s => s.trim()).filter(Boolean);
-  return detectCurrencyFromLocales(locales);
 }
 
 /**

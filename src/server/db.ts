@@ -25,7 +25,7 @@ import {
 } from '../types';
 import { generateSeedData, generateSectorSeedData } from './seedData';
 import { getSectorConfig, TRADING_SECTORS } from '../lib/sectorConfig';
-import { detectCurrencyFromAcceptLanguage, getCurrencyByCountry, formatMoney } from '../lib/currency';
+import { DEFAULT_CURRENCY, getCurrencyByCountry, formatMoney } from '../lib/currency';
 
 const DB_FILE = path.join(process.cwd(), 'data_kiranamate_db.json');
 
@@ -378,7 +378,6 @@ class Database {
     mobile: string;
     sector?: TradingSector;
     country?: string;
-    acceptLanguage?: string;
   }): { user: User; storeId: string } {
     const cleanUsername = data.username.trim().toLowerCase();
 
@@ -422,13 +421,13 @@ class Database {
       }
     };
 
-    // An explicit country from the signup form is authoritative; fall back to
-    // a locale guess (via Accept-Language) only when the user didn't pick one.
-    // This is set once at registration and won't drift with wherever the
-    // owner happens to be on a later login — overridable in Settings.
+    // An explicit country from the signup form is authoritative; this app is
+    // built for Indian businesses, so no country picked defaults to INR
+    // rather than guessing from the visitor's Accept-Language header. Set
+    // once at registration — overridable in Settings, never drifts later.
     const detectedCurrency = data.country
       ? getCurrencyByCountry(data.country)
-      : detectCurrencyFromAcceptLanguage(data.acceptLanguage);
+      : DEFAULT_CURRENCY;
 
     const newSettings: StoreSettings = {
       storeName: data.shopName,

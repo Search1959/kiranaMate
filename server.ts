@@ -67,8 +67,7 @@ async function startServer() {
         ownerName,
         mobile: mobile || '9876543210',
         sector,
-        country,
-        acceptLanguage: req.headers['accept-language'] as string
+        country
       });
       const token = `token-owner-${Date.now()}`;
       const { password: _pw, passwordHash: _ph, ...safeUser } = result.user;

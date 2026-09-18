@@ -22,7 +22,7 @@ import {
 import { api } from '../lib/api';
 import { User as UserType, UserRole, TradingSector } from '../types';
 import { TRADING_SECTORS } from '../lib/sectorConfig';
-import { COUNTRIES, guessCountryFromLocales } from '../lib/currency';
+import { COUNTRIES } from '../lib/currency';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -46,19 +46,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regSector, setRegSector] = useState<TradingSector>('METALS_STEEL');
-  // Pre-select a sensible guess from the browser's own locale so most people
-  // never have to touch this field — but the choice itself is explicit and
-  // authoritative once submitted, not just inferred silently.
-  const [regCountry, setRegCountry] = useState<string>(() => {
-    try {
-      const locales = (typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length)
-        ? Array.from(navigator.languages)
-        : [typeof navigator !== 'undefined' ? navigator.language : 'en-IN'];
-      return guessCountryFromLocales(locales) || 'IN';
-    } catch {
-      return 'IN';
-    }
-  });
+  // This app is built for Indian businesses, so the country field always
+  // starts on India/INR — a browser-locale guess here previously pre-filled
+  // "United States" for plenty of real Indian shop owners whose device
+  // locale happened to be en-US, and most people never noticed to change it
+  // before submitting. Still fully editable for a genuine overseas signup.
+  const [regCountry, setRegCountry] = useState<string>('IN');
 
   // Login Form State
   const [loginUsername, setLoginUsername] = useState('');
