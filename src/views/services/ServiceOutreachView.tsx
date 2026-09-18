@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Megaphone, Star, Gift, Search, Share2, Users } from 'lucide-react';
+import { Megaphone, Star, Gift, Rocket, Search, Share2, Users } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import {
   DEFAULT_FEEDBACK_REQUEST_TEMPLATE,
   DEFAULT_WINBACK_OFFER_TEMPLATE,
+  DEFAULT_LAUNCH_ANNOUNCEMENT_TEMPLATE,
   fillMessageTemplate,
   getWhatsAppWebLink
 } from '../../lib/whatsapp';
 
-type OutreachTab = 'FEEDBACK' | 'WINBACK';
+type OutreachTab = 'FEEDBACK' | 'WINBACK' | 'LAUNCH';
 type VisitFilter = 'ALL' | 'RECENT_7' | 'INACTIVE_30' | 'INACTIVE_60' | 'NEVER';
 
 export const ServiceOutreachView: React.FC = () => {
@@ -23,7 +24,9 @@ export const ServiceOutreachView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<OutreachTab>('FEEDBACK');
   const [feedbackTemplate, setFeedbackTemplate] = useState(DEFAULT_FEEDBACK_REQUEST_TEMPLATE);
   const [winbackTemplate, setWinbackTemplate] = useState(DEFAULT_WINBACK_OFFER_TEMPLATE);
+  const [launchTemplate, setLaunchTemplate] = useState(DEFAULT_LAUNCH_ANNOUNCEMENT_TEMPLATE);
   const [discountPercent, setDiscountPercent] = useState<number>(10);
+  const [offerName, setOfferName] = useState<string>('');
   const [search, setSearch] = useState('');
   const [visitFilter, setVisitFilter] = useState<VisitFilter>('ALL');
 
@@ -86,13 +89,14 @@ export const ServiceOutreachView: React.FC = () => {
     }
   });
 
-  const activeTemplate = activeTab === 'FEEDBACK' ? feedbackTemplate : winbackTemplate;
+  const activeTemplate = activeTab === 'FEEDBACK' ? feedbackTemplate : activeTab === 'WINBACK' ? winbackTemplate : launchTemplate;
 
   const handleSend = (customerName: string, mobile: string) => {
     const text = fillMessageTemplate(activeTemplate, {
       clientName: customerName,
       businessName,
-      discount: String(discountPercent)
+      discount: String(discountPercent),
+      offerName: offerName || 'our new offering'
     });
     window.open(getWhatsAppWebLink(mobile, text), '_blank');
   };
@@ -105,7 +109,7 @@ export const ServiceOutreachView: React.FC = () => {
           <span>Client Outreach & Offers</span>
         </h1>
         <p className="text-xs text-slate-400 mt-0.5">
-          Send feedback requests and win-back offers to {cfg.customerTerm.toLowerCase()}s via WhatsApp — each message opens for you to review and send, one at a time (WhatsApp doesn't allow true automated bulk sending without its paid Business API).
+          Send feedback requests, win-back offers & new launch announcements to {cfg.customerTerm.toLowerCase()}s via WhatsApp — each message opens for you to review and send, one at a time (WhatsApp doesn't allow true automated bulk sending without its paid Business API).
         </p>
       </div>
 
@@ -129,20 +133,37 @@ export const ServiceOutreachView: React.FC = () => {
           <Gift className="w-4 h-4" />
           <span>Win-Back Offer</span>
         </button>
+        <button
+          onClick={() => setActiveTab('LAUNCH')}
+          className={`flex-1 py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+            activeTab === 'LAUNCH' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          <Rocket className="w-4 h-4" />
+          <span>New Launch</span>
+        </button>
       </div>
 
       {/* Message Template Editor */}
       <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-            {activeTab === 'FEEDBACK' ? 'Feedback Request Message' : 'Win-Back Offer Message'}
+            {activeTab === 'FEEDBACK' ? 'Feedback Request Message' : activeTab === 'WINBACK' ? 'Win-Back Offer Message' : 'New Launch Announcement Message'}
           </p>
-          <p className="text-[10px] text-slate-500">Placeholders: {'{clientName}'} {activeTab === 'WINBACK' && '{discount}'}</p>
+          <p className="text-[10px] text-slate-500">
+            Placeholders: {'{clientName}'}
+            {activeTab === 'WINBACK' && ' {discount}'}
+            {activeTab === 'LAUNCH' && ' {offerName} {discount}'}
+          </p>
         </div>
         <textarea
           rows={3}
-          value={activeTab === 'FEEDBACK' ? feedbackTemplate : winbackTemplate}
-          onChange={e => (activeTab === 'FEEDBACK' ? setFeedbackTemplate(e.target.value) : setWinbackTemplate(e.target.value))}
+          value={activeTab === 'FEEDBACK' ? feedbackTemplate : activeTab === 'WINBACK' ? winbackTemplate : launchTemplate}
+          onChange={e => {
+            if (activeTab === 'FEEDBACK') setFeedbackTemplate(e.target.value);
+            else if (activeTab === 'WINBACK') setWinbackTemplate(e.target.value);
+            else setLaunchTemplate(e.target.value);
+          }}
           className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 resize-none"
         />
         {activeTab === 'WINBACK' && (
@@ -156,6 +177,31 @@ export const ServiceOutreachView: React.FC = () => {
               onChange={e => setDiscountPercent(Number(e.target.value))}
               className="w-20 px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"
             />
+          </div>
+        )}
+        {activeTab === 'LAUNCH' && (
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-400 font-semibold">New Product/Service Name:</label>
+              <input
+                type="text"
+                placeholder="e.g. Hydra Facial Combo"
+                value={offerName}
+                onChange={e => setOfferName(e.target.value)}
+                className="w-56 px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-400 font-semibold">Discount %:</label>
+              <input
+                type="number"
+                min={1}
+                max={90}
+                value={discountPercent}
+                onChange={e => setDiscountPercent(Number(e.target.value))}
+                className="w-20 px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none"
+              />
+            </div>
           </div>
         )}
       </div>

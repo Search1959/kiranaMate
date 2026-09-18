@@ -197,6 +197,9 @@ export const DEFAULT_FEEDBACK_REQUEST_TEMPLATE =
 export const DEFAULT_WINBACK_OFFER_TEMPLATE =
   `Hi {clientName}, we miss you at {businessName}! Here's a special {discount}% OFF on your next visit, just for you. Come back soon and treat yourself 🎉`;
 
+export const DEFAULT_LAUNCH_ANNOUNCEMENT_TEMPLATE =
+  `Exciting news, {clientName}! We just launched {offerName} at {businessName}. As a valued client, be the first to try it with a special introductory offer of {discount}% OFF 📢`;
+
 export function fillMessageTemplate(template: string, vars: Record<string, string>): string {
   return Object.entries(vars).reduce((text, [key, value]) => text.split(`{${key}}`).join(value), template);
 }
