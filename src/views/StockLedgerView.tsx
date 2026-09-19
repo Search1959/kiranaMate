@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   BookOpen,
   Calendar,
@@ -339,6 +340,10 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
     window.print();
   };
 
+  const pgItems = usePagination(itemLedgerSummaries, searchQuery + selectedCategory);
+
+  const pgTx = usePagination(periodTransactions, startDate + endDate);
+
   return (
     <div className="space-y-5">
       {/* Top Header & Actions */}
@@ -603,7 +608,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  itemLedgerSummaries.map(item => (
+                  pgItems.pageItems.map(item => (
                     <tr key={item.product.id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4">
                         <div className="font-extrabold text-slate-900 text-sm">{item.product.name}</div>
@@ -663,6 +668,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                     </tr>
                   ))
                 )}
+        <tr><td colSpan={20} className="px-4"><Pagination page={pgItems.page} totalPages={pgItems.totalPages} total={pgItems.total} onChange={pgItems.setPage} variant="light" /></td></tr>
               </tbody>
             </table>
           </div>
@@ -692,7 +698,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  periodTransactions.map(tx => (
+                  pgTx.pageItems.map(tx => (
                     <tr key={tx.id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="font-bold text-slate-800">
@@ -762,6 +768,7 @@ export const StockLedgerView: React.FC<StockLedgerViewProps> = ({
                     </tr>
                   ))
                 )}
+        <tr><td colSpan={20} className="px-4"><Pagination page={pgTx.page} totalPages={pgTx.totalPages} total={pgTx.total} onChange={pgTx.setPage} variant="light" /></td></tr>
               </tbody>
             </table>
           </div>

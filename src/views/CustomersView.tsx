@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   Users,
   Search,
@@ -170,6 +171,8 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
     setNewNotes('');
   };
 
+  const pg = usePagination(filteredCustomers, search + selectedArea);
+
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
       {/* Header Bar */}
@@ -218,7 +221,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
       {/* Customers Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {filteredCustomers.map(cust => {
+        {pg.pageItems.map(cust => {
           const balance = cust.currentBalance ?? cust.outstandingBalance ?? 0;
           const hasUdhaar = balance > 0;
           return (
@@ -316,6 +319,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
             </div>
           );
         })}
+        <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
       </div>
 
       {/* Customer Profile & Ledger History Modal */}

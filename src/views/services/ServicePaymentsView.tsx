@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import { IndianRupee, Plus, CreditCard, Search, Pencil, Trash2, Printer } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -77,6 +78,8 @@ export const ServicePaymentsView: React.FC = () => {
     setRefreshTick(t => t + 1);
   };
 
+  const pg = usePagination(payments, '');
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
@@ -98,7 +101,7 @@ export const ServicePaymentsView: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        {payments.map(p => (
+        {pg.pageItems.map(p => (
           <div key={p.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -138,6 +141,7 @@ export const ServicePaymentsView: React.FC = () => {
             </div>
           </div>
         ))}
+        <div className="px-1"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       {showModal && (

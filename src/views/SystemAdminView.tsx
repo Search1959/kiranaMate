@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   ShieldCheck,
   Search,
@@ -257,6 +258,8 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
     return matchesSearch && matchesRole && matchesSector && matchesWorkspace;
   });
 
+  const pg = usePagination(filteredAccounts, searchTerm + roleFilter + sectorFilter + workspaceFilter);
+
   return (
     <div className="space-y-6 pb-12">
       {/* Toast Notification */}
@@ -459,7 +462,7 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-xs text-slate-200">
-                {filteredAccounts.map((acc) => {
+                {pg.pageItems.map((acc) => {
                   const isPassVisible = !!visiblePasswords[acc.id];
                   const sectorConfig = TRADING_SECTORS.find(s => s.id === acc.storeSector);
 
@@ -589,6 +592,7 @@ export const SystemAdminView: React.FC<SystemAdminViewProps> = ({ onSwitchStore 
                     </tr>
                   );
                 })}
+        <tr><td colSpan={20} className="px-4"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></td></tr>
               </tbody>
             </table>
           </div>

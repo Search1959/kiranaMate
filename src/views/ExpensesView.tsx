@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   TrendingDown,
   Plus,
@@ -75,6 +76,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
   });
 
   const categories = Array.from(new Set(expenses.map(e => e.category)));
+
+  const pg = usePagination(filteredExpenses, searchTerm + selectedCategory);
 
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
@@ -197,7 +200,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             <p className="text-xs text-slate-400">Try clearing your search filter or record a new expense.</p>
           </div>
         ) : (
-          filteredExpenses.map(exp => (
+          pg.pageItems.map(exp => (
             <div key={exp.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -268,6 +271,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             </div>
           ))
         )}
+        <div className="px-4 pb-3"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
       </div>
     </div>
   );

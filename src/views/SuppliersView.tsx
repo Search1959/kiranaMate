@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   Users,
   Building2,
@@ -214,6 +215,8 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
     }
   };
 
+  const pg = usePagination(filteredSuppliers, searchQuery);
+
   return (
     <div className="space-y-5">
       {/* Top Banner & Heading */}
@@ -344,7 +347,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                   </td>
                 </tr>
               ) : (
-                filteredSuppliers.map(sup => (
+                pg.pageItems.map(sup => (
                   <tr key={sup.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4">
                       <div className="font-extrabold text-slate-900 text-sm">{sup.name}</div>
@@ -430,6 +433,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                   </tr>
                 ))
               )}
+        <tr><td colSpan={20} className="px-4"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></td></tr>
             </tbody>
           </table>
         </div>

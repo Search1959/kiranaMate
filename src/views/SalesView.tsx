@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import { ShoppingCart, Search, Receipt, Plus, Ban, X, AlertTriangle } from 'lucide-react';
 import { Sale, StoreSettings } from '../types';
 import { formatMoney } from '../lib/currency';
@@ -57,6 +58,8 @@ export const SalesView: React.FC<SalesViewProps> = ({
     }
   };
 
+  const pg = usePagination(filteredSales, search + paymentFilter);
+
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
@@ -105,7 +108,7 @@ export const SalesView: React.FC<SalesViewProps> = ({
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
-        {filteredSales.map(s => {
+        {pg.pageItems.map(s => {
           const isVoid = s.status === 'CANCELLED';
           return (
             <div key={s.id} className={`p-4 flex items-center justify-between text-xs hover:bg-slate-50 ${isVoid ? 'opacity-60' : ''}`}>
@@ -158,6 +161,7 @@ export const SalesView: React.FC<SalesViewProps> = ({
             </div>
           );
         })}
+        <div className="px-4 pb-3"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
       </div>
 
       {/* Void Sale Confirmation Modal */}

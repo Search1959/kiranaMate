@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import {
   Wrench,
   Plus,
@@ -151,6 +152,8 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
     window.open(`https://wa.me/91${j.mobile}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  const pg = usePagination(filtered, search + filterStatus);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
@@ -210,7 +213,7 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
             No work orders found.
           </div>
         ) : (
-          filtered.map(j => (
+          pg.pageItems.map(j => (
             <div key={j.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3 shadow-sm hover:border-slate-700">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-indigo-300">{j.jobNo}</span>
@@ -280,6 +283,7 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
             </div>
           ))
         )}
+        <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       {/* New Job Card Modal */}

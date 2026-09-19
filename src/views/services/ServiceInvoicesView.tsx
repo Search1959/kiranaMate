@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import { FileText, Search, Printer, Share2, Pencil, Ban } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -46,6 +47,8 @@ export const ServiceInvoicesView: React.FC = () => {
     setRefreshTick(t => t + 1);
   };
 
+  const pg = usePagination(filtered, search);
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
@@ -75,7 +78,7 @@ export const ServiceInvoicesView: React.FC = () => {
         {filtered.length === 0 && (
           <div className="text-center text-xs text-slate-500 py-10">No invoices yet — they're created automatically from Service POS billing or by converting a quotation.</div>
         )}
-        {filtered.map(inv => {
+        {pg.pageItems.map(inv => {
           const isCancelled = inv.status === 'CANCELLED';
           return (
           <div key={inv.id} className={`bg-slate-900 border p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isCancelled ? 'border-rose-800/60 opacity-70' : 'border-slate-800'}`}>
@@ -146,6 +149,7 @@ export const ServiceInvoicesView: React.FC = () => {
           </div>
           );
         })}
+        <div className="px-1"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       <ServiceInvoicePrintModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />

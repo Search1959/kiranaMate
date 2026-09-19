@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import { TrendingDown, Plus, Search, Receipt, Calendar, CreditCard, Repeat, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore, SERVICE_EXPENSE_CATEGORIES } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -45,6 +46,8 @@ export const ServiceExpensesView: React.FC = () => {
   });
 
   const categoriesInUse = Array.from(new Set(expenses.map(e => e.category)));
+
+  const pg = usePagination(filteredExpenses, searchTerm + selectedCategory);
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-24">
@@ -153,7 +156,7 @@ export const ServiceExpensesView: React.FC = () => {
             <p className="text-xs text-slate-500">Try clearing your search filter or record a new expense.</p>
           </div>
         ) : (
-          filteredExpenses.map(exp => (
+          pg.pageItems.map(exp => (
             <div key={exp.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-800/40 transition-colors">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -203,6 +206,7 @@ export const ServiceExpensesView: React.FC = () => {
             </div>
           ))
         )}
+        <div className="px-4 pb-3"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       <AddServiceExpenseModal

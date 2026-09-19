@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import {
   ShoppingCart,
   Search,
@@ -283,6 +284,8 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
     setEditingPriceId(null);
   };
 
+  const pg = usePagination(filteredServices, searchQuery + selectedCategory);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
@@ -371,7 +374,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
-            {filteredServices.map(srv => {
+            {pg.pageItems.map(srv => {
               const inCart = cart.find(c => c.service.id === srv.id);
               return (
                 <div
@@ -432,6 +435,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                 </div>
               );
             })}
+        <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
           </div>
         </div>
 

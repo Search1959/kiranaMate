@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import { FileText, Plus, ArrowRight, CheckCircle, Wrench, IndianRupee, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -102,6 +103,8 @@ export const ServiceQuotationsView: React.FC = () => {
     alert("Quotation converted to Paid Invoice successfully!");
   };
 
+  const pg = usePagination(quotations, '');
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
@@ -123,7 +126,7 @@ export const ServiceQuotationsView: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        {quotations.map(q => (
+        {pg.pageItems.map(q => (
           <div key={q.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -179,6 +182,7 @@ export const ServiceQuotationsView: React.FC = () => {
             </div>
           </div>
         ))}
+        <div className="px-1"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       {showModal && (

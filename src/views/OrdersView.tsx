@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   ShoppingBag,
   Search,
@@ -56,6 +57,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     }
   };
 
+  const pg = usePagination(filteredOrders, search + statusFilter);
+
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
       {/* Header Bar */}
@@ -109,7 +112,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
 
       {/* Orders List */}
       <div className="space-y-3">
-        {filteredOrders.map(order => (
+        {pg.pageItems.map(order => (
           <div
             key={order.id}
             className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3"
@@ -191,6 +194,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
             </div>
           </div>
         ))}
+        <div className="px-1"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
       </div>
     </div>
   );

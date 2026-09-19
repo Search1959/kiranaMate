@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import { Megaphone, Star, Gift, Rocket, Search, Share2, Users } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -108,6 +109,8 @@ export const ServiceOutreachView: React.FC = () => {
     });
     window.open(getWhatsAppWebLink(mobile, text), '_blank');
   };
+
+  const pg = usePagination(filtered, search + visitFilter + activeTab);
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 pb-24">
@@ -256,7 +259,7 @@ export const ServiceOutreachView: React.FC = () => {
             <p>No {cfg.customerTerm.toLowerCase()}s match this search/filter.</p>
           </div>
         )}
-        {filtered.map(({ contact, days }) => (
+        {pg.pageItems.map(({ contact, days }) => (
           <div key={contact.mobile} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
@@ -284,6 +287,7 @@ export const ServiceOutreachView: React.FC = () => {
             </button>
           </div>
         ))}
+        <div className="px-1"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
     </div>
   );

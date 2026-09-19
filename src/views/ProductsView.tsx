@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   Package,
   Search,
@@ -126,6 +127,8 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
       return matchesSearch && matchesCat && matchesStock;
     });
 
+  const pg = usePagination(filteredProducts, search + selectedCategory + stockFilter);
+
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
       {/* Header Bar */}
@@ -224,7 +227,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {filteredProducts.map(p => {
+        {pg.pageItems.map(p => {
           const isLow = p.currentStock > 0 && p.currentStock <= p.minStock;
           const isOut = p.currentStock === 0;
 
@@ -382,6 +385,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
             </div>
           );
         })}
+        <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
       </div>
 
       {/* View Product Details Modal */}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import { Users, Plus, Search, Phone, Mail, MapPin, Calendar, Wrench, Shield, Pencil, Trash2 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -87,6 +88,8 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
     setRefreshTick(t => t + 1);
   };
 
+  const pg = usePagination(filtered, search);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
@@ -122,7 +125,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map(c => (
+        {pg.pageItems.map(c => (
           <div key={c.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -172,6 +175,7 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
             </div>
           </div>
         ))}
+        <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       {showModal && (

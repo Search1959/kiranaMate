@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../../components/Pagination';
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -140,6 +141,8 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
     window.open(`https://wa.me/91${app.mobile}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  const pg = usePagination(filtered, search + filterStatus);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24">
       <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
@@ -199,7 +202,7 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
             No appointments found for this filter.
           </div>
         ) : (
-          filtered.map(app => (
+          pg.pageItems.map(app => (
             <div key={app.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3 shadow-sm hover:border-slate-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -270,6 +273,7 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
             </div>
           ))
         )}
+        <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>
       </div>
 
       {/* Book Appointment Modal */}

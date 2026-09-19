@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from '../components/Pagination';
 import {
   Truck,
   Plus,
@@ -222,6 +223,8 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
       );
     });
 
+  const pg = usePagination(filteredPurchases, search);
+
   return (
     <div className="space-y-4 pb-12 sm:pb-6">
       {/* Top Banner & Scanner Action */}
@@ -308,7 +311,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {filteredPurchases.map(p => {
+            {pg.pageItems.map(p => {
               const isExpanded = expandedPurchaseId === p.id;
               const totalAmt = calcPurchaseTotal(p);
 
@@ -420,6 +423,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
                 </div>
               );
             })}
+        <div className="px-4 pb-3"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
           </div>
         )}
       </div>
