@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Pagination, usePagination } from '../../components/Pagination';
-import { Users, Plus, Search, Phone, Mail, MapPin, Calendar, Wrench, Shield, Pencil, Trash2 } from 'lucide-react';
+import { Users, Plus, Search, Phone, Mail, MapPin, Calendar, Wrench, Shield, Pencil, Trash2, Receipt } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
+import { startBillFromCustomer } from '../../lib/serviceBilling';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceCustomer } from '../../types';
 
@@ -19,6 +20,13 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
     : 'Any additional notes about this ' + cfg.customerTerm.toLowerCase() + '...';
   const [refreshTick, setRefreshTick] = useState(0);
   const customers = serviceStore.getCustomers();
+  // Spend + visit count come from the real (non-void) bills, matched by mobile.
+  const digitsOf = (m: string) => (m || '').replace(/\D/g, '');
+  const billStats = (mobile: string) => {
+    const d = digitsOf(mobile);
+    const bills = d ? serviceStore.getInvoices().filter(i => i.status !== 'CANCELLED' && digitsOf(i.mobile) === d) : [];
+    return { spent: bills.reduce((a, i) => a + i.grandTotal, 0), visits: bills.length, last: bills.reduce((l, i) => (i.date > l ? i.date : l), '') };
+  };
 
   const [search, setSearch] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -169,10 +177,23 @@ export const ServiceCustomersView: React.FC<ServiceCustomersViewProps> = ({ onNa
             <div className="bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/50 text-[11px] space-y-1">
               <div className="flex justify-between text-slate-400">
                 <span>Total Spent:</span>
-                <span className="font-bold text-emerald-400">₹{c.totalSpent}</span>
+                <span className="font-bold text-emerald-400">₹{billStats(c.mobile).visits > 0 ? billStats(c.mobile).spent : c.totalSpent}</span>
               </div>
+              {billStats(c.mobile).visits > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>Visits:</span>
+                  <span className="font-bold text-slate-200">{billStats(c.mobile).visits} • last {billStats(c.mobile).last}</span>
+                </div>
+              )}
               {c.notes && <p className="text-[10px] text-slate-300 italic">{c.notes}</p>}
             </div>
+            <button
+              onClick={() => { startBillFromCustomer(c); onNavigateTab?.('service_pos'); }}
+              className="w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Receipt className="w-3.5 h-3.5" />
+              <span>Start Bill</span>
+            </button>
           </div>
         ))}
         <div className="col-span-full"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="dark" /></div>

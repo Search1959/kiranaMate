@@ -13,9 +13,11 @@ import {
   Filter,
   Sparkles,
   Pencil,
-  Trash2
+  Trash2,
+  Receipt
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
+import { startBillFromAppointment } from '../../lib/serviceBilling';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { Appointment, AppointmentStatus } from '../../types';
 
@@ -247,6 +249,21 @@ export const ServiceAppointmentsView: React.FC<ServiceAppointmentsViewProps> = (
                 </select>
 
                 <div className="flex items-center gap-1">
+                  {app.status === 'Cancelled' ? null : serviceStore.getBillFor('appointment', app.id) ? (
+                    <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1" title="Bill already raised">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>Billed</span>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => { startBillFromAppointment(app); onNavigateTab?.('service_pos'); }}
+                      className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow shadow-blue-600/30"
+                      title="Open the POS with this pre-filled"
+                    >
+                      <Receipt className="w-3 h-3" />
+                      <span>Bill</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => handleWhatsAppReminder(app)}
                     className="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer"

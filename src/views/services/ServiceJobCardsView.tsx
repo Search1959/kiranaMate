@@ -14,9 +14,11 @@ import {
   FileText,
   X,
   Pencil,
-  Trash2
+  Trash2,
+  Receipt
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
+import { startBillFromJob } from '../../lib/serviceBilling';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { JobCard, JobCardStatus, JobPriority } from '../../types';
 
@@ -272,6 +274,22 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
                   <option value="Delivered">Delivered</option>
                 </select>
 
+                <div className="flex items-center gap-1">
+                {j.status === 'Cancelled' ? null : serviceStore.getBillFor('job', j.id) ? (
+                  <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1" title="Bill already raised">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Billed</span>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => { startBillFromJob(j); onNavigateTab?.('service_pos'); }}
+                    className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow shadow-blue-600/30"
+                    title="Open the POS with this pre-filled"
+                  >
+                    <Receipt className="w-3 h-3" />
+                    <span>Bill</span>
+                  </button>
+                )}
                 <button
                   onClick={() => handleWhatsApp(j)}
                   className="px-2.5 py-1 bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer"
@@ -279,6 +297,7 @@ export const ServiceJobCardsView: React.FC<ServiceJobCardsViewProps> = ({ onNavi
                   <Share2 className="w-3 h-3" />
                   <span>Update Client</span>
                 </button>
+                </div>
               </div>
             </div>
           ))

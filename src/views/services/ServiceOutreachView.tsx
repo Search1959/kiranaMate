@@ -58,6 +58,7 @@ export const ServiceOutreachView: React.FC = () => {
   // avoids double-counting a client who has both a saved record and bills.
   const invoiceStatsByMobile = new Map<string, { totalSpent: number; lastVisit: string; name: string }>();
   invoices.forEach(inv => {
+    if ((inv.mobile || '').replace(/\D/g, '').length < 10) return;
     const prev = invoiceStatsByMobile.get(inv.mobile);
     const isNewer = !prev || inv.date >= prev.lastVisit;
     invoiceStatsByMobile.set(inv.mobile, {

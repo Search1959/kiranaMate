@@ -411,6 +411,19 @@ export const SERVICE_EXPENSE_CATEGORIES: (ExpenseCategory | string)[] = [
   'Other'
 ];
 
+/** One-shot hand-off from Appointments / Orders / Clients into the POS, so a bill
+ * starts pre-filled instead of being retyped. Lives in memory only. */
+export interface BillDraftLine { serviceId?: string; name: string; price: number; gstPercent?: number; staffId?: string; staffName?: string }
+export interface BillDraft {
+  customerId?: string;
+  customerName: string;
+  mobile: string;
+  lines: BillDraftLine[];
+  appointmentId?: string;
+  jobCardId?: string;
+  note?: string;
+}
+
 /** A hung network call must never leave sync stuck (pushing/syncing flags would never reset). */
 function withTimeout<T>(p: Promise<T>, ms = 20000): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -1052,6 +1065,46 @@ export class ServiceStoreManager {
   }
 
   // Customers
+  private billDraft: BillDraft | null = null;
+
+  setBillDraft(d: BillDraft | null) { this.billDraft = d; }
+
+  takeBillDraft(): BillDraft | null {
+    const d = this.billDraft;
+    this.billDraft = null;
+    return d;
+  }
+
+  /** The live (non-void) invoice raised for an appointment / job card, if any. */
+  getBillFor(kind: 'appointment' | 'job', id: string): ServiceInvoice | undefined {
+    return (this.data.invoices || []).find(inv =>
+      inv.status !== 'CANCELLED' && (kind === 'appointment' ? inv.appointmentId === id : inv.jobCardId === id)
+    );
+  }
+
+  /** Finds a saved client by mobile, or saves a new one — so billing anyone with
+   * a real mobile number builds the client list automatically. Walk-ins with no
+   * mobile stay anonymous. */
+  private ensureCustomer(name: string, mobile: string): ServiceCustomer | undefined {
+    const digits = (mobile || '').replace(/\D/g, '');
+    if (digits.length < 10 || digits === '9876543210') return undefined; // 9876543210 = old walk-in placeholder
+    const found = this.data.customers.find(c => (c.mobile || '').replace(/\D/g, '') === digits);
+    if (found) return found;
+    const cleanName = (name || '').trim();
+    const created: ServiceCustomer = {
+      id: `scust-${Date.now()}`,
+      name: cleanName && cleanName !== 'Walk-in Client' ? cleanName : mobile,
+      mobile,
+      sector: this.data.activeSector,
+      totalSpent: 0,
+      activeJobsCount: 0,
+      activeAppointmentsCount: 0,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    this.data.customers = [created, ...this.data.customers];
+    return created;
+  }
+
   getCustomers(): ServiceCustomer[] {
     return this.data.customers || [];
   }
@@ -1088,13 +1141,29 @@ export class ServiceStoreManager {
 
   createInvoice(inv: Omit<ServiceInvoice, 'id' | 'invoiceNo' | 'createdAt'>): ServiceInvoice {
     const randomNo = Math.floor(1000 + Math.random() * 9000);
+    const client = this.ensureCustomer(inv.customerName, inv.mobile);
     const newInv: ServiceInvoice = {
       ...inv,
+      customerId: client ? client.id : inv.customerId,
       id: `sinv-${Date.now()}`,
       invoiceNo: `SRV-INV-${randomNo}`,
       createdAt: new Date().toISOString().split('T')[0]
     };
     this.data.invoices = [newInv, ...this.data.invoices];
+
+    // Close the loop on whatever this bill came from (appointment / order card).
+    if (newInv.appointmentId) {
+      this.data.appointments = this.data.appointments.map(a =>
+        a.id === newInv.appointmentId ? { ...a, status: 'Completed', paidAmount: (a.paidAmount || 0) + newInv.paidAmount } : a
+      );
+    }
+    if (newInv.jobCardId) {
+      this.data.jobCards = this.data.jobCards.map(j => {
+        if (j.id !== newInv.jobCardId) return j;
+        const paid = (j.paidAmount || 0) + newInv.paidAmount;
+        return { ...j, status: 'Delivered' as const, paidAmount: paid, balanceAmount: Math.max(0, j.totalAmount - paid), actualCompletionDate: j.actualCompletionDate || new Date().toISOString().split('T')[0] };
+      });
+    }
 
     // Auto-accrue each assigned staff member's commission on the exact
     // billed amount for their line — this is what lets "Commission Payable"

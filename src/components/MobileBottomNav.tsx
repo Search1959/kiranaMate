@@ -76,10 +76,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'more', label: t.more, icon: Grid }
   ];
 
+  // Billing is the core action, so it gets a permanent tab. Cafes/restaurants
+  // don't book time slots — their orders live under the work-order tab — so the
+  // Appointments tab is swapped for the Hub there.
+  const usesAppointments = serviceCfg.id !== 'RESTAURANT_CAFE';
   const serviceNavItems: typeof tradingNavItems = [
-    { id: 'service_dashboard', label: 'Hub', icon: Home, badge: undefined },
+    { id: 'service_pos', label: 'Bill', icon: ShoppingCart, badge: undefined },
     { id: 'service_jobs', label: serviceCfg.workOrderTerm, icon: Wrench, badge: undefined },
-    { id: 'service_appointments', label: 'Appts', icon: Calendar, badge: undefined },
+    usesAppointments
+      ? { id: 'service_appointments', label: 'Appts', icon: Calendar, badge: undefined }
+      : { id: 'service_dashboard', label: 'Hub', icon: Home, badge: undefined },
     { id: 'service_customers', label: 'Clients', icon: Users, badge: undefined },
     { id: 'more', label: t.more, icon: Grid, badge: undefined }
   ];
@@ -112,7 +118,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'service-add-expense', label: 'Record Expense', icon: TrendingDown, bg: 'bg-rose-600 text-white', category: 'Clients' }
   ];
 
-  const quickActions = isServiceMode ? serviceQuickActions : tradingQuickActions;
+  const quickActions = isServiceMode ? serviceQuickActions.filter(a => usesAppointments || a.id !== 'service-book-appointment') : tradingQuickActions;
   const quickActionCategories = Array.from(new Set(quickActions.map(a => a.category)));
   const currentQuickCategory = quickActionCategories.includes(activeQuickCategory) ? activeQuickCategory : quickActionCategories[0];
   const visibleQuickActions = quickActions.filter(a => a.category === currentQuickCategory);
@@ -130,6 +136,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const serviceMoreItems = [
     { id: 'home', label: 'Switch to TradeMate', icon: ArrowLeftRight, color: 'text-blue-600 bg-blue-50' },
+    ...(usesAppointments ? [{ id: 'service_dashboard', label: 'Service ERP Hub', icon: Home, color: 'text-blue-600 bg-blue-50' }] : []),
     { id: 'service_outreach', label: 'Client Outreach & Offers', icon: Megaphone, color: 'text-emerald-600 bg-emerald-50' },
     { id: 'service_staff', label: `${serviceCfg.staffTerm} Roster`, icon: ShieldCheck, color: 'text-indigo-600 bg-indigo-50' },
     { id: 'service_packages', label: 'Packages & AMC', icon: Package, color: 'text-purple-600 bg-purple-50' },

@@ -105,7 +105,8 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         { id: 'service_dashboard', label: 'Service ERP Hub', icon: Home },
         { id: 'service_pos', label: 'Service POS Billing', icon: ShoppingCart },
         { id: 'service_jobs', label: `${serviceCfg.workOrderTerm}s`, icon: Wrench },
-        { id: 'service_appointments', label: 'Appointments Schedule', icon: Calendar },
+        // Cafes/restaurants take orders, not time-slot bookings.
+        ...(serviceCfg.id !== 'RESTAURANT_CAFE' ? [{ id: 'service_appointments', label: 'Appointments Schedule', icon: Calendar }] : []),
       ]
     },
     {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pagination, usePagination } from '../../components/Pagination';
 import {
   ShoppingCart,
@@ -20,7 +20,7 @@ import {
   Upload,
   RefreshCw
 } from 'lucide-react';
-import { serviceStore } from '../../lib/serviceStore';
+import { serviceStore, BillDraft } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
 import { ServiceItem, ServiceStaff, PaymentMethod, ServiceInvoice, ServiceInvoiceItem } from '../../types';
 
@@ -87,7 +87,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
 
   // Customer details
   const [customerName, setCustomerName] = useState<string>('Walk-in Client');
-  const [customerMobile, setCustomerMobile] = useState<string>('9876543210');
+  const [customerMobile, setCustomerMobile] = useState<string>('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
 
   // Additional billing adjustments
@@ -211,6 +211,29 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   }
   const grandTotal = Math.round(afterDiscount + gstAmount);
 
+  // A bill started from an Appointment / Order / Client arrives as a draft:
+  // load its client + lines once, and remember the source so saving the bill
+  // marks that appointment / order as billed.
+  const [billSource, setBillSource] = useState<Pick<BillDraft, 'appointmentId' | 'jobCardId' | 'note'> | null>(null);
+  const draftLoaded = useRef(false);
+  useEffect(() => {
+    if (draftLoaded.current) return;
+    draftLoaded.current = true;
+    const draft = serviceStore.takeBillDraft();
+    if (!draft) return;
+    setCustomerName(draft.customerName || 'Walk-in Client');
+    setCustomerMobile(draft.mobile || '');
+    setSelectedCustomerId(draft.customerId || '');
+    setBillSource({ appointmentId: draft.appointmentId, jobCardId: draft.jobCardId, note: draft.note });
+    setCart(draft.lines.filter(l => l.price > 0).map((l, i) => {
+      const catalog = l.serviceId ? serviceStore.getServices().find(s => s.id === l.serviceId) : undefined;
+      const service: ServiceItem = catalog
+        ? { ...catalog, price: l.price }
+        : { id: `draft-${Date.now()}-${i}`, name: l.name, category: 'Order', price: l.price, durationMinutes: 0, gstPercent: l.gstPercent ?? 0, sector: serviceStore.getActiveSector() };
+      return { service, quantity: 1, assignedStaffId: l.staffId, assignedStaffName: l.staffName };
+    }));
+  }, []);
+
   const handleSelectExistingCustomer = (custMobile: string) => {
     const found = customers.find(c => c.mobile === custMobile);
     if (found) {
@@ -221,7 +244,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   };
 
   const handleCompleteBilling = () => {
-    if (cart.length === 0) {
+    if (cart.length === 0 && labourCharges + materialCharges <= 0) {
       alert("Please add at least one service to cart");
       return;
     }
@@ -261,8 +284,10 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
 
     const created = serviceStore.createInvoice({
       customerId: selectedCustomerId || `cust-${Date.now()}`,
+      appointmentId: billSource?.appointmentId,
+      jobCardId: billSource?.jobCardId,
       customerName: customerName || 'Walk-in Client',
-      mobile: customerMobile || '9876543210',
+      mobile: customerMobile.trim(),
       date: new Date().toISOString().split('T')[0],
       items: invoiceItems,
       labourCharges,
@@ -274,10 +299,14 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
       balanceAmount: 0,
       paymentMethod,
       status: 'PAID',
-      notes: `Service POS Billing • ${cfg.name}`
+      notes: billSource?.note ? `${billSource.note} • ${cfg.name}` : `Service POS Billing • ${cfg.name}`
     });
 
     setCompletedInvoice(created);
+    setBillSource(null);
+    setCustomerName('Walk-in Client');
+    setCustomerMobile('');
+    setSelectedCustomerId('');
     setCart([]);
     setLabourCharges(0);
     setMaterialCharges(0);
@@ -304,7 +333,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                 {cfg.name}
               </span>
             </h1>
-            <p className="text-xs text-slate-400">Add services, assign staff, adjust charges & generate GST bill</p>
+            <p className="text-xs text-slate-400">{billSource?.note ? <span className="text-emerald-300 font-bold">Billing: {billSource.note} — review and take payment</span> : 'Add services, assign staff, adjust charges & generate GST bill'}</p>
           </div>
         </div>
       </div>
