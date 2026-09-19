@@ -15,7 +15,8 @@ import {
   IndianRupee,
   Wrench,
   X,
-  Pencil
+  Pencil,
+  Upload
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -23,6 +24,7 @@ import { ServiceItem, ServiceStaff, PaymentMethod, ServiceInvoice, ServiceInvoic
 
 import { AddEditServiceModal } from '../../components/AddEditServiceModal';
 import { ServiceInvoicePrintModal } from '../../components/ServiceInvoicePrintModal';
+import { ImportServicesModal } from '../../components/ImportServicesModal';
 
 interface CartItem {
   service: ServiceItem;
@@ -46,6 +48,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
 
   // Add/Edit Service catalog management
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
 
   const refreshCatalog = () => setCatalogTick(t => t + 1);
@@ -323,6 +326,14 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Add Service</span>
+              </button>
+              <button
+                onClick={() => setImportModalOpen(true)}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold rounded-xl cursor-pointer"
+                title="Import from Excel / CSV / PDF or scan a price list"
+              >
+                <Upload className="w-4 h-4 text-emerald-400" />
+                <span className="hidden sm:inline">Import / Scan</span>
               </button>
             </div>
 
@@ -731,6 +742,8 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
       <ServiceInvoicePrintModal invoice={printInvoice} onClose={() => setPrintInvoice(null)} />
 
       {/* Add/Edit Service Modal */}
+      <ImportServicesModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} onImported={refreshCatalog} />
+
       <AddEditServiceModal
         isOpen={serviceModalOpen}
         onClose={() => { setServiceModalOpen(false); setEditingService(null); }}

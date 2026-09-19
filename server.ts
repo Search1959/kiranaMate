@@ -590,6 +590,82 @@ RULES:
     }
   });
 
+  // AI scan of a Service ERP price list / menu card / rate chart (photo, PDF or pasted text)
+  // into a list of services with categories and prices.
+  app.post('/api/ai/scan-services', async (req, res) => {
+    const { imageBase64, textContent, sectorName } = req.body;
+    if (!imageBase64 && !textContent) {
+      return res.status(400).json({ error: 'Image, PDF or text content is required' });
+    }
+    try {
+      let mimeType = 'image/jpeg';
+      let cleanBase64 = imageBase64;
+      if (imageBase64 && imageBase64.includes(';base64,')) {
+        const parts = imageBase64.split(';base64,');
+        mimeType = parts[0].replace('data:', '') || 'image/jpeg';
+        cleanBase64 = parts[1];
+      }
+
+      const promptText = `You read a price list, rate card or menu for a "${sectorName || 'service'}" business in India and turn it into a service catalogue.
+The text may be printed or handwritten, in Hindi, Bengali, Gujarati, Marathi, Tamil, Telugu, Kannada, English or any Indian script — translate names and categories to clean English.
+RULES:
+1. Extract EVERY service / menu item / test / package listed, without skipping rows.
+2. name: clean English name. category: the section heading it sits under (e.g. "Starters", "Blood Tests", "Hair Care"); if there are no headings, choose a short sensible category. Use consistent category names.
+3. price: the selling price in INR as a plain number. If a range or several sizes are shown, create one item per size ("Pizza - Large") with its own price. Skip items with no price.
+4. gstPercent: only if printed on the sheet, else 0.
+5. durationMinutes: only if printed, else 0.
+6. description: a short phrase only if printed, else empty string.`;
+
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          items: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                category: { type: Type.STRING },
+                price: { type: Type.NUMBER },
+                gstPercent: { type: Type.NUMBER },
+                durationMinutes: { type: Type.NUMBER },
+                description: { type: Type.STRING }
+              },
+              required: ['name', 'category', 'price']
+            }
+          }
+        },
+        required: ['items']
+      };
+
+      const contentParts = textContent
+        ? [{ text: `${promptText}\n\nCONTENT:\n${textContent}` }]
+        : [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }];
+
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: { parts: contentParts },
+          config: { responseMimeType: 'application/json', responseSchema }
+        });
+      } catch (firstErr) {
+        console.warn('gemini-3.6-flash failed, falling back to gemini-2.5-flash:', firstErr);
+        response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: { parts: contentParts },
+          config: { responseMimeType: 'application/json', responseSchema }
+        });
+      }
+
+      const data = response.text ? JSON.parse(response.text) : { items: [] };
+      return res.json({ success: true, data });
+    } catch (err: any) {
+      console.error('AI Service Scanner Error:', err);
+      return res.status(500).json({ error: 'Failed to scan the price list with AI', details: err.message });
+    }
+  });
+
   // AI Camera Scan Expense Bill / Receipt (Electricity, Rent, Freight, Repairs, Snacks, etc.)
   app.post('/api/ai/scan-expense-bill', async (req, res) => {
     const { imageBase64 } = req.body;

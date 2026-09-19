@@ -733,6 +733,32 @@ export class ServiceStoreManager {
     return this.data.services || [];
   }
 
+  /** Adds many services in one save (import / scan). Skips names already in
+   * the catalog (case-insensitive) and registers any category not in the
+   * sector's preset list as a custom one. Returns how many were added. */
+  bulkAddServices(items: Omit<ServiceItem, 'id' | 'sector'>[]): { added: number; skipped: number } {
+    const presetCats = new Set(getServiceSectorConfig(this.data.activeSector).categories.map(c => c.toLowerCase()));
+    const have = new Set(this.data.services.map(s => s.name.trim().toLowerCase()));
+    const stamp = Date.now();
+    const fresh: ServiceItem[] = [];
+    items.forEach((it, i) => {
+      const key = it.name.trim().toLowerCase();
+      if (!key || have.has(key)) return;
+      have.add(key);
+      const category = it.category.trim() || 'General';
+      if (!presetCats.has(category.toLowerCase())) {
+        const existing = this.data.customCategories || [];
+        if (!existing.some(c => c.toLowerCase() === category.toLowerCase())) {
+          this.data.customCategories = [...existing, category];
+        }
+      }
+      fresh.push({ ...it, name: it.name.trim(), category, id: `srv-${stamp}-${i}`, sector: this.data.activeSector });
+    });
+    this.data.services = [...fresh, ...this.data.services];
+    this.saveToStorage();
+    return { added: fresh.length, skipped: items.length - fresh.length };
+  }
+
   addService(item: Omit<ServiceItem, 'id' | 'sector'>): ServiceItem {
     const newItem: ServiceItem = {
       ...item,
