@@ -47,6 +47,9 @@ export interface ServiceStoreData {
   /** UPI VPA (e.g. "yourshop@upi") — lets the printed/WhatsApp invoice show
    * a scannable payment QR so a client can pay straight from their phone. */
   upiId?: string;
+  /** Saved Client Outreach message templates + default discount %, so the
+   * owner's wording survives leaving the screen (same on desktop and mobile). */
+  outreachSettings?: { feedbackTemplate?: string; winbackTemplate?: string; launchTemplate?: string; discountPercent?: number };
   /** Account-specific categories added on top of the sector's fixed preset
    * list (e.g. serviceSectorConfig.ts's cfg.categories) — that list is
    * shared config for the whole sector, not something one account should
@@ -479,6 +482,15 @@ export class ServiceStoreManager {
 
   getData(): ServiceStoreData {
     return this.data;
+  }
+
+  getOutreachSettings() {
+    return this.data.outreachSettings || {};
+  }
+
+  saveOutreachSettings(settings: NonNullable<ServiceStoreData['outreachSettings']>) {
+    this.data.outreachSettings = { ...this.data.outreachSettings, ...settings };
+    this.saveToStorage();
   }
 
   getCompanyMeta(): {

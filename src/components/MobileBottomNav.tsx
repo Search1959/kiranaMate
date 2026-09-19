@@ -25,7 +25,8 @@ import {
   ShieldCheck,
   ArrowLeftRight,
   MessageCircle,
-  Camera
+  Camera,
+  Megaphone
 } from 'lucide-react';
 import { LanguageCode, DailyStats } from '../types';
 import { translations } from '../lib/translations';
@@ -129,6 +130,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const serviceMoreItems = [
     { id: 'home', label: 'Switch to TradeMate', icon: ArrowLeftRight, color: 'text-blue-600 bg-blue-50' },
+    { id: 'service_outreach', label: 'Client Outreach & Offers', icon: Megaphone, color: 'text-emerald-600 bg-emerald-50' },
     { id: 'service_staff', label: `${serviceCfg.staffTerm} Roster`, icon: ShieldCheck, color: 'text-indigo-600 bg-indigo-50' },
     { id: 'service_packages', label: 'Packages & AMC', icon: Package, color: 'text-purple-600 bg-purple-50' },
     { id: 'service_payments', label: 'Payments', icon: DollarSign, color: 'text-emerald-600 bg-emerald-50' },

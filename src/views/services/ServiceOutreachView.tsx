@@ -22,10 +22,18 @@ export const ServiceOutreachView: React.FC = () => {
   const invoices = serviceStore.getInvoices().filter(inv => inv.status !== 'CANCELLED');
 
   const [activeTab, setActiveTab] = useState<OutreachTab>('FEEDBACK');
-  const [feedbackTemplate, setFeedbackTemplate] = useState(DEFAULT_FEEDBACK_REQUEST_TEMPLATE);
-  const [winbackTemplate, setWinbackTemplate] = useState(DEFAULT_WINBACK_OFFER_TEMPLATE);
-  const [launchTemplate, setLaunchTemplate] = useState(DEFAULT_LAUNCH_ANNOUNCEMENT_TEMPLATE);
-  const [discountPercent, setDiscountPercent] = useState<number>(10);
+  const saved = serviceStore.getOutreachSettings();
+  const [feedbackTemplate, setFeedbackTemplate] = useState(saved.feedbackTemplate || DEFAULT_FEEDBACK_REQUEST_TEMPLATE);
+  const [winbackTemplate, setWinbackTemplate] = useState(saved.winbackTemplate || DEFAULT_WINBACK_OFFER_TEMPLATE);
+  const [launchTemplate, setLaunchTemplate] = useState(saved.launchTemplate || DEFAULT_LAUNCH_ANNOUNCEMENT_TEMPLATE);
+  const [discountPercent, setDiscountPercent] = useState<number>(saved.discountPercent ?? 10);
+  const [savedNotice, setSavedNotice] = useState(false);
+
+  const handleSaveDefaults = () => {
+    serviceStore.saveOutreachSettings({ feedbackTemplate, winbackTemplate, launchTemplate, discountPercent });
+    setSavedNotice(true);
+    setTimeout(() => setSavedNotice(false), 2000);
+  };
   const [offerName, setOfferName] = useState<string>('');
   const [search, setSearch] = useState('');
   const [visitFilter, setVisitFilter] = useState<VisitFilter>('ALL');
@@ -179,6 +187,15 @@ export const ServiceOutreachView: React.FC = () => {
             />
           </div>
         )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSaveDefaults}
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold rounded-lg cursor-pointer"
+          >
+            Save messages & discount as my defaults
+          </button>
+          {savedNotice && <span className="text-[11px] font-bold text-emerald-400">Saved</span>}
+        </div>
         {activeTab === 'LAUNCH' && (
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
