@@ -411,6 +411,14 @@ export const SERVICE_EXPENSE_CATEGORIES: (ExpenseCategory | string)[] = [
   'Other'
 ];
 
+/** A hung network call must never leave sync stuck (pushing/syncing flags would never reset). */
+function withTimeout<T>(p: Promise<T>, ms = 20000): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('SYNC_TIMEOUT')), ms);
+    p.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
+}
+
 export class ServiceStoreManager {
   private data: ServiceStoreData;
 
@@ -468,7 +476,7 @@ export class ServiceStoreManager {
     try {
       do {
         this.pushAgain = false;
-        const remote = await cloudFetchCompanyData(companyId);
+        const remote = await withTimeout(cloudFetchCompanyData(companyId));
         const remoteRev = remote?.revision || 0;
         // cloudRevision undefined = this device has never synced with the cloud
         // copy (data saved before versioning existed): always merge it in first.
@@ -479,8 +487,10 @@ export class ServiceStoreManager {
         this.data.revision = Math.max(this.data.revision || 0, remoteRev + 1);
         this.data.cloudRevision = this.data.revision;
         this.writeLocal();
-        await cloudSaveCompanyData(companyId, this.data);
+        await withTimeout(cloudSaveCompanyData(companyId, this.data));
       } while (this.pushAgain);
+    } catch (err) {
+      console.error('Cloud push failed, will retry on next save/sync', err);
     } finally {
       this.pushing = false;
     }
@@ -488,16 +498,16 @@ export class ServiceStoreManager {
 
   /** Pulls changes made on another device (e.g. desktop -> phone). Called on
    * a timer and when the tab regains focus. Returns true if anything changed. */
-  async syncFromCloud(): Promise<boolean> {
+  async syncFromCloud(force = false): Promise<boolean> {
     const companyId = this.data.companyId;
     if (!companyId || this.pushing || this.syncing) return false;
     this.syncing = true;
     try {
-      const remote = await cloudFetchCompanyData(companyId);
+      const remote = await withTimeout(cloudFetchCompanyData(companyId));
       if (!remote) return false;
       const remoteRev = remote.revision || 0;
       const neverSynced = this.data.cloudRevision === undefined;
-      if (!neverSynced && remoteRev <= (this.data.cloudRevision || 0)) return false;
+      if (!force && !neverSynced && remoteRev <= (this.data.cloudRevision || 0)) return false;
       const hasUnsyncedLocalEdits = neverSynced || (this.data.revision || 0) > (this.data.cloudRevision || 0);
       if (hasUnsyncedLocalEdits) {
         this.mergeRemote(remote);

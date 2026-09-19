@@ -17,7 +17,8 @@ import {
   Wrench,
   X,
   Pencil,
-  Upload
+  Upload,
+  RefreshCw
 } from 'lucide-react';
 import { serviceStore } from '../../lib/serviceStore';
 import { getServiceSectorConfig } from '../../lib/serviceSectorConfig';
@@ -77,6 +78,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
     refreshCatalog();
   };
 
+  const [syncing, setSyncing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -337,6 +339,14 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
               >
                 <Upload className="w-4 h-4 text-emerald-400" />
                 <span className="hidden sm:inline">Import / Scan</span>
+              </button>
+              <button
+                onClick={async () => { setSyncing(true); try { await serviceStore.syncFromCloud(true); } catch {} setSyncing(false); refreshCatalog(); }}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold rounded-xl cursor-pointer"
+                title="Pull the latest services from your other devices"
+              >
+                <RefreshCw className={`w-4 h-4 text-sky-400 ${syncing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Sync</span>
               </button>
             </div>
 
