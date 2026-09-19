@@ -774,7 +774,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   { feature: 'Universal Industry ERP Workflows', tm: '✅ Tailored for 10+ Industries', pos: '❌ Generic Single-Template' },
                   { feature: 'Auto Multi-Unit Inventory (MT, Kg, Gram, Meter, Ream)', tm: '✅ Built-in & Sector Configurable', pos: '⚠️ Basic Pieces Only' },
                   { feature: 'AI Purchase Bill Camera Scanner', tm: '✅ Auto Extracts Supplier, HSN & Items', pos: '❌ Manual Entry' },
-                  { feature: 'AI Business Health & AI Assistant', tm: '✅ Live Score & Voice Commands', pos: '❌ None' },
+                  { feature: 'AI Business Health Score', tm: '✅ Live Score', pos: '❌ None' },
                   { feature: 'Automated WhatsApp Udhaar Reminders', tm: '✅ 1-Tap Reminders with UPI Link', pos: '❌ Paid Add-on or Manual' },
                   { feature: 'Multi-Language Interface (6 Languages)', tm: '✅ English, Hindi, Bengali, Marathi, etc.', pos: '⚠️ English Only' },
                   { feature: 'Cloud & Offline Mobile First', tm: '✅ Works on Phone, Tablet & PC', pos: '⚠️ Expensive Hardware Required' },

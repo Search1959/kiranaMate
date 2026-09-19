@@ -109,7 +109,6 @@ import { ScanPurchaseBillModal } from './components/ScanPurchaseBillModal';
 import { SectorDemoModal } from './components/SectorDemoModal';
 import { ServiceSectorModal } from './components/ServiceSectorModal';
 import { ServiceAuthModal } from './components/ServiceAuthModal';
-import { AiAssistantWidget } from './components/AiAssistantWidget';
 
 // Views
 import { DashboardView } from './views/DashboardView';
@@ -1145,23 +1144,6 @@ export default function App() {
         initialMode={serviceAuthModalMode}
         onAuthSuccess={handleServiceAuthSuccess}
       />
-
-      {/* AI Assistant & Voice Commands Floating Widget */}
-      {viewMode === 'app' && (
-        <AiAssistantWidget
-          products={products}
-          customers={customers}
-          stats={stats}
-          recentSales={sales}
-          settings={activeSettings}
-          onNavigateTab={setActiveTab}
-          onOpenQuickAction={(action) => {
-            if (action === 'new_sale') handleOpenPos();
-            else if (action === 'new_order') setIsNewOrderOpen(true);
-            else if (action === 'scan_bill') setIsScanPurchaseBillOpen(true);
-          }}
-        />
-      )}
 
       {/* Auth Modal Triggered from Header or Landing */}
       <AuthModal
