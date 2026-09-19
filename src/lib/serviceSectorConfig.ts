@@ -1,4 +1,5 @@
 import { ServiceSector, ServiceSectorGroup, ServiceItem, ServiceStaff, ServicePackage } from '../types';
+import { STARTER_CATALOG } from './serviceStarterCatalog';
 
 export interface ServiceSectorConfig {
   id: ServiceSector;
@@ -879,6 +880,19 @@ export const SERVICE_SECTORS: ServiceSectorConfig[] = [
     ]
   }
 ];
+
+// Every sector's hand-written defaults are only 1-5 items; fold in the fuller
+// starter menu (see serviceStarterCatalog.ts) so a new Zero-Data company opens
+// with a realistic, editable price list. Existing names are never duplicated.
+SERVICE_SECTORS.forEach(sector => {
+  const extra = STARTER_CATALOG[sector.id];
+  if (!extra) return;
+  const existing = new Set(sector.defaultServices.map(sv => sv.name.toLowerCase()));
+  const added = extra.services.filter(sv => !existing.has(sv.name.toLowerCase()));
+  sector.defaultServices = [...sector.defaultServices, ...added];
+  const cats = new Set([...sector.categories, ...(extra.categories || []), ...added.map(sv => sv.category)]);
+  sector.categories = Array.from(cats);
+});
 
 export function getServiceSectorConfig(sectorId: ServiceSector): ServiceSectorConfig {
   return SERVICE_SECTORS.find(s => s.id === sectorId) || SERVICE_SECTORS[0];

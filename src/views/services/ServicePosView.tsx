@@ -399,7 +399,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                   <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
                     <div className="flex items-center gap-1 text-slate-400 text-[10px]">
                       <Clock className="w-3 h-3 text-blue-400" />
-                      <span>{srv.durationMinutes} mins</span>
+                      <span>{srv.durationMinutes > 0 ? `${srv.durationMinutes} mins` : 'Project / Recurring'}</span>
                     </div>
                     <div className="font-black text-emerald-400 text-sm">
                       ₹{srv.price}
