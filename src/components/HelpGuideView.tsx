@@ -174,7 +174,7 @@ export const HelpGuideView: React.FC<HelpGuideViewProps> = ({ onBack, onStartDem
       title: 'Getting Started',
       body: (
         <>
-          <p>Open <strong className="text-white">"Service ERP"</strong> from the home page and pick your industry from 34 service sector templates — clinics, salons, gyms, law firms, IT/software agencies, repair shops, event planners, and many more. Each template pre-configures the right terminology for your business (a clinic calls its customers "Patients", a repair shop calls them "Clients", a salon has "Stylists" instead of "Technicians") and the right workflow ("Appointment" vs "Job Card" vs "Case Matter").</p>
+          <p>Open <strong className="text-white">"Service ERP"</strong> from the home page and pick your industry from 35 service sector templates — clinics, salons, gyms, law firms, IT/software agencies, repair shops, event planners, and many more. Each template pre-configures the right terminology for your business (a clinic calls its customers "Patients", a repair shop calls them "Clients", a salon has "Stylists" instead of "Technicians") and the right workflow ("Appointment" vs "Job Card" vs "Case Matter").</p>
           <p className="mt-2">Like Trading ERP, a new account starts with zero demo data, and picks up your currency automatically from the country you select at signup.</p>
         </>
       )

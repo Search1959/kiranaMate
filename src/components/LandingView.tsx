@@ -254,7 +254,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 </div>
                 <div className="font-display font-bold text-sm text-slate-900">Service ERP</div>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Providing a service — Salon, Clinic, Repair, Education &amp; 34 service sectors
+                  Providing a service — Salon, Clinic, Repair, Education &amp; 35 service sectors
                 </p>
                 <span className="mt-1 text-[11px] font-bold text-indigo-600 group-hover:text-indigo-700 flex items-center gap-1">
                   Sign Up <ChevronRight className="w-3.5 h-3.5" />
@@ -315,7 +315,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2">
               {[
                 '23 Trading Sectors',
-                '34 Service Sectors',
+                '35 Service Sectors',
                 'GST-Ready Invoicing',
                 'AI Bill Scanning',
               ].map((item) => (
@@ -458,7 +458,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <div className="text-[10px] text-slate-500 mt-0.5">Kirana to Jewellery</div>
           </div>
           <div className="bg-white border border-green-100 p-4 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-display font-black text-indigo-400">34</div>
+            <div className="text-2xl sm:text-3xl font-display font-black text-indigo-400">35</div>
             <div className="text-xs font-semibold text-slate-600 mt-1">Service Business Sectors</div>
             <div className="text-[10px] text-slate-500 mt-0.5">Salon to Legal Firms</div>
           </div>
@@ -478,7 +478,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
       {/* Service ERP Showcase — Trading gets deep coverage above (hero,
           feature grid, comparison table, pricing); Service ERP previously
           only appeared as a header pill and one stat line, which badly
-          undersold 34 real service sectors. This gives it comparable
+          undersold 35 real service sectors. This gives it comparable
           visual weight, mirroring the Trading showcase's own card pattern. */}
       <section className="py-16 px-4 sm:px-8 bg-white border-t border-green-100">
         <div className="max-w-7xl mx-auto">
@@ -492,7 +492,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   <h3 className="font-display text-sm sm:text-base font-bold text-slate-900">Built for Any Service Business</h3>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Not selling goods — providing a service? ServiceERP covers 34 real sectors, from salons to law firms.
+                  Not selling goods — providing a service? ServiceERP covers 35 real sectors, from salons to law firms.
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -501,7 +501,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   className="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-slate-900 font-extrabold text-xs rounded-full shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-200"
                 >
                   <Wrench className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>View All 34 Sectors →</span>
+                  <span>View All 35 Sectors →</span>
                 </button>
                 <button
                   onClick={onOpenServiceSectorModal}
@@ -657,7 +657,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 icon: ClipboardList,
                 color: 'text-emerald-600 bg-emerald-600/10 border-emerald-300',
                 title: 'Choose Your Business Type',
-                desc: 'Pick from 23 trading sector templates or 34 service business sectors — units, categories & workflow are pre-configured for you.'
+                desc: 'Pick from 23 trading sector templates or 35 service business sectors — units, categories & workflow are pre-configured for you.'
               },
               {
                 step: '2',

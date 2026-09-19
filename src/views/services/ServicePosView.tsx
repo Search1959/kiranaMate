@@ -99,7 +99,14 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const [completedInvoice, setCompletedInvoice] = useState<ServiceInvoice | null>(null);
   const [printInvoice, setPrintInvoice] = useState<ServiceInvoice | null>(null);
 
-  const categories = ['ALL', ...cfg.categories];
+  // Preset categories, plus any the owner added ("+ Add Category") and any a
+  // saved service already uses — otherwise a custom category's services were
+  // in the grid but the category never got a filter pill.
+  const categories = ['ALL', ...Array.from(new Set([
+    ...cfg.categories,
+    ...serviceStore.getCustomCategories(),
+    ...services.map(s => s.category)
+  ].filter(Boolean)))];
 
   const filteredServices = services.filter(srv => {
     const matchesCat = selectedCategory === 'ALL' || srv.category === selectedCategory;

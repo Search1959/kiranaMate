@@ -26,7 +26,7 @@ export const SERVICE_SECTOR_GROUPS: { name: ServiceSectorGroup; icon: string; co
   { name: 'Home Services', icon: 'Zap', count: 10, description: 'Electrician, Plumbing, Pest Control, Cleaning & Gardening' },
   { name: 'IT & Technology', icon: 'Server', count: 11, description: 'Software, Web Development, Digital Marketing & Computer AMC' },
   { name: 'Creative Services', icon: 'Camera', count: 10, description: 'Photography, Videography, Printing Press & Event Management' },
-  { name: 'Hospitality & Travel', icon: 'Hotel', count: 10, description: 'Hotel, Guest House, Travel Agency, Car Rental & Catering' },
+  { name: 'Hospitality & Travel', icon: 'Hotel', count: 11, description: 'Hotel, Restaurant & Cafe, Guest House, Travel Agency, Car Rental & Catering' },
   { name: 'Property & Construction', icon: 'Building', count: 8, description: 'Real Estate, Construction, Contractors & Facility Management' },
   { name: 'Laundry & Cleaning', icon: 'Shirt', count: 6, description: 'Laundry, Dry Cleaning, Carpet & Tank Cleaning' },
   { name: 'Security Services', icon: 'Shield', count: 4, description: 'Security Guard Agency, CCTV & Fire Safety' },
@@ -610,6 +610,42 @@ export const SERVICE_SECTORS: ServiceSectorConfig[] = [
     ],
     defaultPackages: [
       { name: '3 Days / 2 Nights Weekend Getaway Pass', price: 6999, durationDays: 3, includedServices: ['2 Nights Deluxe Room', 'All Meals Included', 'Free Spa Coupon'], discountPercent: 20, description: 'Complete relaxed weekend resort experience' }
+    ]
+  },
+
+  {
+    id: 'RESTAURANT_CAFE',
+    name: 'Restaurant, Cafe & Food Service',
+    group: 'Hospitality & Travel',
+    iconName: 'Hotel',
+    tagline: 'Table Orders, Menu Billing, Takeaway, Combos & Daily Sales',
+    customerTerm: 'Guest',
+    staffTerm: 'Waiter / Chef',
+    workOrderTerm: 'Table Order',
+    categories: ['Starters', 'Main Course', 'Breads & Rice', 'Beverages', 'Desserts'],
+    subIndustries: ['Restaurant', 'Cafe', 'Fast Food', 'Bakery', 'Cloud Kitchen', 'Sweet Shop', 'Dhaba'],
+    defaultServices: [
+      { name: 'Paneer Tikka', category: 'Starters', price: 260, durationMinutes: 20, gstPercent: 5, description: 'Char-grilled cottage cheese with mint chutney', isPopular: true },
+      { name: 'Veg Spring Rolls (6 pcs)', category: 'Starters', price: 180, durationMinutes: 15, gstPercent: 5, description: 'Crispy rolls with sweet chilli dip' },
+      { name: 'Butter Chicken', category: 'Main Course', price: 340, durationMinutes: 25, gstPercent: 5, description: 'Creamy tomato gravy, tender tandoori chicken', isPopular: true },
+      { name: 'Dal Makhani', category: 'Main Course', price: 220, durationMinutes: 20, gstPercent: 5, description: 'Slow-cooked black lentils with butter and cream' },
+      { name: 'Paneer Butter Masala', category: 'Main Course', price: 280, durationMinutes: 20, gstPercent: 5, description: 'Rich tomato-cashew gravy with soft paneer' },
+      { name: 'Veg Biryani', category: 'Breads & Rice', price: 240, durationMinutes: 25, gstPercent: 5, description: 'Aromatic basmati rice with vegetables, served with raita' },
+      { name: 'Jeera Rice', category: 'Breads & Rice', price: 140, durationMinutes: 10, gstPercent: 5, description: 'Cumin-tempered steamed basmati rice' },
+      { name: 'Butter Naan', category: 'Breads & Rice', price: 45, durationMinutes: 8, gstPercent: 5, description: 'Tandoor-baked, brushed with butter' },
+      { name: 'Tandoori Roti', category: 'Breads & Rice', price: 25, durationMinutes: 6, gstPercent: 5, description: 'Whole wheat roti from the clay oven' },
+      { name: 'Masala Chai', category: 'Beverages', price: 30, durationMinutes: 5, gstPercent: 5, description: 'Freshly brewed ginger-cardamom tea', isPopular: true },
+      { name: 'Cold Coffee', category: 'Beverages', price: 120, durationMinutes: 5, gstPercent: 5, description: 'Chilled blended coffee with ice cream' },
+      { name: 'Fresh Lime Soda', category: 'Beverages', price: 70, durationMinutes: 4, gstPercent: 5, description: 'Sweet or salted, fresh lime with soda' },
+      { name: 'Gulab Jamun (2 pcs)', category: 'Desserts', price: 90, durationMinutes: 5, gstPercent: 5, description: 'Warm milk dumplings in cardamom syrup' },
+      { name: 'Brownie with Ice Cream', category: 'Desserts', price: 160, durationMinutes: 8, gstPercent: 5, description: 'Hot chocolate brownie with vanilla scoop', isPopular: true }
+    ],
+    defaultStaff: [
+      { name: 'Chef Ramesh', role: 'Head Chef', mobile: '9811334455', specialty: 'North Indian & Tandoor', rating: 4.8, totalJobsCompleted: 0, commissionPercent: 0, dailyTarget: 20000, status: 'Active' },
+      { name: 'Suresh Waiter', role: 'Captain / Waiter', mobile: '9811445566', specialty: 'Table Service', rating: 4.7, totalJobsCompleted: 0, commissionPercent: 0, dailyTarget: 10000, status: 'Active' }
+    ],
+    defaultPackages: [
+      { name: 'Monthly Lunch Meal Pass (26 Days)', price: 3900, durationDays: 30, includedServices: ['Daily Thali Lunch', 'Free Masala Chai', 'Priority Seating'], discountPercent: 15, description: 'Prepaid lunch pass for office-goers and regulars' }
     ]
   },
 
