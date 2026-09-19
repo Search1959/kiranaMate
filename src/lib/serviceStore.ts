@@ -470,7 +470,9 @@ export class ServiceStoreManager {
         this.pushAgain = false;
         const remote = await cloudFetchCompanyData(companyId);
         const remoteRev = remote?.revision || 0;
-        if (remote && remoteRev > (this.data.cloudRevision || 0)) {
+        // cloudRevision undefined = this device has never synced with the cloud
+        // copy (data saved before versioning existed): always merge it in first.
+        if (remote && remoteRev > (this.data.cloudRevision ?? -1)) {
           this.mergeRemote(remote);
           this.notify();
         }
@@ -494,8 +496,9 @@ export class ServiceStoreManager {
       const remote = await cloudFetchCompanyData(companyId);
       if (!remote) return false;
       const remoteRev = remote.revision || 0;
-      if (remoteRev <= (this.data.cloudRevision || 0)) return false;
-      const hasUnsyncedLocalEdits = (this.data.revision || 0) > (this.data.cloudRevision || 0);
+      const neverSynced = this.data.cloudRevision === undefined;
+      if (!neverSynced && remoteRev <= (this.data.cloudRevision || 0)) return false;
+      const hasUnsyncedLocalEdits = neverSynced || (this.data.revision || 0) > (this.data.cloudRevision || 0);
       if (hasUnsyncedLocalEdits) {
         this.mergeRemote(remote);
         this.data.cloudRevision = remoteRev;
