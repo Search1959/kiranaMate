@@ -17,7 +17,7 @@ import {
   ExpenseCategory
 } from '../types';
 import { getServiceSectorConfig, SERVICE_SECTORS } from './serviceSectorConfig';
-import { cloudRegisterCompany, cloudLoginCompany, cloudSaveCompanyData, cloudUpdateAccountProfile, CloudUnavailableError } from './serviceCloud';
+import { cloudRegisterCompany, cloudLoginCompany, cloudSaveCompanyData, cloudFetchCompanyData, cloudUpdateAccountProfile, CloudUnavailableError } from './serviceCloud';
 
 const SERVICE_STORE_KEY = 'trademate_service_store_v1';
 const ACTIVE_SERVICE_SECTOR_KEY = 'trademate_active_service_sector';
@@ -47,6 +47,10 @@ export interface ServiceStoreData {
   /** UPI VPA (e.g. "yourshop@upi") — lets the printed/WhatsApp invoice show
    * a scannable payment QR so a client can pay straight from their phone. */
   upiId?: string;
+  /** Bumped on every local change; compared with the cloud copy to tell which device is newer. */
+  revision?: number;
+  /** The revision this device last knew to be in the cloud. */
+  cloudRevision?: number;
   /** Saved Client Outreach message templates + default discount %, so the
    * owner's wording survives leaving the screen (same on desktop and mobile). */
   outreachSettings?: { feedbackTemplate?: string; winbackTemplate?: string; launchTemplate?: string; discountPercent?: number };
@@ -410,8 +414,103 @@ export const SERVICE_EXPENSE_CATEGORIES: (ExpenseCategory | string)[] = [
 export class ServiceStoreManager {
   private data: ServiceStoreData;
 
+  private listeners = new Set<() => void>();
+  private pushing = false;
+  private pushAgain = false;
+  private syncing = false;
+
   constructor() {
     this.data = this.loadFromStorage();
+  }
+
+  /** Lets the UI re-render when another device's changes arrive. */
+  subscribe(fn: () => void): () => void {
+    this.listeners.add(fn);
+    return () => { this.listeners.delete(fn); };
+  }
+
+  private notify() {
+    this.listeners.forEach(fn => fn());
+  }
+
+  private writeLocal() {
+    try {
+      const key = this.data.companyId || this.data.activeSector;
+      localStorage.setItem(`${SERVICE_STORE_KEY}_${key}`, JSON.stringify(this.data));
+    } catch (err) {
+      console.error('Error writing service store to localStorage', err);
+    }
+  }
+
+  /** Union another device's records into ours by id (ours win on a clash), so
+   * neither side's new services/invoices/etc. are lost when both edited. */
+  private mergeRemote(remote: ServiceStoreData) {
+    const collections = ['services', 'appointments', 'jobCards', 'staff', 'packages', 'customers', 'invoices', 'quotations', 'payments', 'expenses'] as const;
+    const target = this.data as any;
+    const source = remote as any;
+    collections.forEach(key => {
+      const local: any[] = target[key] || [];
+      const ids = new Set(local.map(item => item.id));
+      const extra = ((source[key] || []) as any[]).filter(item => !ids.has(item.id));
+      target[key] = [...local, ...extra];
+    });
+    const cats = new Set([...(this.data.customCategories || []), ...(remote.customCategories || [])]);
+    this.data.customCategories = Array.from(cats);
+  }
+
+  /** Pushes to the cloud, first merging in anything another device saved that
+   * we haven't seen — a stale phone/laptop must never overwrite newer data. */
+  private async pushToCloud() {
+    const companyId = this.data.companyId;
+    if (!companyId) return;
+    if (this.pushing) { this.pushAgain = true; return; }
+    this.pushing = true;
+    try {
+      do {
+        this.pushAgain = false;
+        const remote = await cloudFetchCompanyData(companyId);
+        const remoteRev = remote?.revision || 0;
+        if (remote && remoteRev > (this.data.cloudRevision || 0)) {
+          this.mergeRemote(remote);
+          this.notify();
+        }
+        this.data.revision = Math.max(this.data.revision || 0, remoteRev + 1);
+        this.data.cloudRevision = this.data.revision;
+        this.writeLocal();
+        await cloudSaveCompanyData(companyId, this.data);
+      } while (this.pushAgain);
+    } finally {
+      this.pushing = false;
+    }
+  }
+
+  /** Pulls changes made on another device (e.g. desktop -> phone). Called on
+   * a timer and when the tab regains focus. Returns true if anything changed. */
+  async syncFromCloud(): Promise<boolean> {
+    const companyId = this.data.companyId;
+    if (!companyId || this.pushing || this.syncing) return false;
+    this.syncing = true;
+    try {
+      const remote = await cloudFetchCompanyData(companyId);
+      if (!remote) return false;
+      const remoteRev = remote.revision || 0;
+      if (remoteRev <= (this.data.cloudRevision || 0)) return false;
+      const hasUnsyncedLocalEdits = (this.data.revision || 0) > (this.data.cloudRevision || 0);
+      if (hasUnsyncedLocalEdits) {
+        this.mergeRemote(remote);
+        this.data.cloudRevision = remoteRev;
+        this.writeLocal();
+        this.notify();
+        this.pushToCloud();
+      } else {
+        this.data = { ...remote, companyId, username: this.data.username || remote.username, revision: remoteRev, cloudRevision: remoteRev };
+        this.writeLocal();
+        this.notify();
+      }
+      return true;
+    } finally {
+      this.syncing = false;
+    }
   }
 
   private loadFromStorage(): ServiceStoreData {
@@ -444,6 +543,7 @@ export class ServiceStoreManager {
         localStorage.setItem(ACTIVE_SERVICE_COMPANY_KEY, this.data.companyId);
       }
       localStorage.setItem(ACTIVE_SERVICE_SECTOR_KEY, this.data.activeSector);
+      this.data.revision = (this.data.revision || 0) + 1;
       localStorage.setItem(`${SERVICE_STORE_KEY}_${key}`, JSON.stringify(this.data));
     } catch (err) {
       console.error("Error writing service store to localStorage", err);
@@ -453,7 +553,7 @@ export class ServiceStoreManager {
     // the same account sees the same data from any browser/device — not just
     // this one. Fire-and-forget: never blocks the UI, never throws.
     if (this.data.companyId) {
-      cloudSaveCompanyData(this.data.companyId, this.data);
+      this.pushToCloud();
     }
   }
 
@@ -619,6 +719,7 @@ export class ServiceStoreManager {
       data.username = cleanUsername;
       data.businessName = res.businessName;
       data.ownerName = res.ownerName;
+      data.cloudRevision = data.revision || 0;
       this.data = data;
       this.saveToStorage();
       return res;

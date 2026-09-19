@@ -147,6 +147,27 @@ import { serviceStore } from './lib/serviceStore';
 import { ServiceSector } from './types';
 
 export default function App() {
+  // Service ERP keeps each company as one cloud record; pull in changes made
+  // on another device (desktop <-> phone) every 30s and whenever this tab is
+  // brought back to the front, and re-render when they arrive.
+  const [, setServiceSyncTick] = useState(0);
+  useEffect(() => {
+    const unsubscribe = serviceStore.subscribe(() => setServiceSyncTick(t => t + 1));
+    const pull = () => {
+      if (document.visibilityState !== 'hidden') serviceStore.syncFromCloud();
+    };
+    pull();
+    const timer = setInterval(pull, 30000);
+    document.addEventListener('visibilitychange', pull);
+    window.addEventListener('focus', pull);
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', pull);
+      window.removeEventListener('focus', pull);
+    };
+  }, []);
+
   // Navigation & Page State
   const [viewMode, setViewMode] = useState<'landing' | 'service_login' | 'help' | 'app'>('landing');
   const [currentStoreId, setCurrentStoreId] = useState<string>('store-demo');
