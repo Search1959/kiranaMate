@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Supplier, Product, ProductUnit, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { findMatchingProduct } from '../lib/productMatch';
 import { Pagination, usePagination } from './Pagination';
 import { formatMoney } from '../lib/currency';
 // Loaded on demand (only when someone actually uploads a spreadsheet) rather than a
@@ -353,9 +354,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
     const mappedItems: ScannedItem[] = (data.items || []).map((it: any, idx: number) => {
       const extractedName = (it.name || it.productName || it.description || 'Unnamed Item').trim();
       // Check if product exists in shop inventory
-      const existing = products.find(
-        p => p.name.toLowerCase().trim() === extractedName.toLowerCase()
-      );
+      const existing = findMatchingProduct(products, extractedName)?.product;
 
       const qty = Number(it.quantity) || 1;
       const price = Number(it.purchasePrice) || 0;
@@ -896,15 +895,27 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                                   onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
                                   className="w-full bg-slate-50 border border-slate-200 rounded-md px-2 py-1 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 />
-                                {item.isExistingProduct ? (
-                                  <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded mt-0.5 inline-block">
-                                    Matches Stock Catalog
-                                  </span>
-                                ) : (
-                                  <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1 py-0.2 rounded mt-0.5 inline-block">
-                                    ✨ New Catalog Product
-                                  </span>
-                                )}
+                                {/* Choose where this line's stock goes: a product you already
+                                    have (adds to its stock) or a brand-new catalog entry. */}
+                                <select
+                                  value={item.productId || ''}
+                                  onChange={(e) => {
+                                    const picked = products.find(p => p.id === e.target.value);
+                                    handleItemChange(idx, 'productId', picked ? picked.id : undefined);
+                                    handleItemChange(idx, 'isExistingProduct', !!picked);
+                                  }}
+                                  className={`mt-0.5 w-full text-[10px] font-bold rounded px-1 py-0.5 border focus:outline-none ${
+                                    item.isExistingProduct
+                                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                                      : 'text-blue-700 bg-blue-50 border-blue-200'
+                                  }`}
+                                  title="Add this quantity to an existing product, or create a new one"
+                                >
+                                  <option value="">✨ New catalog product</option>
+                                  {[...products].sort((a, b) => a.name.localeCompare(b.name)).map(p => (
+                                    <option key={p.id} value={p.id}>Add to: {p.name} (stock {p.currentStock})</option>
+                                  ))}
+                                </select>
                               </td>
 
                               <td className="p-2">

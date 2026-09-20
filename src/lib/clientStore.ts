@@ -20,6 +20,7 @@
 import { generateSectorSeedData } from '../server/seedData';
 import { TRADING_SECTORS, getSectorConfig } from './sectorConfig';
 import { DEFAULT_CURRENCY, getCurrencyByCountry } from './currency';
+import { findMatchingProduct } from './productMatch';
 import { cloudFetchStore, cloudSaveStore, cloudLookupUsername, cloudRegisterUsername, cloudListAllTradingAccounts, cloudDeleteStore, cloudDeleteUsername } from './tradingCloud';
 
 interface StoreData {
@@ -716,9 +717,11 @@ export const clientStore = {
     return { success: true, product: prod };
   },
 
-  bulkImportProducts(storeId: string = 'store-demo', productsList: Partial<Product>[]): { addedCount: number; errors: string[] } {
+  bulkImportProducts(storeId: string = 'store-demo', productsList: Partial<Product>[], mode: 'add' | 'replace' = 'add'): { addedCount: number; newCount: number; updatedCount: number; errors: string[] } {
     const data = getStoreData(storeId);
     let addedCount = 0;
+    let newCount = 0;
+    let updatedCount = 0;
     const errors: string[] = [];
 
     for (const item of productsList) {
@@ -727,15 +730,27 @@ export const clientStore = {
         continue;
       }
 
-      // Check existing by name or barcode
-      const existing = data.products.find(
-        p => p.name.toLowerCase().trim() === item.name?.toLowerCase().trim() ||
-             (item.barcode && p.barcode === item.barcode)
-      );
+      // Same product by barcode / name (also tolerant of spacing & word order)
+      const existing = findMatchingProduct(data.products, item.name, item.barcode)?.product;
 
       if (existing) {
-        // Update stock and prices
-        existing.currentStock += Number(item.currentStock) || 0;
+        const qty = Number(item.currentStock) || 0;
+        const before = existing.currentStock;
+        existing.currentStock = mode === 'replace' ? qty : existing.currentStock + qty;
+        if (existing.currentStock !== before) {
+          data.inventoryTransactions.unshift({
+            id: `inv-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+            productId: existing.id,
+            productName: existing.name,
+            type: mode === 'replace' ? (qty >= before ? 'MANUAL_ADD' : 'MANUAL_REDUCE') : 'STOCK_IN_PURCHASE',
+            quantityChange: existing.currentStock - before,
+            stockAfter: existing.currentStock,
+            notes: mode === 'replace' ? 'Stock re-count via bulk import' : 'Added via bulk import',
+            createdBy: 'Owner',
+            createdAt: new Date().toISOString()
+          });
+        }
+        updatedCount++;
         if (item.sellingPrice) existing.sellingPrice = Number(item.sellingPrice);
         if (item.purchasePrice) existing.purchasePrice = Number(item.purchasePrice);
         if (item.mrp) existing.mrp = Number(item.mrp);
@@ -762,12 +777,70 @@ export const clientStore = {
           updatedAt: new Date().toISOString()
         };
         data.products.unshift(newProd);
+        if (newProd.currentStock > 0) {
+          data.inventoryTransactions.unshift({
+            id: `inv-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+            productId: newProd.id,
+            productName: newProd.name,
+            type: 'INITIAL_STOCK',
+            quantityChange: newProd.currentStock,
+            stockAfter: newProd.currentStock,
+            notes: 'Opening stock via bulk import',
+            createdBy: 'Owner',
+            createdAt: new Date().toISOString()
+          });
+        }
+        newCount++;
         addedCount++;
       }
     }
 
     saveStoreData(storeId, data);
-    return { addedCount, errors };
+    return { addedCount, newCount, updatedCount, errors };
+  },
+
+  /** Removes several products at once (selected cards). Sales/purchase history is kept. */
+  deleteProducts(storeId: string = 'store-demo', ids: string[]): { success: boolean; deleted: number } {
+    const data = getStoreData(storeId);
+    const set = new Set(ids.map(i => String(i).trim()));
+    const before = data.products.length;
+    data.products = data.products.filter(p => !set.has(String(p.id).trim()));
+    saveStoreData(storeId, data);
+    return { success: true, deleted: before - data.products.length };
+  },
+
+  /** Wipes the whole product list. History (sales, purchases, customers) stays intact. */
+  deleteAllProducts(storeId: string = 'store-demo'): { success: boolean; deleted: number } {
+    const data = getStoreData(storeId);
+    const deleted = data.products.length;
+    data.products = [];
+    saveStoreData(storeId, data);
+    return { success: true, deleted };
+  },
+
+  /** Sets every product's quantity to 0 (keeps the products), logging each change. */
+  zeroAllStock(storeId: string = 'store-demo'): { success: boolean; changed: number } {
+    const data = getStoreData(storeId);
+    let changed = 0;
+    data.products.forEach(p => {
+      if (p.currentStock === 0) return;
+      data.inventoryTransactions.unshift({
+        id: `inv-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        productId: p.id,
+        productName: p.name,
+        type: 'MANUAL_REDUCE',
+        quantityChange: -p.currentStock,
+        stockAfter: 0,
+        notes: 'Stock reset to zero (all products)',
+        createdBy: 'Owner',
+        createdAt: new Date().toISOString()
+      });
+      p.currentStock = 0;
+      p.updatedAt = new Date().toISOString();
+      changed++;
+    });
+    saveStoreData(storeId, data);
+    return { success: true, changed };
   },
 
   // Sales
@@ -1200,7 +1273,8 @@ export const clientStore = {
 
     for (const item of payload.items || []) {
       const itemName = (item.name || item.productName || item.description || 'Scanned Item').trim();
-      let prod = data.products.find(p => p.name.toLowerCase().trim() === itemName.toLowerCase());
+      // The review screen lets the owner pick the exact product; otherwise match by name (tolerant of spacing/order).
+      let prod = (item.productId && data.products.find(p => p.id === item.productId)) || findMatchingProduct(data.products, itemName)?.product;
 
       if (prod) {
         prod.currentStock += Number(item.quantity) || 0;

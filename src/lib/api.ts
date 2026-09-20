@@ -105,7 +105,16 @@ async function handleClientFallback<T>(url: string, options?: RequestInit): Prom
 
   // 4. Products
   if (pathname === '/api/products/bulk-import' && method === 'POST') {
-    return clientStore.bulkImportProducts(currentStoreId, body.products) as unknown as T;
+    return clientStore.bulkImportProducts(currentStoreId, body.products, body.mode) as unknown as T;
+  }
+  if (pathname === '/api/products/bulk-delete' && method === 'POST') {
+    return clientStore.deleteProducts(currentStoreId, body.ids || []) as unknown as T;
+  }
+  if (pathname === '/api/products/delete-all' && method === 'POST') {
+    return clientStore.deleteAllProducts(currentStoreId) as unknown as T;
+  }
+  if (pathname === '/api/products/zero-all' && method === 'POST') {
+    return clientStore.zeroAllStock(currentStoreId) as unknown as T;
   }
   if (pathname.startsWith('/api/products/barcode/')) {
     const code = decodeURIComponent(pathname.split('/').pop()!);
@@ -343,7 +352,10 @@ export const api = {
   updateProduct: (id: string, data: Partial<Product>) => apiFetch<Product>(`/api/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id: string) => apiFetch<{ success: boolean }>(`/api/products/${id}`, { method: 'DELETE' }),
   addStock: (id: string, qtyToAdd: number, notes?: string) => apiFetch<{ success: boolean; product: Product }>(`/api/products/${id}/add-stock`, { method: 'POST', body: JSON.stringify({ qtyToAdd, notes }) }),
-  bulkImportProducts: (products: Partial<Product>[]) => apiFetch<{ addedCount: number; errors: string[] }>('/api/products/bulk-import', { method: 'POST', body: JSON.stringify({ products }) }),
+  bulkImportProducts: (products: Partial<Product>[], mode: 'add' | 'replace' = 'add') => apiFetch<{ addedCount: number; newCount?: number; updatedCount?: number; errors: string[] }>('/api/products/bulk-import', { method: 'POST', body: JSON.stringify({ products, mode }) }),
+  deleteProducts: (ids: string[]) => apiFetch<{ success: boolean; deleted: number }>('/api/products/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+  deleteAllProducts: () => apiFetch<{ success: boolean; deleted: number }>('/api/products/delete-all', { method: 'POST', body: JSON.stringify({}) }),
+  zeroAllStock: () => apiFetch<{ success: boolean; changed: number }>('/api/products/zero-all', { method: 'POST', body: JSON.stringify({}) }),
 
   // Sales
   getSales: (search?: string) => apiFetch<Sale[]>(`/api/sales?search=${encodeURIComponent(search || '')}`),

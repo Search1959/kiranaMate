@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Papa from 'papaparse';
 import { Pagination, usePagination } from '../components/Pagination';
 import {
   Package,
@@ -14,7 +15,10 @@ import {
   Trash2,
   X,
   Barcode,
-  AlertCircle
+  AlertCircle,
+  MoreVertical,
+  CheckSquare,
+  Download
 } from 'lucide-react';
 import { Product, KiranaCategory, StoreSettings } from '../types';
 import { api } from '../lib/api';
@@ -67,6 +71,69 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   const [confirmZeroStockProduct, setConfirmZeroStockProduct] = useState<Product | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [localDeletedIds, setLocalDeletedIds] = useState<string[]>([]);
+
+  // Bulk stock tools: pick several cards to delete, or use the ⋮ menu for
+  // whole-inventory actions (backup / zero all quantities / delete all).
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showMore, setShowMore] = useState(false);
+  const [bulkAction, setBulkAction] = useState<null | 'selected' | 'all' | 'zero'>(null);
+  const [confirmText, setConfirmText] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelected = (id: string) =>
+    setSelectedIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+
+  const exitSelectMode = () => { setSelectMode(false); setSelectedIds([]); };
+
+  const downloadBackup = () => {
+    const csv = Papa.unparse(products.map(p => ({
+      'Product Name': p.name,
+      Category: p.category,
+      Brand: p.brand,
+      Unit: p.unit,
+      'Selling Price': p.sellingPrice,
+      MRP: p.mrp,
+      'Purchase Price': p.purchasePrice,
+      Stock: p.currentStock,
+      Barcode: p.barcode,
+      'Min Stock': p.minStock
+    })));
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stock_backup_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const closeBulk = () => { setBulkAction(null); setConfirmText(''); };
+
+  const runBulkAction = async () => {
+    if (!bulkAction) return;
+    setBulkBusy(true);
+    try {
+      if (bulkAction === 'selected') {
+        await api.deleteProducts(selectedIds);
+        setLocalDeletedIds(prev => [...prev, ...selectedIds]);
+        exitSelectMode();
+      } else if (bulkAction === 'all') {
+        await api.deleteAllProducts();
+        setLocalDeletedIds(prev => [...prev, ...products.map(p => p.id)]);
+        exitSelectMode();
+      } else {
+        await api.zeroAllStock();
+      }
+      closeBulk();
+      if (onRefreshData) onRefreshData();
+    } catch (err: any) {
+      alert(err.message || 'Action failed');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const handleDeleteProduct = (p: Product) => {
     setConfirmDeleteProduct(p);
@@ -142,7 +209,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           <button
             onClick={onOpenBulkImport}
             className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2.5 rounded-2xl text-xs flex items-center gap-1.5 shadow-sm"
@@ -155,6 +222,33 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           >
             <Plus className="w-4 h-4" /> Add Product
           </button>
+          <button
+            onClick={() => setShowMore(v => !v)}
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 p-2.5 rounded-2xl shadow-sm"
+            title="More stock tools"
+          >
+            <MoreVertical className="w-4 h-4" />
+          </button>
+          {showMore && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setShowMore(false)} />
+              <div className="absolute right-0 top-full mt-2 z-40 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 text-xs">
+                <button onClick={() => { setShowMore(false); setSelectMode(true); }} className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 font-bold text-slate-700 flex items-center gap-2">
+                  <CheckSquare className="w-4 h-4 text-blue-600" /> Select products to delete
+                </button>
+                <button onClick={() => { setShowMore(false); downloadBackup(); }} disabled={products.length === 0} className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 font-bold text-slate-700 flex items-center gap-2 disabled:opacity-40">
+                  <Download className="w-4 h-4 text-emerald-600" /> Download stock backup (CSV)
+                </button>
+                <div className="my-1 border-t border-slate-100" />
+                <button onClick={() => { setShowMore(false); setBulkAction('zero'); }} disabled={products.length === 0} className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-amber-50 font-bold text-amber-700 flex items-center gap-2 disabled:opacity-40">
+                  <AlertCircle className="w-4 h-4" /> Set all quantities to zero
+                </button>
+                <button onClick={() => { setShowMore(false); setBulkAction('all'); }} disabled={products.length === 0} className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-rose-50 font-bold text-rose-700 flex items-center gap-2 disabled:opacity-40">
+                  <Trash2 className="w-4 h-4" /> Delete all products
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -205,7 +299,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           >
             All Categories ({products.length})
           </button>
-          {CATEGORIES.map(cat => {
+          {Array.from(new Set([...CATEGORIES as string[], ...products.map(p => p.category).filter(Boolean)])).map(cat => {
             const count = products.filter(p => p.category === cat).length;
             if (count === 0) return null;
             return (
@@ -225,6 +319,30 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
         </div>
       </div>
 
+      {selectMode && (
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-blue-50 border border-blue-200 rounded-2xl px-4 py-2.5 text-xs">
+          <label className="flex items-center gap-2 font-bold text-blue-900 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filteredProducts.length > 0 && filteredProducts.every(p => selectedIds.includes(p.id))}
+              onChange={(e) => setSelectedIds(e.target.checked ? filteredProducts.map(p => p.id) : [])}
+            />
+            Select all {filteredProducts.length} shown (all pages)
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-blue-800">{selectedIds.length} selected</span>
+            <button
+              onClick={() => setBulkAction('selected')}
+              disabled={selectedIds.length === 0}
+              className="bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white font-bold px-3 py-1.5 rounded-xl flex items-center gap-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete selected
+            </button>
+            <button onClick={exitSelectMode} className="bg-white border border-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-xl">Cancel</button>
+          </div>
+        </div>
+      )}
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {pg.pageItems.map(p => {
@@ -234,13 +352,25 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           return (
             <div
               key={p.id}
+              onClick={selectMode ? () => toggleSelected(p.id) : undefined}
               className={`bg-white p-4 rounded-3xl border transition-all shadow-sm hover:shadow-md flex flex-col justify-between ${
+                selectMode && selectedIds.includes(p.id) ? 'ring-2 ring-blue-500 ' : ''
+              }${selectMode ? 'cursor-pointer ' : ''}${
                 isOut ? 'border-red-300 bg-red-50/20' : isLow ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'
               }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0">
+                  {selectMode && (
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(p.id)}
+                      onChange={() => toggleSelected(p.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1 w-4 h-4 shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                       {p.category} • {p.brand}
                     </span>
@@ -490,6 +620,52 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
       )}
 
       {/* CONFIRM DELETE PRODUCT MODAL */}
+      {bulkAction && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className={`flex items-center gap-3 ${bulkAction === 'zero' ? 'text-amber-600' : 'text-rose-600'}`}>
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${bulkAction === 'zero' ? 'bg-amber-50' : 'bg-rose-50'}`}>
+                {bulkAction === 'zero' ? <AlertCircle className="w-5 h-5" /> : <Trash2 className="w-5 h-5" />}
+              </div>
+              <h3 className="font-bold text-base text-slate-900">
+                {bulkAction === 'selected' && `Delete ${selectedIds.length} selected products?`}
+                {bulkAction === 'all' && `Delete ALL ${products.length} products?`}
+                {bulkAction === 'zero' && 'Set every product quantity to zero?'}
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600">
+              {bulkAction === 'zero'
+                ? 'Every product stays in your catalog but its stock becomes 0. Each change is logged in the Stock Ledger.'
+                : 'Products are removed from your inventory. Past sales, purchases, customers and bills are NOT touched. This cannot be undone — download a stock backup first if unsure.'}
+            </p>
+            {bulkAction === 'all' && (
+              <div className="space-y-1.5">
+                <button onClick={downloadBackup} className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                  <Download className="w-3.5 h-3.5" /> Download stock backup first
+                </button>
+                <label className="block text-[11px] font-bold text-slate-600">Type DELETE to confirm</label>
+                <input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  placeholder="DELETE"
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button onClick={closeBulk} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Cancel</button>
+              <button
+                onClick={runBulkAction}
+                disabled={bulkBusy || (bulkAction === 'all' && confirmText.trim() !== 'DELETE')}
+                className={`flex-1 py-2.5 text-white font-bold rounded-xl text-xs disabled:opacity-40 ${bulkAction === 'zero' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-rose-600 hover:bg-rose-700'}`}
+              >
+                {bulkBusy ? 'Working...' : bulkAction === 'zero' ? 'Set all to zero' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmDeleteProduct && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
