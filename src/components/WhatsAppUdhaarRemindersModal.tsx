@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, MessageCircle, Search, CreditCard, MessageSquare, PartyPopper } from 'lucide-react';
 import { Customer, StoreSettings, LanguageCode } from '../types';
 import { formatMoney } from '../lib/currency';
+import { Pagination, usePagination } from './Pagination';
 import { getWhatsAppWebLink, getSmsLink, generateUdhaarReminderText } from '../lib/whatsapp';
 
 interface WhatsAppUdhaarRemindersModalProps {
@@ -24,8 +25,6 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
   const [search, setSearch] = useState('');
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
 
-  if (!isOpen) return null;
-
   const withUdhaar = customers
     .filter(c => (c.currentBalance ?? c.outstandingBalance ?? 0) > 0)
     .sort((a, b) => (b.currentBalance ?? b.outstandingBalance ?? 0) - (a.currentBalance ?? a.outstandingBalance ?? 0));
@@ -35,6 +34,10 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.mobile.includes(search)
   );
+
+  const pg = usePagination(filtered, search);
+
+  if (!isOpen) return null;
 
   const totalPending = withUdhaar.reduce((sum, c) => sum + (c.currentBalance ?? c.outstandingBalance ?? 0), 0);
 
@@ -100,7 +103,7 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
               </div>
             </div>
           ) : (
-            filtered.map(cust => (
+            pg.pageItems.map(cust => (
               <div key={cust.id} className="p-3.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-bold text-slate-900 text-sm truncate">{cust.name}</div>
@@ -134,6 +137,7 @@ export const WhatsAppUdhaarRemindersModal: React.FC<WhatsAppUdhaarRemindersModal
               </div>
             ))
           )}
+          <div className="px-3.5 pb-3"><Pagination page={pg.page} totalPages={pg.totalPages} total={pg.total} onChange={pg.setPage} variant="light" /></div>
         </div>
       </div>
     </div>

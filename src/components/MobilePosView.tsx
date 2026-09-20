@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Pagination, usePagination } from './Pagination';
 import {
   ArrowLeft,
   ShoppingCart,
@@ -91,6 +92,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
       p.category.toLowerCase().includes(q)
     );
   });
+  const posPg = usePagination(filteredProducts, search);
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -343,7 +345,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
             {filteredProducts.length === 0 ? (
               <div className="col-span-2 p-8 text-center text-slate-400 text-xs">No matching products found.</div>
             ) : (
-              filteredProducts.map(p => {
+              posPg.pageItems.map(p => {
                 const inCart = cart.find(i => i.product.id === p.id);
                 return (
                   <button
@@ -367,6 +369,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
                 );
               })
             )}
+            <div className="col-span-2"><Pagination page={posPg.page} totalPages={posPg.totalPages} total={posPg.total} onChange={posPg.setPage} variant="light" /></div>
           </div>
 
           {cart.length > 0 && (

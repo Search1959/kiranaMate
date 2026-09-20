@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Upload, Camera, Check, Trash2, RefreshCw, FileSpreadsheet } from 'lucide-react';
 import { serviceStore } from '../lib/serviceStore';
+import { Pagination, usePagination } from './Pagination';
 import { getServiceSectorConfig } from '../lib/serviceSectorConfig';
 import {
   ImportedService,
@@ -20,6 +21,7 @@ const SPREADSHEET_EXT = ['.xlsx', '.xls', '.csv'];
 export const ImportServicesModal: React.FC<ImportServicesModalProps> = ({ isOpen, onClose, onImported }) => {
   const cfg = getServiceSectorConfig(serviceStore.getActiveSector());
   const [rows, setRows] = useState<ImportedService[]>([]);
+  const rowPg = usePagination(rows, '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [cameraOn, setCameraOn] = useState(false);
@@ -202,7 +204,7 @@ export const ImportServicesModal: React.FC<ImportServicesModalProps> = ({ isOpen
                   <span>Service</span><span>Category</span><span>Price</span><span />
                 </div>
                 <div className="max-h-64 overflow-y-auto divide-y divide-slate-800">
-                  {rows.map((r, i) => (
+                  {rowPg.pageItems.map((r, pi) => { const i = (rowPg.page - 1) * rowPg.pageSize + pi; return (
                     <div key={i} className="grid grid-cols-[1fr_110px_70px_28px] gap-2 px-2.5 py-1.5 items-center">
                       <input value={r.name} onChange={e => updateRow(i, { name: e.target.value })} className="bg-slate-800 rounded px-2 py-1 border border-slate-700 min-w-0" />
                       <input value={r.category} onChange={e => updateRow(i, { category: e.target.value })} className="bg-slate-800 rounded px-2 py-1 border border-slate-700 min-w-0" />
@@ -211,8 +213,9 @@ export const ImportServicesModal: React.FC<ImportServicesModalProps> = ({ isOpen
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  ))}
+                  ); })}
                 </div>
+                <div className="px-2.5 pb-2"><Pagination page={rowPg.page} totalPages={rowPg.totalPages} total={rowPg.total} onChange={rowPg.setPage} variant="dark" /></div>
               </div>
             </div>
           )}

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Supplier, Product, ProductUnit, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
+import { Pagination, usePagination } from './Pagination';
 import { formatMoney } from '../lib/currency';
 // Loaded on demand (only when someone actually uploads a spreadsheet) rather than a
 // static import — xlsx adds ~115kb gzipped, not worth it on every page load for a
@@ -82,6 +83,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [items, setItems] = useState<ScannedItem[]>([]);
+  const itemPg = usePagination(items, '');
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [detectedLanguage, setDetectedLanguage] = useState<string>('Auto (Hindi / Bengali / English)');
@@ -885,7 +887,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                             <td colSpan={8} className="p-4 text-center text-slate-400">No items extracted. Click "Add Item Row".</td>
                           </tr>
                         ) : (
-                          items.map((item, idx) => (
+                          itemPg.pageItems.map((item, pi) => { const idx = (itemPg.page - 1) * itemPg.pageSize + pi; return (
                             <tr key={item.id} className="hover:bg-slate-50">
                               <td className="p-2">
                                 <input
@@ -969,10 +971,11 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                                 </button>
                               </td>
                             </tr>
-                          ))
+                          ); })
                         )}
                       </tbody>
                     </table>
+                    <div className="px-3 pb-2"><Pagination page={itemPg.page} totalPages={itemPg.totalPages} total={itemPg.total} onChange={itemPg.setPage} variant="light" /></div>
                   </div>
                 </div>
               </div>
