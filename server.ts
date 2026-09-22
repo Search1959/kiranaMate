@@ -24,6 +24,30 @@ async function startServer() {
     }
   });
 
+  /** Gemini occasionally answers a normal request with 503 "currently experiencing
+   * high demand" or a 429 rate limit — both explicitly transient, per Gemini's own
+   * error text. Retrying the same model shortly after fixes these; there used to be
+   * a fallback to a second, older model instead, but that model has since been
+   * retired ("no longer available to new users"), which turned every transient
+   * overload into a hard failure. Non-transient errors (bad request, invalid key,
+   * schema mismatch) are rethrown immediately — retrying those would just waste time. */
+  async function generateContentWithRetry(request: Parameters<typeof ai.models.generateContent>[0], attempts = 3) {
+    let lastErr: any;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        return await ai.models.generateContent(request);
+      } catch (err: any) {
+        lastErr = err;
+        const status = err?.status || err?.error?.code;
+        const isTransient = status === 503 || status === 429 || /UNAVAILABLE|RESOURCE_EXHAUSTED/i.test(String(err?.message || ''));
+        if (!isTransient || i === attempts - 1) throw err;
+        console.warn(`Gemini request failed (attempt ${i + 1}/${attempts}, transient), retrying:`, err?.message || err);
+        await new Promise(r => setTimeout(r, 1200 * (i + 1)));
+      }
+    }
+    throw lastErr;
+  }
+
   // 20mb accommodates scanned PDF bills and spreadsheet uploads, not just photos
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
@@ -564,23 +588,11 @@ RULES:
         ? [{ text: `${promptText}\n\nSPREADSHEET DATA (CSV):\n${textContent}` }]
         : [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }];
 
-      let response;
-      try {
-        response = await ai.models.generateContent({
-          model: 'gemini-3.6-flash',
-          contents: { parts: contentParts },
-          config: { responseMimeType: 'application/json', responseSchema }
-        });
-      } catch (firstErr) {
-        console.warn('gemini-3.6-flash failed, falling back to gemini-2.5-flash:', firstErr);
-        response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: {
-            parts: contentParts
-          },
-          config: { responseMimeType: 'application/json', responseSchema }
-        });
-      }
+      const response = await generateContentWithRetry({
+        model: 'gemini-3.6-flash',
+        contents: { parts: contentParts },
+        config: { responseMimeType: 'application/json', responseSchema }
+      });
 
       const text = response.text;
       let data: any = {};
@@ -657,21 +669,11 @@ RULES:
         ? [{ text: `${promptText}\n\nCONTENT:\n${textContent}` }]
         : [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }];
 
-      let response;
-      try {
-        response = await ai.models.generateContent({
-          model: 'gemini-3.6-flash',
-          contents: { parts: contentParts },
-          config: { responseMimeType: 'application/json', responseSchema }
-        });
-      } catch (firstErr) {
-        console.warn('gemini-3.6-flash failed, falling back to gemini-2.5-flash:', firstErr);
-        response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: { parts: contentParts },
-          config: { responseMimeType: 'application/json', responseSchema }
-        });
-      }
+      const response = await generateContentWithRetry({
+        model: 'gemini-3.6-flash',
+        contents: { parts: contentParts },
+        config: { responseMimeType: 'application/json', responseSchema }
+      });
 
       const data = response.text ? JSON.parse(response.text) : { items: [] };
       return res.json({ success: true, data });
@@ -697,7 +699,7 @@ RULES:
         cleanBase64 = parts[1];
       }
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry({
         model: 'gemini-3.6-flash',
         contents: {
           parts: [
