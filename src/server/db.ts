@@ -825,6 +825,11 @@ class Database {
     newSale.items.forEach(item => {
       const p = store.products.find(prod => prod.id === item.productId);
       if (p) {
+        // Snapshot at time of sale, so the printed invoice stays accurate even if the
+        // product's current batch/expiry moves on with the next purchase.
+        item.hsn = p.hsn;
+        item.batchNumber = p.batchNumber;
+        item.expiryDate = p.expiryDate;
         const newStock = Math.max(0, p.currentStock - item.quantity);
         p.currentStock = newStock;
         p.updatedAt = new Date().toISOString();
@@ -991,6 +996,17 @@ class Database {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+
+    // Same snapshot as createSale — an order's stock isn't deducted until it's marked
+    // delivered, but the invoice should still show the batch/expiry it was sold from.
+    newOrder.items.forEach(item => {
+      const p = store.products.find(prod => prod.id === item.productId);
+      if (p) {
+        item.hsn = p.hsn;
+        item.batchNumber = p.batchNumber;
+        item.expiryDate = p.expiryDate;
+      }
+    });
 
     store.orders.push(newOrder);
 

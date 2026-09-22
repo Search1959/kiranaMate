@@ -259,6 +259,11 @@ export interface OrderItem {
   price: number;
   mrp: number;
   total: number;
+  /** Snapshotted from the product at the moment of sale, so it stays accurate on the
+   * printed invoice even if the product's own current batch/expiry changes later. */
+  hsn?: string;
+  batchNumber?: string;
+  expiryDate?: string;
 }
 
 export interface Order {
@@ -293,6 +298,10 @@ export interface SaleItem {
   totalPrice: number;
   gstRate?: number;
   gstAmount?: number;
+  /** Snapshotted from the product at the moment of sale — see OrderItem for why. */
+  hsn?: string;
+  batchNumber?: string;
+  expiryDate?: string;
 }
 
 export interface Sale {
@@ -390,6 +399,12 @@ export interface StoreSettings {
   city: string;
   pincode: string;
   gstin?: string;
+  /** State name, e.g. "Maharashtra" — printed as "Place of Supply" on the tax invoice
+   * when set. Left blank, that line is simply omitted rather than guessed. */
+  state?: string;
+  /** Drug licence / trade licence / registration number, shown on the invoice when set
+   * (e.g. a pharmacy's DL No.). Label is generic since it applies to any sector. */
+  licenseNo?: string;
   upiId?: string; // for generating QR codes for payment
   currencySymbol: string;
   currencyCode?: string; // ISO 4217, e.g. INR, USD, GBP — drives locale-correct digit grouping

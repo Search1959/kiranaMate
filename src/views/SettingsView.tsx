@@ -54,6 +54,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [gstin, setGstin] = useState(
     isServiceWorkspace ? (companyMeta.gstin || '') : (settings.gstin || '')
   );
+  // Trading-only — used on the printed tax invoice's "Place of Supply" and
+  // licence/registration lines. Left blank, those lines are simply omitted.
+  const [state, setState] = useState(settings.state || '');
+  const [licenseNo, setLicenseNo] = useState(settings.licenseNo || '');
   const [tagline, setTagline] = useState(
     isServiceWorkspace ? (companyMeta.tagline || serviceCfg.tagline) : settings.tagline
   );
@@ -113,6 +117,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           address,
           city,
           gstin,
+          state,
+          licenseNo,
           tagline,
           sector,
           country,
@@ -277,6 +283,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             />
           </div>
         </div>
+
+        {!isServiceWorkspace && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">State (Optional)</label>
+              <input
+                type="text"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                placeholder="e.g. Maharashtra"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">Printed as "Place of Supply" on the tax invoice when set.</p>
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Licence / Registration No. (Optional)</label>
+              <input
+                type="text"
+                value={licenseNo}
+                onChange={(e) => setLicenseNo(e.target.value)}
+                placeholder="e.g. Drug Licence No."
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">e.g. a pharmacy's DL No. — printed under your GSTIN when set.</p>
+            </div>
+          </div>
+        )}
 
         {isServiceWorkspace && (
           <div>
