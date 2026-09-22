@@ -378,7 +378,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
               {money((financialSummary?.estimatedCOGS ?? 0) + (financialSummary?.totalOpExpenses ?? 0))}
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
-              COGS: {money(financialSummary?.estimatedCOGS)} | OpEx: {money(financialSummary?.totalOpExpenses)}
+              COGS: {money(financialSummary?.estimatedCOGS)} | OpEx: {money(financialSummary?.totalOpExpenses)} | Purchases: {money(financialSummary?.totalPurchasesVal)}
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -553,6 +553,14 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                     <td className="py-2.5 px-4 text-slate-400">Wholesale cost of goods sold</td>
                     <td className="py-2.5 px-4 text-right font-bold text-rose-600">
                       - {money(financialSummary?.estimatedCOGS)}
+                    </td>
+                  </tr>
+
+                  <tr className="border-b border-slate-100 hover:bg-slate-50 bg-blue-50/30">
+                    <td className="py-2.5 px-4 font-semibold text-slate-700 pl-8">Stock Purchase Bills Recorded ({financialSummary?.purchasesCount ?? 0})</td>
+                    <td className="py-2.5 px-4 text-slate-400">Inventory added this period — expensed as COGS once sold, not a direct P&amp;L deduction</td>
+                    <td className="py-2.5 px-4 text-right font-bold text-blue-700">
+                      {money(financialSummary?.totalPurchasesVal)}
                     </td>
                   </tr>
 
