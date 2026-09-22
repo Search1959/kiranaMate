@@ -148,6 +148,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
     if (!printWindow) return;
 
     const totalAmt = calcPurchaseTotal(p);
+    const hasExtraCols = (p.items || []).some(i => i.hsn || i.batchNumber || i.expiryDate || i.gstPercent !== undefined);
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -180,6 +181,7 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
             <thead>
               <tr>
                 <th>Item</th>
+                ${hasExtraCols ? '<th>HSN</th><th>Batch</th><th>Expiry</th><th>GST%</th>' : ''}
                 <th>Qty</th>
                 <th>Rate</th>
                 <th style="text-align: right;">Total</th>
@@ -189,13 +191,14 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
               ${p.items?.map(i => `
                 <tr>
                   <td>${i.productName}</td>
-                  <td>${i.quantity}</td>
+                  ${hasExtraCols ? `<td>${i.hsn || ''}</td><td>${i.batchNumber || ''}</td><td>${i.expiryDate || ''}</td><td>${i.gstPercent !== undefined ? i.gstPercent + '%' : ''}</td>` : ''}
+                  <td>${i.quantity}${i.freeQty ? ` +${i.freeQty} free` : ''}</td>
                   <td>${money(i.purchasePrice || i.unitPrice)}</td>
                   <td style="text-align: right;">${money(i.totalPrice || (i.quantity * (i.purchasePrice || i.unitPrice || 0)))}</td>
                 </tr>
               `).join('')}
               <tr class="total-row">
-                <td colspan="3">Grand Total:</td>
+                <td colspan="${hasExtraCols ? 6 : 3}">Grand Total:</td>
                 <td style="text-align: right;">${money(totalAmt)}</td>
               </tr>
             </tbody>
@@ -459,12 +462,24 @@ export const PurchasesView: React.FC<PurchasesViewProps> = ({
               <div className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">Item Details ({viewPurchase.items?.length || 0})</div>
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3 divide-y divide-slate-200">
                 {viewPurchase.items?.map((item, idx) => (
-                  <div key={idx} className="py-2 flex items-center justify-between">
-                    <div>
+                  <div key={idx} className="py-2 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <div className="font-bold text-slate-800">{item.productName}</div>
-                      <div className="text-[10px] text-slate-500">Rate: {money(item.purchasePrice || item.unitPrice)} | Qty: {item.quantity}</div>
+                      <div className="text-[10px] text-slate-500">
+                        Rate: {money(item.purchasePrice || item.unitPrice)} | Qty: {item.quantity}
+                        {!!item.freeQty && <span className="text-emerald-600 font-bold"> + {item.freeQty} free</span>}
+                      </div>
+                      {(item.hsn || item.batchNumber || item.expiryDate || item.gstPercent !== undefined || item.discount !== undefined) && (
+                        <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[9px] text-slate-400 mt-0.5">
+                          {item.hsn && <span>HSN: <strong className="text-slate-600">{item.hsn}</strong></span>}
+                          {item.batchNumber && <span>Batch: <strong className="text-slate-600">{item.batchNumber}</strong></span>}
+                          {item.expiryDate && <span className="text-amber-600 font-bold">Exp: {item.expiryDate}</span>}
+                          {item.gstPercent !== undefined && <span>GST: <strong className="text-slate-600">{item.gstPercent}%</strong></span>}
+                          {item.discount !== undefined && <span>Disc: <strong className="text-slate-600">{item.discount}%</strong></span>}
+                        </div>
+                      )}
                     </div>
-                    <div className="font-black text-slate-900">
+                    <div className="font-black text-slate-900 shrink-0">
                       {money(item.totalPrice || (item.quantity * (item.purchasePrice || item.unitPrice || 0)))}
                     </div>
                   </div>

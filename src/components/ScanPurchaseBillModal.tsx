@@ -50,6 +50,14 @@ interface ScannedItem {
   sellingPrice: number;
   totalPrice: number;
   isExistingProduct: boolean;
+  // Present when the bill has them — pharma/medical distributor bills usually do,
+  // a plain kirana/hardware bill usually doesn't. All optional.
+  hsn?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  discountPercent?: number;
+  gstPercent?: number;
+  freeQty?: number;
 }
 
 export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
@@ -371,7 +379,13 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
         mrp: Number(it.mrp) || Math.round(price * 1.25),
         sellingPrice: Number(it.sellingPrice) || Math.round(price * 1.15),
         totalPrice: Number(it.totalPrice) || (qty * price),
-        isExistingProduct: !!existing
+        isExistingProduct: !!existing,
+        hsn: it.hsn ? String(it.hsn).trim() : (existing?.hsn || undefined),
+        batchNumber: it.batchNumber ? String(it.batchNumber).trim() : undefined,
+        expiryDate: it.expiryDate ? String(it.expiryDate).trim() : undefined,
+        discountPercent: it.discountPercent !== undefined && it.discountPercent !== '' ? Number(it.discountPercent) : undefined,
+        gstPercent: it.gstPercent !== undefined && it.gstPercent !== '' ? Number(it.gstPercent) : existing?.gstPercent,
+        freeQty: it.freeQty ? Number(it.freeQty) : undefined
       };
     });
 
@@ -478,7 +492,13 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
           purchasePrice: Number(i.purchasePrice),
           mrp: Number(i.mrp),
           sellingPrice: Number(i.sellingPrice),
-          totalPrice: Number(i.totalPrice) || (Number(i.quantity) * Number(i.purchasePrice))
+          totalPrice: Number(i.totalPrice) || (Number(i.quantity) * Number(i.purchasePrice)),
+          hsn: i.hsn || undefined,
+          batchNumber: i.batchNumber || undefined,
+          expiryDate: i.expiryDate || undefined,
+          discountPercent: i.discountPercent,
+          gstPercent: i.gstPercent,
+          freeQty: i.freeQty
         }))
       };
 
@@ -916,6 +936,69 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                                     <option key={p.id} value={p.id}>Add to: {p.name} (stock {p.currentStock})</option>
                                   ))}
                                 </select>
+
+                                {/* HSN / Batch / Expiry / GST% / Disc% / Free — mainly relevant to
+                                    pharma & medical bills, harmless (and stays empty) for others. */}
+                                <div className="mt-1.5 grid grid-cols-3 gap-1">
+                                  <label className="block">
+                                    <span className="block text-[8px] font-bold text-slate-400 uppercase">HSN</span>
+                                    <input
+                                      type="text"
+                                      value={item.hsn || ''}
+                                      onChange={(e) => handleItemChange(idx, 'hsn', e.target.value)}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="block text-[8px] font-bold text-slate-400 uppercase">Batch</span>
+                                    <input
+                                      type="text"
+                                      value={item.batchNumber || ''}
+                                      onChange={(e) => handleItemChange(idx, 'batchNumber', e.target.value)}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="block text-[8px] font-bold text-slate-400 uppercase">Expiry</span>
+                                    <input
+                                      type="text"
+                                      placeholder="YYYY-MM"
+                                      value={item.expiryDate || ''}
+                                      onChange={(e) => handleItemChange(idx, 'expiryDate', e.target.value)}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="block text-[8px] font-bold text-slate-400 uppercase">GST%</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={item.gstPercent ?? ''}
+                                      onChange={(e) => handleItemChange(idx, 'gstPercent', e.target.value === '' ? undefined : Number(e.target.value))}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="block text-[8px] font-bold text-slate-400 uppercase">Disc%</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={item.discountPercent ?? ''}
+                                      onChange={(e) => handleItemChange(idx, 'discountPercent', e.target.value === '' ? undefined : Number(e.target.value))}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="block text-[8px] font-bold text-slate-400 uppercase">Free</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={item.freeQty ?? ''}
+                                      onChange={(e) => handleItemChange(idx, 'freeQty', e.target.value === '' ? undefined : Number(e.target.value))}
+                                      className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </label>
+                                </div>
                               </td>
 
                               <td className="p-2">

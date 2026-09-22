@@ -180,6 +180,8 @@ export interface Product {
   nextServiceDueDate?: string;
   hazardClass?: string;
   density?: string;
+  /** HSN/SAC code for GST filing. */
+  hsn?: string;
 }
 
 export type ProductUnit = 'kg' | 'g' | 'liter' | 'ml' | 'pcs' | 'pkt' | 'box' | 'bottle' | 'pouch' | 'bag' | 'tin' | 'jar' | string;
@@ -213,6 +215,14 @@ export interface PurchaseItem {
   unitPrice?: number;
   totalPrice?: number;
   total?: number;
+  /** HSN/SAC code for this line, e.g. pharma/medical distributor bills. */
+  hsn?: string;
+  /** Batch/Lot number — this purchase's stock becomes the product's current batch. */
+  batchNumber?: string;
+  /** Expiry date (YYYY-MM or YYYY-MM-DD) — becomes the product's current expiry. */
+  expiryDate?: string;
+  /** Free/bonus quantity received on top of `quantity` at no extra cost. */
+  freeQty?: number;
 }
 
 export interface Purchase {

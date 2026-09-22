@@ -1275,12 +1275,20 @@ export const clientStore = {
       const itemName = (item.name || item.productName || item.description || 'Scanned Item').trim();
       // The review screen lets the owner pick the exact product; otherwise match by name (tolerant of spacing/order).
       let prod = (item.productId && data.products.find(p => p.id === item.productId)) || findMatchingProduct(data.products, itemName)?.product;
+      // Free/bonus units are physically received stock too — count them into the shelf quantity.
+      const receivedQty = (Number(item.quantity) || 0) + (Number(item.freeQty) || 0);
 
       if (prod) {
-        prod.currentStock += Number(item.quantity) || 0;
+        prod.currentStock += receivedQty;
         if (item.purchasePrice) prod.purchasePrice = Number(item.purchasePrice);
         if (item.sellingPrice) prod.sellingPrice = Number(item.sellingPrice);
         if (item.mrp) prod.mrp = Number(item.mrp);
+        // This purchase's batch/expiry/HSN/GST become the product's current ones —
+        // matters most for pharma stock, where the newest batch is what's on the shelf.
+        if (item.batchNumber) prod.batchNumber = String(item.batchNumber).trim();
+        if (item.expiryDate) prod.expiryDate = String(item.expiryDate).trim();
+        if (item.hsn) prod.hsn = String(item.hsn).trim();
+        if (item.gstPercent !== undefined && item.gstPercent !== '') prod.gstPercent = Number(item.gstPercent);
         prod.updatedAt = new Date().toISOString();
         updatedProductsCount++;
       } else {
@@ -1299,10 +1307,13 @@ export const clientStore = {
           purchasePrice: cost,
           sellingPrice: sell,
           mrp: mrpVal,
-          currentStock: Number(item.quantity) || 0,
+          currentStock: receivedQty,
           minStock: 5,
           supplierId: sup.id,
-          gstPercent: 0,
+          gstPercent: item.gstPercent !== undefined && item.gstPercent !== '' ? Number(item.gstPercent) : 0,
+          batchNumber: item.batchNumber ? String(item.batchNumber).trim() : undefined,
+          expiryDate: item.expiryDate ? String(item.expiryDate).trim() : undefined,
+          hsn: item.hsn ? String(item.hsn).trim() : undefined,
           status: 'ACTIVE',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -1316,7 +1327,13 @@ export const clientStore = {
         productName: prod.name,
         quantity: Number(item.quantity) || 1,
         purchasePrice: Number(item.purchasePrice) || 0,
-        totalPrice: Number(item.totalPrice) || (Number(item.quantity) * Number(item.purchasePrice))
+        totalPrice: Number(item.totalPrice) || (Number(item.quantity) * Number(item.purchasePrice)),
+        hsn: item.hsn ? String(item.hsn).trim() : undefined,
+        batchNumber: item.batchNumber ? String(item.batchNumber).trim() : undefined,
+        expiryDate: item.expiryDate ? String(item.expiryDate).trim() : undefined,
+        discount: item.discountPercent !== undefined && item.discountPercent !== '' ? Number(item.discountPercent) : undefined,
+        gstPercent: item.gstPercent !== undefined && item.gstPercent !== '' ? Number(item.gstPercent) : undefined,
+        freeQty: item.freeQty ? Number(item.freeQty) : undefined
       });
     }
 

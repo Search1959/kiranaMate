@@ -496,17 +496,23 @@ RULES:
 2. Extract Supplier/Vendor Name (e.g., "ABC Iron & Steel Traders", "M/s Laxmi Wholesale Traders"). If not found, provide a realistic English business name from header.
 3. Extract Supplier Phone/Mobile if visible.
 4. Extract Invoice/Bill Number and Date (YYYY-MM-DD).
-5. Extract EVERY line item listed without skipping any row (even if there are 30+ items):
+5. Extract EVERY line item listed without skipping any row (even if there are 30+ items). Bills vary — a grocery/hardware bill won't have all of these, a pharma/medical distributor bill (HSN, Batch, Expiry, MRP, Discount%, Free qty, CGST%, SGST%) usually will. Extract whatever columns are actually present; leave a field out entirely (don't guess a fake value) when the bill has no such column:
    - name: Precise English item name / description
    - productName: Same clean English item name as name
-   - category: Select best from ['Rice & Grains', 'Atta & Flours', 'Dals & Pulses', 'Edible Oils & Ghee', 'Spices & Masalas', 'Dairy & Bakery', 'Biscuits & Cookies', 'Personal Care', 'Cleaning & Household', 'Beverages', 'Snacks', 'Building Materials & Hardware', 'General Kirana']
+   - category: Select best from ['Rice & Grains', 'Atta & Flours', 'Dals & Pulses', 'Edible Oils & Ghee', 'Spices & Masalas', 'Dairy & Bakery', 'Biscuits & Cookies', 'Personal Care', 'Cleaning & Household', 'Beverages', 'Snacks', 'Building Materials & Hardware', 'Pharmacy & Medicines', 'General Kirana']
    - brand: Brand name or 'Generic'
-   - unit: Select best from ['kg', 'g', 'liter', 'ml', 'pkt', 'pc', 'box', 'bottle', 'pouch', 'bag', 'tin', 'jar', 'meter', 'ft', 'set']
+   - unit: Select best from ['kg', 'g', 'liter', 'ml', 'pkt', 'pc', 'box', 'bottle', 'pouch', 'bag', 'tin', 'jar', 'meter', 'ft', 'set', 'strip', 'tab', 'cap']
    - quantity: Purchased quantity as a number
-   - purchasePrice: Cost price per unit / rate in INR
+   - freeQty: Free / bonus quantity received on top of the purchased quantity, if the bill has a "Free" column (0 if none)
+   - purchasePrice: Cost price / rate per unit in INR — if this row is entirely free stock with no rate shown, use 0, never leave the row out
    - mrp: MRP per unit in INR (estimate purchasePrice * 1.25 if omitted)
    - sellingPrice: Shop selling price per unit in INR (estimate purchasePrice * 1.15 if omitted)
    - totalPrice: Total line item price in INR (quantity * purchasePrice)
+   - hsn: HSN/SAC code, if printed on the bill
+   - batchNumber: Batch / Lot number, if printed on the bill (common on pharma/medicine bills)
+   - expiryDate: Expiry date as YYYY-MM (or YYYY-MM-DD if a day is given), if printed on the bill
+   - discountPercent: Trade discount % for this line, if a Dis%/Discount column exists
+   - gstPercent: This line's total GST % — if the bill splits it into separate CGST% and SGST% columns, ADD them together (e.g. CGST 5 + SGST 5 = 10); if only one IGST% column exists, use that value directly
 6. Extract total bill amount, paid amount, and payment status.`;
 
       const responseSchema = {
@@ -525,14 +531,23 @@ RULES:
                 productName: { type: Type.STRING, description: 'Same item name for compatibility' },
                 category: { type: Type.STRING, description: 'Item category' },
                 brand: { type: Type.STRING, description: 'Brand or Generic' },
-                unit: { type: Type.STRING, description: 'Unit of measure e.g. kg, pkt, pc' },
+                unit: { type: Type.STRING, description: 'Unit of measure e.g. kg, pkt, pc, strip' },
                 quantity: { type: Type.NUMBER, description: 'Purchased quantity' },
-                purchasePrice: { type: Type.NUMBER, description: 'Purchase price / rate per unit in INR' },
+                freeQty: { type: Type.NUMBER, description: 'Free/bonus quantity, if any (0 if none)' },
+                purchasePrice: { type: Type.NUMBER, description: 'Purchase price / rate per unit in INR (0 if this row is fully free stock)' },
                 mrp: { type: Type.NUMBER, description: 'MRP per unit in INR' },
                 sellingPrice: { type: Type.NUMBER, description: 'Selling price per unit in INR' },
-                totalPrice: { type: Type.NUMBER, description: 'Total line price in INR' }
+                totalPrice: { type: Type.NUMBER, description: 'Total line price in INR' },
+                hsn: { type: Type.STRING, description: 'HSN/SAC code, only if printed on the bill' },
+                batchNumber: { type: Type.STRING, description: 'Batch/Lot number, only if printed on the bill' },
+                expiryDate: { type: Type.STRING, description: 'Expiry date YYYY-MM or YYYY-MM-DD, only if printed on the bill' },
+                discountPercent: { type: Type.NUMBER, description: 'Trade discount %, only if the bill has a discount column' },
+                gstPercent: { type: Type.NUMBER, description: 'Total GST % for this line (CGST% + SGST%, or IGST%), only if GST columns are present' }
               },
-              required: ['name', 'quantity', 'purchasePrice']
+              // purchasePrice/mrp/sellingPrice are deliberately NOT required — a bonus/free
+              // row with a blank rate column must still come through as an item (rate 0)
+              // instead of the whole response being rejected for one incomplete row.
+              required: ['name', 'quantity']
             }
           },
           totalAmount: { type: Type.NUMBER, description: 'Total bill amount in INR' },
