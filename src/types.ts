@@ -16,6 +16,7 @@ export interface UserPermissions {
 export type TradingSector =
   | 'KIRANA_FMCG'
   | 'METALS_STEEL'
+  | 'BALL_BEARING'
   | 'AGRICULTURE'
   | 'TEXTILES'
   | 'CHEMICALS'

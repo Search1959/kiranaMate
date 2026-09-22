@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { LanguageCode, TradingSector } from '../types';
 import { SERVICE_SECTOR_GROUPS } from '../lib/serviceSectorConfig';
+import { TRADING_SECTORS } from '../lib/sectorConfig';
 
 // serviceSectorConfig.ts stores each group's icon as a name string (shared
 // with the in-app sector browser) rather than a component reference — this
@@ -314,7 +315,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 live-demo CTA was dropped per direct request. */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2">
               {[
-                '23 Trading Sectors',
+                `${TRADING_SECTORS.length} Trading Sectors`,
                 '35 Service Sectors',
                 'GST-Ready Invoicing',
                 'AI Bill Scanning',
@@ -352,7 +353,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                     className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-slate-900 font-extrabold text-xs rounded-full shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-green-200"
                   >
                     <Layers className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>View All 23 Sectors →</span>
+                    <span>View All {TRADING_SECTORS.length} Sectors →</span>
                   </button>
                   <button
                     onClick={() => onStartDemo('owner')}

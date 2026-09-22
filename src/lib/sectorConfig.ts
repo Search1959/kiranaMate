@@ -107,6 +107,48 @@ export const TRADING_SECTORS: SectorDefinition[] = [
     ]
   },
   {
+    id: 'BALL_BEARING',
+    name: 'Ball Bearing & Industrial Components Trading',
+    shortLabel: 'Ball Bearings',
+    tagline: 'Ball & Roller Bearings, Pillow Blocks, Oil Seals & Industrial Spares',
+    iconName: 'Cog',
+    color: 'blue',
+    description: 'Deep groove, taper & thrust bearings, pillow block/housing units, bushes, oil seals and industrial belts for machinery, automotive & manufacturing.',
+    primaryUnits: ['Pcs', 'Set', 'Box', 'Dozen', 'Pack'],
+    categories: [
+      'Deep Groove Ball Bearings',
+      'Taper & Roller Bearings',
+      'Thrust Bearings',
+      'Pillow Block / Housing Units',
+      'Bushes & Sleeves',
+      'Oil Seals & Gaskets',
+      'V-Belts & Industrial Belts',
+      'Other'
+    ],
+    defaultGstPercent: 18,
+    invoiceScanHint: 'Look for Bearing Number/Code (e.g. 6204, 6205-2RS, 32208), Brand (SKF/NBC/FAG/Timken), Bore/OD/Width in mm, Pack Quantity, Rate per Piece, and 18% GST.',
+    demoStoreId: 'store-demo-bearing',
+    defaultSettings: {
+      storeName: 'Precision Bearings & Industrial Components',
+      tagline: 'Authorized Dealer • SKF, NBC, FAG & Timken Bearings',
+      invoicePrefix: 'BRG-2026-'
+    },
+    sampleSuppliers: [
+      { name: 'SKF India Authorized Distribution', contactPerson: 'Rajiv Malhotra', mobile: '9811056789', city: 'Faridabad', outstandingBalance: 165000 },
+      { name: 'NBC Bearings (NEI) Wholesale Depot', contactPerson: 'Sanjay Kadam', mobile: '9822067890', city: 'Jaipur', outstandingBalance: 92000 },
+      { name: 'FAG Schaeffler India Distributor', contactPerson: 'Karthik Iyer', mobile: '9833078901', city: 'Pune', outstandingBalance: 138000 },
+      { name: 'Timken India Industrial Supplies', contactPerson: 'Deepak Chawla', mobile: '9844089012', city: 'Chennai', outstandingBalance: 47000 }
+    ],
+    sampleProducts: [
+      { name: 'SKF 6204-2RS1 Deep Groove Ball Bearing', category: 'Deep Groove Ball Bearings', brand: 'SKF', unit: 'Pcs', purchasePrice: 85, sellingPrice: 120, mrp: 140, currentStock: 200, minStock: 50, gstPercent: 18 },
+      { name: 'NBC 6205 ZZ Deep Groove Ball Bearing', category: 'Deep Groove Ball Bearings', brand: 'NBC', unit: 'Pcs', purchasePrice: 70, sellingPrice: 100, mrp: 115, currentStock: 250, minStock: 60, gstPercent: 18 },
+      { name: 'FAG 32208 Taper Roller Bearing', category: 'Taper & Roller Bearings', brand: 'FAG', unit: 'Pcs', purchasePrice: 450, sellingPrice: 580, mrp: 620, currentStock: 40, minStock: 10, gstPercent: 18 },
+      { name: 'Timken 30206 Taper Roller Bearing', category: 'Taper & Roller Bearings', brand: 'Timken', unit: 'Pcs', purchasePrice: 520, sellingPrice: 650, mrp: 690, currentStock: 35, minStock: 10, gstPercent: 18 },
+      { name: 'SKF UCP 205 Pillow Block Bearing Unit', category: 'Pillow Block / Housing Units', brand: 'SKF', unit: 'Pcs', purchasePrice: 380, sellingPrice: 480, mrp: 520, currentStock: 60, minStock: 15, gstPercent: 18 },
+      { name: 'NBC 51106 Thrust Ball Bearing', category: 'Thrust Bearings', brand: 'NBC', unit: 'Pcs', purchasePrice: 150, sellingPrice: 195, mrp: 215, currentStock: 80, minStock: 20, gstPercent: 18 }
+    ]
+  },
+  {
     id: 'AGRICULTURE',
     name: 'Agricultural Commodities & Grain Trading',
     shortLabel: 'Agri Commodities',

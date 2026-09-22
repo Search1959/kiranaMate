@@ -26,7 +26,8 @@ import {
   Smartphone,
   Shirt,
   Sprout,
-  Droplets
+  Droplets,
+  Cog
 } from 'lucide-react';
 import { TRADING_SECTORS, SectorDefinition, getSectorConfig } from '../lib/sectorConfig';
 import { TradingSector } from '../types';
@@ -72,6 +73,7 @@ export const SectorDemoModal: React.FC<SectorDemoModalProps> = ({
       case 'Sparkles': return <Sparkles className="w-5 h-5" />;
       case 'Sprout': return <Sprout className="w-5 h-5" />;
       case 'Droplets': return <Droplets className="w-5 h-5" />;
+      case 'Cog': return <Cog className="w-5 h-5" />;
       default: return <Building2 className="w-5 h-5" />;
     }
   };
