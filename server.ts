@@ -24,29 +24,30 @@ async function startServer() {
     }
   });
 
-  /** Gemini occasionally answers a normal request with 503 "currently experiencing
-   * high demand" or a 429 rate limit — both explicitly transient, per Gemini's own
-   * error text. Retrying the same model shortly after fixes these; there used to be
-   * a fallback to a second, older model instead, but that model has since been
-   * retired ("no longer available to new users"), which turned every transient
-   * overload into a hard failure. Non-transient errors (bad request, invalid key,
-   * schema mismatch) are rethrown immediately — retrying those would just waste time. */
-  async function generateContentWithRetry(request: Parameters<typeof ai.models.generateContent>[0], attempts = 3) {
+  // Free-tier Gemini quotas are set per exact model name, each with its own separate
+  // daily bucket — so a model that's out of quota doesn't mean the API key is out of
+  // quota. These are tried in order; each one gets a couple of quick retries only for
+  // a genuinely transient 503 "high demand", then the next model is tried immediately
+  // on anything else (quota-exhausted, retired model, etc.) instead of stalling on one
+  // model that's already known to be exhausted right now.
+  const SCAN_MODELS = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+
+  async function generateContentWithRetry(request: Omit<Parameters<typeof ai.models.generateContent>[0], 'model'>) {
     let lastErr: any;
-    for (let i = 0; i < attempts; i++) {
-      try {
-        return await ai.models.generateContent(request);
-      } catch (err: any) {
-        lastErr = err;
-        const status = err?.status || err?.error?.code;
-        // 503 (temporary overload) is worth a quick retry. 429/RESOURCE_EXHAUSTED (quota)
-        // is not — Gemini's own retryDelay for that is tens of seconds to a full day, so a
-        // few short retries here would just add latency before failing anyway.
-        const isTransient = status === 503 || /UNAVAILABLE/i.test(String(err?.message || ''));
-        if (!isTransient || i === attempts - 1) throw err;
-        console.warn(`Gemini request failed (attempt ${i + 1}/${attempts}, transient), retrying:`, err?.message || err);
-        await new Promise(r => setTimeout(r, 1200 * (i + 1)));
+    for (const model of SCAN_MODELS) {
+      for (let i = 0; i < 2; i++) {
+        try {
+          return await ai.models.generateContent({ ...request, model });
+        } catch (err: any) {
+          lastErr = err;
+          const status = err?.status || err?.error?.code;
+          const isTransientOverload = status === 503 || /UNAVAILABLE/i.test(String(err?.message || ''));
+          if (!isTransientOverload) break; // try the next model right away
+          console.warn(`Gemini ${model} overloaded (attempt ${i + 1}/2), retrying:`, err?.message || err);
+          await new Promise(r => setTimeout(r, 1200 * (i + 1)));
+        }
       }
+      console.warn(`Gemini ${model} unavailable, trying next model:`, lastErr?.message || lastErr);
     }
     throw lastErr;
   }
@@ -605,7 +606,6 @@ RULES:
         : [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }];
 
       const response = await generateContentWithRetry({
-        model: 'gemini-3.6-flash',
         contents: { parts: contentParts },
         config: { responseMimeType: 'application/json', responseSchema }
       });
@@ -686,7 +686,6 @@ RULES:
         : [{ inlineData: { mimeType, data: cleanBase64 } }, { text: promptText }];
 
       const response = await generateContentWithRetry({
-        model: 'gemini-3.6-flash',
         contents: { parts: contentParts },
         config: { responseMimeType: 'application/json', responseSchema }
       });
@@ -716,7 +715,6 @@ RULES:
       }
 
       const response = await generateContentWithRetry({
-        model: 'gemini-3.6-flash',
         contents: {
           parts: [
             {
