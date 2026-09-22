@@ -216,9 +216,14 @@ async function startServer() {
       return res.status(401).json({ error: 'Incorrect password.' });
     }
 
-    if (sector) {
-      db.updateSettings(found.storeId, { sector });
-    }
+    // NOTE: sector is intentionally never written here. This used to run
+    // `db.updateSettings(found.storeId, { sector })` on every login using
+    // whatever the login form's "Select Sector Dashboard" dropdown happened
+    // to show — silently overwriting an existing account's real registered
+    // sector (its dashboard labels, category presets, etc.) with an
+    // unrelated value on every single login. A store's sector is set once at
+    // registration and changed deliberately in Settings, never as a side
+    // effect of logging in.
 
     const token = `token-${found.user.role}-${Date.now()}`;
     // The session object gets persisted to localStorage client-side — never

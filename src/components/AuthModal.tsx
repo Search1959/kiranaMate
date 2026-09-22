@@ -56,7 +56,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Login Form State
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginSector, setLoginSector] = useState<TradingSector>('METALS_STEEL');
 
   // Admin Login Form State
   const [adminUsername, setAdminUsername] = useState('');
@@ -147,11 +146,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       setLoading(true);
-      const res = await api.login(loginUsername.trim(), loginPassword.trim() || '123456', loginSector);
+      // No sector is sent here — an existing account keeps its own real, registered
+      // sector; it's never picked from a login-time dropdown (that used to silently
+      // overwrite it — see the matching fix note in server.ts's /api/auth/login).
+      const res = await api.login(loginUsername.trim(), loginPassword.trim() || '123456');
 
       api.setStoreId(res.storeId);
       api.setUserRole(res.user.role);
-      setSuccessMsg(`Welcome back, ${res.user.name}! Landing on ${TRADING_SECTORS.find(s => s.id === loginSector)?.name || loginSector} Dashboard.`);
+      setSuccessMsg(`Welcome back, ${res.user.name}!`);
 
       setTimeout(() => {
         onAuthSuccess(res.user, res.storeId);
@@ -489,29 +491,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* TAB 2: LOGIN TO EXISTING STORE */}
           {activeTab === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-3.5">
-              {/* Sector Landing Dropdown */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-200 mb-1">
-                  Select Sector Dashboard *
-                </label>
-                <div className="relative">
-                  <Layers className="w-4 h-4 absolute left-3 top-3 text-blue-400" />
-                  <select
-                    value={loginSector}
-                    onChange={(e) => setLoginSector(e.target.value as TradingSector)}
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-blue-500/60 rounded-xl text-xs text-white font-semibold focus:outline-none focus:border-blue-400"
-                  >
-                    {TRADING_SECTORS.map((s) => (
-                      <option key={s.id} value={s.id} className="bg-slate-900 text-white py-1">
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  After login you will land directly on this sector's custom dashboard.
-                </p>
-              </div>
+              {/* No sector picker here — your account already has its own registered
+                  sector, loaded automatically on login. Change it in Settings, not here. */}
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Username</label>

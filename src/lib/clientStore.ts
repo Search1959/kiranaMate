@@ -1751,10 +1751,9 @@ export const clientStore = {
     // 1. Search if account exists in any registered store
     const found = await findUserAcrossAllStores(cleanUsername);
     if (found) {
-      if (selectedSector && found.storeData.settings) {
-        found.storeData.settings.sector = selectedSector;
-        saveStoreData(found.storeId, found.storeData);
-      }
+      // selectedSector is deliberately NOT applied here — an existing account's real
+      // sector must never be silently overwritten by a login-time dropdown. See the
+      // matching note in server.ts's /api/auth/login for the bug this used to cause.
       return { success: true, user: found.user, storeId: found.storeId };
     }
 
