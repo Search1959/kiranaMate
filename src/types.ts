@@ -399,6 +399,8 @@ export interface StoreSettings {
   lowStockThresholdDefault: number;
   defaultLanguage: 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'bn';
   sector?: TradingSector;
+  /** Default target profit margin % (of selling price) auto-filled when adding new products, e.g. 20 = 20%. */
+  defaultTargetMarginPct?: number;
 }
 
 export interface DailyStats {

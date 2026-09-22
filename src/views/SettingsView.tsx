@@ -69,6 +69,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [country, setCountry] = useState<string>(
     isServiceWorkspace ? (companyMeta.country || 'IN') : (settings.country || 'IN')
   );
+  const [defaultTargetMarginPct, setDefaultTargetMarginPct] = useState<number | ''>(
+    settings.defaultTargetMarginPct ?? ''
+  );
   const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -114,7 +117,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           sector,
           country,
           currencyCode: currency.code,
-          currencySymbol: currency.symbol
+          currencySymbol: currency.symbol,
+          defaultTargetMarginPct: defaultTargetMarginPct === '' ? undefined : Number(defaultTargetMarginPct)
         });
       }
       onRefreshData();
@@ -327,6 +331,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             Auto-detected from your browser when this store was created. All bills, reports and WhatsApp messages use this currency — change it here if it guessed wrong.
           </p>
         </div>
+
+        {!isServiceWorkspace && (
+          <div>
+            <label className="font-bold text-slate-700 block mb-1">Default Target Profit Margin %</label>
+            <input
+              type="number"
+              min={0}
+              max={95}
+              value={defaultTargetMarginPct}
+              onChange={(e) => setDefaultTargetMarginPct(e.target.value === '' ? '' : Number(e.target.value))}
+              placeholder="e.g. 20"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Pre-fills the Target Margin % field when adding a new product, so Selling Price is auto-calculated from Purchase Price. Leave blank to type prices manually.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="font-bold text-slate-700 block mb-1">

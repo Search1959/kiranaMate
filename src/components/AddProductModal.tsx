@@ -57,6 +57,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [mrp, setMrp] = useState<number | ''>('');
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
   const [purchasePrice, setPurchasePrice] = useState<number | ''>('');
+  const [targetMarginPct, setTargetMarginPct] = useState<number | ''>('');
   const [currentStock, setCurrentStock] = useState<number | ''>(10);
   const [minStock, setMinStock] = useState<number | ''>(5);
   const [gstPercent, setGstPercent] = useState<number>(0);
@@ -91,6 +92,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         setMrp(productToEdit.mrp);
         setSellingPrice(productToEdit.sellingPrice);
         setPurchasePrice(productToEdit.purchasePrice);
+        setTargetMarginPct(
+          productToEdit.sellingPrice > 0
+            ? Math.round(((productToEdit.sellingPrice - productToEdit.purchasePrice) / productToEdit.sellingPrice) * 100)
+            : ''
+        );
         setCurrentStock(productToEdit.currentStock);
         setMinStock(productToEdit.minStock);
         setGstPercent(productToEdit.gstPercent || 0);
@@ -119,6 +125,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         setMrp('');
         setSellingPrice('');
         setPurchasePrice('');
+        setTargetMarginPct(settings.defaultTargetMarginPct ?? '');
         setCurrentStock(10);
         setMinStock(5);
         setGstPercent(sectorCfg.defaultGstPercent || 0);
@@ -142,6 +149,30 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   }, [isOpen, productToEdit, scannedBarcode, activeSector]);
 
   if (!isOpen) return null;
+
+  // Target-margin-driven pricing: given a purchase cost and a desired profit
+  // margin % (of selling price), back-solve the selling price so
+  // (sellingPrice - purchaseCost) / sellingPrice === marginPct / 100.
+  const sellingPriceForMargin = (purchaseCost: number, marginPct: number): number => {
+    if (marginPct >= 100) return purchaseCost; // guard divide-by-zero/negative for absurd input
+    return Math.round((purchaseCost / (1 - marginPct / 100)) * 100) / 100;
+  };
+
+  const handlePurchasePriceChange = (raw: string) => {
+    const num = raw === '' ? '' : Number(raw);
+    setPurchasePrice(num);
+    if (num !== '' && targetMarginPct !== '' && Number(targetMarginPct) >= 0 && Number(targetMarginPct) < 100) {
+      setSellingPrice(sellingPriceForMargin(Number(num), Number(targetMarginPct)));
+    }
+  };
+
+  const handleTargetMarginChange = (raw: string) => {
+    const num = raw === '' ? '' : Number(raw);
+    setTargetMarginPct(num);
+    if (num !== '' && purchasePrice !== '' && Number(num) >= 0 && Number(num) < 100) {
+      setSellingPrice(sellingPriceForMargin(Number(purchasePrice), Number(num)));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,7 +317,32 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Purchase Price ({settings.currencySymbol})</label>
+              <input
+                type="number"
+                value={purchasePrice}
+                onChange={(e) => handlePurchasePriceChange(e.target.value)}
+                placeholder="122"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Target Margin %</label>
+              <input
+                type="number"
+                min={0}
+                max={95}
+                value={targetMarginPct}
+                onChange={(e) => handleTargetMarginChange(e.target.value)}
+                placeholder="e.g. 20"
+                className="w-full bg-blue-50 border border-blue-300 rounded-xl px-2.5 py-2 font-bold text-blue-800 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="font-bold text-slate-700 block mb-1">Selling Price ({settings.currencySymbol}) *</label>
               <input
@@ -297,6 +353,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-extrabold text-emerald-700 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                 required
               />
+              {targetMarginPct !== '' && purchasePrice !== '' && (
+                <p className="text-[10px] text-slate-400 mt-1">Auto-calculated from margin — edit to override</p>
+              )}
             </div>
             <div>
               <label className="font-bold text-slate-700 block mb-1">MRP ({settings.currencySymbol})</label>
@@ -305,16 +364,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 value={mrp}
                 onChange={(e) => setMrp(Number(e.target.value))}
                 placeholder="155"
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Purchase Price ({settings.currencySymbol})</label>
-              <input
-                type="number"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(Number(e.target.value))}
-                placeholder="122"
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
               />
             </div>
