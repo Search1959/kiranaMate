@@ -22,6 +22,7 @@ import {
 import { Supplier, Product, ProductUnit, PaymentMethod, StoreSettings } from '../types';
 import { api } from '../lib/api';
 import { findMatchingProduct } from '../lib/productMatch';
+import { parsePurchaseSpreadsheetLocally } from '../lib/purchaseSpreadsheetParser';
 import { Pagination, usePagination } from './Pagination';
 import { formatMoney } from '../lib/currency';
 // Loaded on demand (only when someone actually uploads a spreadsheet) rather than a
@@ -100,7 +101,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   /** Where the data on the review screen actually came from — controls what the top banner honestly claims. */
-  const [dataSource, setDataSource] = useState<'ai' | 'sample' | 'manual'>('ai');
+  const [dataSource, setDataSource] = useState<'ai' | 'sample' | 'manual' | 'local'>('ai');
   /** Whatever was last sent to the scanner, kept only so "Retry Scan" can resend it. */
   const [lastScanPayload, setLastScanPayload] = useState<{ imageBase64?: string; textContent?: string; sourceFileName?: string } | null>(null);
   /** For a spreadsheet upload there's no image to preview — show a quick row/column summary instead. */
@@ -331,6 +332,23 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
    * as text so Gemini can map its columns the same way it reads a photographed bill. */
   const processSpreadsheetFile = async (file: File) => {
     setErrorMsg(null);
+
+    // A spreadsheet is already machine-readable — try reading its columns directly
+    // first, no AI call at all. This is instant, free, and (unlike Gemini on a big
+    // sheet) can't hit a request timeout. Only a layout this can't confidently read
+    // falls through to the slower AI path below.
+    try {
+      const local = await parsePurchaseSpreadsheetLocally(file);
+      if (local) {
+        setImagePreview(null);
+        setSpreadsheetPreview({ fileName: file.name, rowCount: local.items.length, headers: [] });
+        populateExtractedData(local, 'local');
+        return;
+      }
+    } catch (err) {
+      console.warn('Local spreadsheet parse failed, falling back to AI scan:', err);
+    }
+
     try {
       const [buffer, XLSX] = await Promise.all([file.arrayBuffer(), import('xlsx')]);
       const workbook = XLSX.read(buffer, { type: 'array' });
@@ -357,7 +375,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
     }
   };
 
-  const populateExtractedData = (data: any, source: 'ai' | 'sample' | 'manual' = 'ai') => {
+  const populateExtractedData = (data: any, source: 'ai' | 'sample' | 'manual' | 'local' = 'ai') => {
     setDataSource(source);
     setSupplierName(data.supplierName || 'Wholesale Trader');
     setSupplierMobile(data.supplierMobile || '9876543210');
@@ -726,10 +744,12 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                   ? 'bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-900'
                   : dataSource === 'sample'
                   ? 'bg-gradient-to-r from-amber-900 via-slate-900 to-amber-800'
+                  : dataSource === 'local'
+                  ? 'bg-gradient-to-r from-emerald-900 via-slate-900 to-emerald-800'
                   : 'bg-slate-800'
               }`}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold ${dataSource === 'sample' ? 'bg-amber-500' : 'bg-blue-500'}`}>
+                  <div className={`w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold ${dataSource === 'sample' ? 'bg-amber-500' : dataSource === 'local' ? 'bg-emerald-500' : 'bg-blue-500'}`}>
                     {dataSource === 'manual' ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
                   </div>
                   <div>
@@ -737,11 +757,16 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                       {dataSource === 'ai' && <span>Bill Extracted & Translated to English</span>}
                       {dataSource === 'sample' && <span>Sample Bill Preview (Demo Data)</span>}
                       {dataSource === 'manual' && <span>Manual Entry — Add Your Bill Items Below</span>}
+                      {dataSource === 'local' && <span>Spreadsheet Read Instantly (No AI Needed)</span>}
                       {dataSource !== 'manual' && (
                         <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase border ${
-                          dataSource === 'sample' ? 'bg-amber-400/20 text-amber-200 border-amber-400/30' : 'bg-blue-400/20 text-blue-300 border-blue-400/30'
+                          dataSource === 'sample'
+                            ? 'bg-amber-400/20 text-amber-200 border-amber-400/30'
+                            : dataSource === 'local'
+                            ? 'bg-emerald-400/20 text-emerald-200 border-emerald-400/30'
+                            : 'bg-blue-400/20 text-blue-300 border-blue-400/30'
                         }`}>
-                          {detectedLanguage}
+                          {dataSource === 'local' ? 'Instant' : detectedLanguage}
                         </span>
                       )}
                     </h3>
@@ -749,6 +774,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
                       {dataSource === 'ai' && 'Review supplier, pricing and stock changes below before saving.'}
                       {dataSource === 'sample' && "This is placeholder demo data, not extracted from a real photo — edit or replace it before saving to your real stock."}
                       {dataSource === 'manual' && 'AI scanning was unavailable, so nothing was auto-filled — add your supplier and items below.'}
+                      {dataSource === 'local' && 'Your spreadsheet already had clear columns, so this was read directly — no AI, no wait, no usage limit. Review before saving.'}
                     </p>
                   </div>
                 </div>
