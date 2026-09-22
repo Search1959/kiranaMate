@@ -39,13 +39,29 @@ async function startServer() {
       } catch (err: any) {
         lastErr = err;
         const status = err?.status || err?.error?.code;
-        const isTransient = status === 503 || status === 429 || /UNAVAILABLE|RESOURCE_EXHAUSTED/i.test(String(err?.message || ''));
+        // 503 (temporary overload) is worth a quick retry. 429/RESOURCE_EXHAUSTED (quota)
+        // is not — Gemini's own retryDelay for that is tens of seconds to a full day, so a
+        // few short retries here would just add latency before failing anyway.
+        const isTransient = status === 503 || /UNAVAILABLE/i.test(String(err?.message || ''));
         if (!isTransient || i === attempts - 1) throw err;
         console.warn(`Gemini request failed (attempt ${i + 1}/${attempts}, transient), retrying:`, err?.message || err);
         await new Promise(r => setTimeout(r, 1200 * (i + 1)));
       }
     }
     throw lastErr;
+  }
+
+  /** RESOURCE_EXHAUSTED/429 means the Gemini API key has hit its quota (very
+   * common on a free-tier key — as low as 20 requests/day for a given model).
+   * Retrying does nothing until the quota window resets, so this is reported
+   * as its own clear reason instead of the generic "scan failed" message,
+   * which would otherwise send the owner retrying something retrying can't fix. */
+  function describeAiError(err: any): string {
+    const msg = String(err?.message || err);
+    if (err?.status === 429 || /RESOURCE_EXHAUSTED|exceeded your current quota/i.test(msg)) {
+      return 'AI scanning has hit its usage limit for now (the Gemini API key is on a free/limited plan). Wait a while and try again, enter the bill manually, or ask your app admin to upgrade the Gemini API billing plan.';
+    }
+    return 'Failed to scan with AI';
   }
 
   // 20mb accommodates scanned PDF bills and spreadsheet uploads, not just photos
@@ -611,7 +627,7 @@ RULES:
     } catch (err: any) {
       console.error('AI Bill Scanner Error:', err);
       return res.status(500).json({
-        error: 'Failed to scan purchase bill with AI',
+        error: describeAiError(err),
         details: err.message
       });
     }
@@ -679,7 +695,7 @@ RULES:
       return res.json({ success: true, data });
     } catch (err: any) {
       console.error('AI Service Scanner Error:', err);
-      return res.status(500).json({ error: 'Failed to scan the price list with AI', details: err.message });
+      return res.status(500).json({ error: describeAiError(err), details: err.message });
     }
   });
 
@@ -761,7 +777,7 @@ RULES:
     } catch (err: any) {
       console.error('AI Expense Scanner Error:', err);
       return res.status(500).json({
-        error: 'Failed to scan expense receipt with AI',
+        error: describeAiError(err),
         details: err.message
       });
     }

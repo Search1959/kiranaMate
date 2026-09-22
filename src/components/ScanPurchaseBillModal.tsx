@@ -306,9 +306,15 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       // Stay on the capture step with the real file still on hand — never silently swap
       // in unrelated sample data and claim it was "extracted" from the user's real bill.
       setStep('capture');
+      // The server already gives a specific, actionable reason for a quota/limit
+      // failure — appending the generic "check your connection" text to that would
+      // be misleading (retrying won't help until the quota resets).
+      const isQuotaMsg = /usage limit/i.test(err.message || '');
       setErrorMsg(
-        (err.message || 'AI scan failed') +
-        `. This can happen without an internet connection or if the ${payload.textContent ? 'spreadsheet format is unusual' : 'photo is unclear'}. Retry the scan, or enter the bill details manually below.`
+        isQuotaMsg
+          ? err.message
+          : (err.message || 'AI scan failed') +
+            `. This can happen without an internet connection or if the ${payload.textContent ? 'spreadsheet format is unusual' : 'photo is unclear'}. Retry the scan, or enter the bill details manually below.`
       );
     }
   };
