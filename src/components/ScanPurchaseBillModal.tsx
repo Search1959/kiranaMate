@@ -296,6 +296,13 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
       clearTimeout(timer2);
 
       if (res.success && res.data) {
+        // Never silently import a bill where the AI found items but no prices — every
+        // line would land at Rs 0 and look like a successful scan. Say so instead.
+        const scanned: any[] = res.data.items || [];
+        const priced = scanned.filter(i => Number(i.purchasePrice) > 0).length;
+        if (scanned.length >= 3 && priced < scanned.length * 0.2) {
+          throw new Error(`The AI found ${scanned.length} items but could not read their prices, so nothing was imported (it would all show as ₹0)`);
+        }
         populateExtractedData(res.data, 'ai');
       } else {
         throw new Error('Could not parse response from the AI bill scanner');

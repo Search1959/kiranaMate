@@ -590,10 +590,11 @@ RULES:
                 discountPercent: { type: Type.NUMBER, description: 'Trade discount %, only if the bill has a discount column' },
                 gstPercent: { type: Type.NUMBER, description: 'Total GST % for this line (CGST% + SGST%, or IGST%), only if GST columns are present' }
               },
-              // purchasePrice/mrp/sellingPrice are deliberately NOT required — a bonus/free
-              // row with a blank rate column must still come through as an item (rate 0)
-              // instead of the whole response being rejected for one incomplete row.
-              required: ['name', 'quantity']
+              // purchasePrice MUST stay required: when it was optional, Gemini dropped it
+              // (and every other optional price field) on large bills — an 80-row steel bill
+              // came back with no prices at all, so every line imported as Rs 0. A bonus/free
+              // row with a blank rate is handled by the field description instead (use 0).
+              required: ['name', 'quantity', 'purchasePrice']
             }
           },
           totalAmount: { type: Type.NUMBER, description: 'Total bill amount in INR' },
