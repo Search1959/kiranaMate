@@ -19,8 +19,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 }) => {
   const money = (v?: number | null) => formatMoney(v, settings.currencySymbol, settings.currencyCode);
   const sectorLabel = getSectorConfig(settings.sector || 'KIRANA_FMCG').shortLabel;
-  const topSellingProducts = [...products]
-    .sort((a, b) => ((b as any).salesCount || 0) - ((a as any).salesCount || 0))
+
+  // Product never actually carried a salesCount field — this used to sort
+  // `(b as any).salesCount || 0` against `(a as any).salesCount || 0`, i.e.
+  // always 0 vs 0, so "Top Fast-Moving" was really just the first 5 products
+  // in whatever order they happened to be in, each permanently showing
+  // "0 sold". Real counts, from the sales this store has actually made.
+  const unitsSoldByProduct = new Map<string, number>();
+  sales.forEach(sale => {
+    if (sale.status === 'CANCELLED') return;
+    sale.items.forEach(item => {
+      unitsSoldByProduct.set(item.productId, (unitsSoldByProduct.get(item.productId) || 0) + item.quantity);
+    });
+  });
+  const topSellingProducts = products
+    .map(p => ({ ...p, unitsSold: unitsSoldByProduct.get(p.id) || 0 }))
+    .filter(p => p.unitsSold > 0)
+    .sort((a, b) => b.unitsSold - a.unitsSold)
     .slice(0, 5);
 
   const exportReportCSV = () => {
@@ -81,7 +96,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700">
             <span className="text-slate-400 text-[10px] block">Margin Ratio</span>
-            <span className="text-lg font-black text-blue-400">~15.5%</span>
+            <span className="text-lg font-black text-blue-400">
+              {stats.todaySalesTotal > 0 ? `${Math.round((stats.estimatedProfitToday / stats.todaySalesTotal) * 100)}%` : '—'}
+            </span>
           </div>
 
           <div className="bg-amber-400 text-slate-950 p-3 rounded-2xl font-bold">
@@ -97,26 +114,32 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <Award className="w-4 h-4 text-amber-500" /> Top Fast-Moving {sectorLabel} Items
         </h3>
 
-        <div className="divide-y divide-slate-100">
-          {topSellingProducts.map((p, idx) => (
-            <div key={p.id} className="py-2.5 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-slate-100 font-extrabold text-slate-700 flex items-center justify-center text-[11px]">
-                  #{idx + 1}
-                </span>
-                <div>
-                  <span className="font-bold text-slate-900 block">{p.name}</span>
-                  <span className="text-[10px] text-slate-400">{p.category}</span>
+        {topSellingProducts.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 text-xs">
+            No sales recorded yet — your best sellers will show up here once you start billing.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {topSellingProducts.map((p, idx) => (
+              <div key={p.id} className="py-2.5 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-slate-100 font-extrabold text-slate-700 flex items-center justify-center text-[11px]">
+                    #{idx + 1}
+                  </span>
+                  <div>
+                    <span className="font-bold text-slate-900 block">{p.name}</span>
+                    <span className="text-[10px] text-slate-400">{p.category}</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="font-black text-emerald-700 block">{p.unitsSold} sold</span>
+                  <span className="text-[10px] text-slate-500">{money(p.sellingPrice)} each</span>
                 </div>
               </div>
-
-              <div className="text-right">
-                <span className="font-black text-emerald-700 block">{(p as any).salesCount || 0} sold</span>
-                <span className="text-[10px] text-slate-500">{money(p.sellingPrice)} each</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
