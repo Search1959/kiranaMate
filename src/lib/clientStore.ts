@@ -902,12 +902,20 @@ export const clientStore = {
       }
     }
 
-    // Handle Udhaar / Credit
-    if (saleData.paymentMethod === 'CREDIT' && saleData.customerId) {
+    // Handle Udhaar / Credit — whatever is actually still owed, not just an
+    // explicit 'CREDIT' sale. A CASH sale that received less than the grand
+    // total (e.g. ₹100 of a ₹587 bill) owes the rest just as much as a pure
+    // Udhaar sale; only checking paymentMethod === 'CREDIT' here used to
+    // leave that shortfall untracked entirely. 'CREDIT' means nothing was
+    // paid at sale time; otherwise receivedAmount is what was actually paid
+    // (defaulting to the full total when absent, e.g. a normal paid sale).
+    const amountPaidAtSale = saleData.paymentMethod === 'CREDIT' ? 0 : (newSale.receivedAmount ?? newSale.grandTotal);
+    const amountOwed = Math.max(0, Math.round((newSale.grandTotal - amountPaidAtSale) * 100) / 100);
+    if (amountOwed > 0 && saleData.customerId) {
       const cust = data.customers.find(c => c.id === saleData.customerId);
       if (cust) {
         const prevBal = cust.currentBalance || cust.outstandingBalance || 0;
-        const newBal = prevBal + newSale.grandTotal;
+        const newBal = prevBal + amountOwed;
         cust.currentBalance = newBal;
         cust.outstandingBalance = newBal;
         cust.updatedAt = new Date().toISOString();
@@ -916,10 +924,12 @@ export const clientStore = {
           id: `tx-${Date.now()}`,
           customerId: cust.id,
           type: 'CREDIT_SALE',
-          amount: newSale.grandTotal,
+          amount: amountOwed,
           balanceAfter: newBal,
           referenceId: newSale.saleNumber,
-          notes: `Credit purchase bill #${newSale.saleNumber}`,
+          notes: amountPaidAtSale > 0
+            ? `Sale #${newSale.saleNumber} — ₹${amountPaidAtSale} paid, ₹${amountOwed} on Udhaar`
+            : `Credit purchase bill #${newSale.saleNumber}`,
           createdBy: 'Owner',
           createdAt: new Date().toISOString()
         });
@@ -978,11 +988,16 @@ export const clientStore = {
       }
     }
 
-    if (sale.paymentMethod === 'CREDIT' && sale.customerId) {
+    // Reverse only what this sale actually put on Udhaar — same formula as
+    // createSale — so voiding a part-paid sale doesn't also wipe out
+    // unrelated Udhaar the customer already owed from other sales.
+    const amountPaidAtSale = sale.paymentMethod === 'CREDIT' ? 0 : (sale.receivedAmount ?? sale.grandTotal);
+    const amountWasOwed = Math.max(0, Math.round((sale.grandTotal - amountPaidAtSale) * 100) / 100);
+    if (amountWasOwed > 0 && sale.customerId) {
       const cust = data.customers.find(c => c.id === sale.customerId);
       if (cust) {
         const prevBal = cust.currentBalance || cust.outstandingBalance || 0;
-        const newBal = Math.max(0, prevBal - sale.grandTotal);
+        const newBal = Math.max(0, prevBal - amountWasOwed);
         cust.currentBalance = newBal;
         cust.outstandingBalance = newBal;
         cust.updatedAt = new Date().toISOString();
@@ -991,7 +1006,7 @@ export const clientStore = {
           id: `tx-void-${Date.now()}`,
           customerId: cust.id,
           type: 'RETURN_CREDIT',
-          amount: sale.grandTotal,
+          amount: amountWasOwed,
           balanceAfter: newBal,
           referenceId: sale.saleNumber,
           notes: `Sale #${sale.saleNumber} voided: ${reason}`,

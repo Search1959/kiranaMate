@@ -161,6 +161,10 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
 
   const numReceived = typeof receivedAmount === 'number' ? receivedAmount : 0;
   const changeAmount = numReceived > grandTotal ? Math.round((numReceived - grandTotal) * 100) / 100 : 0;
+  // A CASH sale where less than the bill was received owes the rest just like
+  // an Udhaar sale — it needs a real customer to track that against, same as
+  // picking CREDIT outright.
+  const cashShortfall = paymentMethod === 'CASH' && numReceived > 0 ? Math.round((grandTotal - numReceived) * 100) / 100 : 0;
 
   const resetForNewSale = () => {
     setCart([]);
@@ -180,6 +184,10 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
     if (cart.length === 0) return;
     if (paymentMethod === 'CREDIT' && !selectedCustomerId) {
       alert('Please select a registered customer for Udhaar (Credit) sale!');
+      return;
+    }
+    if (cashShortfall > 0 && !selectedCustomerId) {
+      alert(`₹${cashShortfall} of this bill is unpaid. Please select a registered customer so it can be tracked as Udhaar — a Walk-in Customer can't be billed or reminded later.`);
       return;
     }
 
@@ -209,7 +217,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
         totalTaxAmount: Math.round(totalTaxAmount * 100) / 100,
         grandTotal: Math.round(grandTotal * 100) / 100,
         paymentMethod,
-        paymentStatus: (paymentMethod === 'CREDIT' ? 'PENDING' : 'PAID') as PaymentStatus,
+        paymentStatus: (paymentMethod === 'CREDIT' ? 'PENDING' : cashShortfall > 0 ? 'PARTIAL' : 'PAID') as PaymentStatus,
         receivedAmount: numReceived > 0 ? numReceived : undefined,
         changeAmount: changeAmount > 0 ? changeAmount : undefined
       };
@@ -238,6 +246,7 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
 
           <div className="bg-white p-4 rounded-2xl border border-slate-200 text-left text-xs space-y-1.5 shadow-sm">
             <p><strong>Customer:</strong> {lastCreatedSale.customerName}</p>
+            <p><strong>Payment Mode:</strong> {lastCreatedSale.paymentMethod}</p>
             {lastCreatedSale.totalTaxAmount ? (
               <p><strong>GST @ {lastCreatedSale.gstRate}%:</strong> {money(lastCreatedSale.totalTaxAmount)}</p>
             ) : null}
@@ -245,6 +254,18 @@ export const MobilePosView: React.FC<MobilePosViewProps> = ({
               <span>Grand Total:</span>
               <span className="text-emerald-700">{money(lastCreatedSale.grandTotal)}</span>
             </p>
+            {lastCreatedSale.receivedAmount ? (
+              <p className="text-xs text-slate-600 flex justify-between pt-0.5">
+                <span>Amount Received:</span>
+                <span>{money(lastCreatedSale.receivedAmount)}</span>
+              </p>
+            ) : null}
+            {lastCreatedSale.paymentStatus !== 'PAID' ? (
+              <p className="text-xs text-amber-700 font-bold flex justify-between pt-0.5">
+                <span>Balance on Udhaar:</span>
+                <span>{money(lastCreatedSale.grandTotal - (lastCreatedSale.paymentMethod === 'CREDIT' ? 0 : (lastCreatedSale.receivedAmount || 0)))}</span>
+              </p>
+            ) : null}
             {lastCreatedSale.changeAmount ? (
               <p className="text-xs text-emerald-700 font-bold flex justify-between pt-0.5">
                 <span>Change Returned:</span>
