@@ -34,14 +34,6 @@ interface ColumnMap {
   expiry?: number;
   discountPercent?: number;
   freeQty?: number;
-  // A file in TradePOSX's own Bulk Product Import layout (Product Name, Category,
-  // Brand, Unit, Selling Price, MRP, Purchase Price, Stock, ...) is a purchase
-  // record too — recognised the same way, so these columns aren't lost.
-  category?: number;
-  brand?: number;
-  sellingPrice?: number;
-  mrp?: number;
-  barcode?: number;
   // Some bills print the rate IN the header ("CGST 9%") with the column body holding
   // the computed rupee amount for that line, not a percentage — these hold that fixed
   // rate so it isn't mistaken for a per-row percentage value.
@@ -56,17 +48,12 @@ const ALIASES: Record<string, string[]> = {
   name: ['item name', 'item description', 'description', 'product name', 'item'],
   spec: ['size / specification', 'specification', 'material / grade', 'size', 'standard', 'grade'],
   unit: ['uom', 'unit'],
-  quantity: ['quantity', 'qty', 'stock'],
+  quantity: ['quantity', 'qty'],
   rate: ['rate', 'unit rate', 'purchase price', 'price'],
   lineTotal: ['line total', 'total amount', 'amount', 'total'],
   cgstPercent: ['cgst'],
   sgstPercent: ['sgst'],
   gstPercent: ['igst', 'gst %', 'gst%', 'tax %'],
-  category: ['category'],
-  brand: ['brand'],
-  sellingPrice: ['selling price'],
-  mrp: ['mrp'],
-  barcode: ['barcode'],
   hsn: ['hsn'],
   batch: ['batch', 'lot no', 'lot'],
   expiry: ['exp dt', 'expiry', 'exp date'],
@@ -176,10 +163,6 @@ export interface ParsedPurchaseBill {
     discountPercent?: number;
     gstPercent?: number;
     freeQty?: number;
-    brand?: string;
-    sellingPrice?: number;
-    mrp?: number;
-    barcode?: string;
   }[];
 }
 
@@ -217,7 +200,7 @@ export async function parsePurchaseSpreadsheetLocally(file: File): Promise<Parse
       items.push({
         name: spec ? `${rawName} - ${spec}` : rawName,
         productName: spec ? `${rawName} - ${spec}` : rawName,
-        category: map.category !== undefined ? (String(row[map.category] ?? '').trim() || 'Other') : 'Other',
+        category: 'Other',
         unit: map.unit !== undefined ? (String(row[map.unit] ?? '').trim() || 'pcs') : 'pcs',
         quantity,
         purchasePrice: rate,
@@ -231,11 +214,7 @@ export async function parsePurchaseSpreadsheetLocally(file: File): Promise<Parse
         expiryDate: map.expiry !== undefined ? String(row[map.expiry] ?? '').trim() || undefined : undefined,
         discountPercent: map.discountPercent !== undefined ? toNumber(row[map.discountPercent]) || undefined : undefined,
         gstPercent,
-        freeQty: map.freeQty !== undefined ? toNumber(row[map.freeQty]) || undefined : undefined,
-        brand: map.brand !== undefined ? String(row[map.brand] ?? '').trim() || undefined : undefined,
-        sellingPrice: map.sellingPrice !== undefined ? toNumber(row[map.sellingPrice]) || undefined : undefined,
-        mrp: map.mrp !== undefined ? toNumber(row[map.mrp]) || undefined : undefined,
-        barcode: map.barcode !== undefined ? String(row[map.barcode] ?? '').trim() || undefined : undefined
+        freeQty: map.freeQty !== undefined ? toNumber(row[map.freeQty]) || undefined : undefined
       });
     }
 

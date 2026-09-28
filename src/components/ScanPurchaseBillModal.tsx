@@ -402,12 +402,7 @@ export const ScanPurchaseBillModal: React.FC<ScanPurchaseBillModalProps> = ({
         id: `scanned-it-${idx}`,
         productId: existing?.id,
         name: extractedName,
-        // 'Building Materials & Hardware' used to be hardcoded here — a leftover
-        // from before this app supported more than one sector, wrongly slapped
-        // on every item (a bearing, a saree, a medicine...) whenever the AI/local
-        // parser didn't return a category. 'Other' is the same neutral fallback
-        // used everywhere else in the app (Bulk Import, plain bulkImportProducts).
-        category: it.category || existing?.category || 'Other',
+        category: it.category || existing?.category || 'Building Materials & Hardware',
         brand: it.brand || existing?.brand || 'Generic',
         unit: (it.unit as ProductUnit) || existing?.unit || 'kg',
         quantity: qty,
