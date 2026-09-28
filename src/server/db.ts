@@ -1343,7 +1343,7 @@ class Database {
           id: newProdId,
           name: item.name,
           sku: `SKU-${Date.now().toString().slice(-6)}${idx}`,
-          category: item.category || 'General Kirana',
+          category: item.category || 'Other',
           brand: item.brand || 'Generic',
           barcode: item.barcode || `BC${Date.now().toString().slice(-6)}${idx}`,
           unit: item.unit || 'pkt',
