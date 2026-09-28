@@ -95,6 +95,12 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const [materialCharges, setMaterialCharges] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  // Left blank, a bill is assumed paid in full (the common case, unchanged).
+  // Typed in lower than the total, the difference becomes this client's
+  // pending balance on the invoice — previously this screen had no way to
+  // record a part-paid bill at all: every invoice was hardcoded PAID in
+  // full, so a client who paid less just had that shortfall go untracked.
+  const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
   // 'AUTO' taxes each cart item at its own configured GST% (set in Add/Edit
   // Service); picking a fixed slab here overrides that for this bill only —
   // e.g. an exempt/composition-scheme client who needs 0% regardless of what
@@ -210,6 +216,9 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
     effectiveGstPercent = gstRateOverride;
   }
   const grandTotal = Math.round(afterDiscount + gstAmount);
+  const numReceived = typeof receivedAmount === 'number' ? receivedAmount : grandTotal;
+  const paidNow = receivedAmount === '' ? grandTotal : Math.max(0, Math.min(numReceived, grandTotal));
+  const balanceDue = Math.max(0, Math.round((grandTotal - paidNow) * 100) / 100);
 
   // A bill started from an Appointment / Order / Client arrives as a draft:
   // load its client + lines once, and remember the source so saving the bill
@@ -246,6 +255,10 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
   const handleCompleteBilling = () => {
     if (cart.length === 0 && labourCharges + materialCharges <= 0) {
       alert("Please add at least one service to cart");
+      return;
+    }
+    if (balanceDue > 0 && !customerMobile.trim()) {
+      alert(`₹${balanceDue} of this bill is unpaid. Please add the client's mobile number so the pending balance can be tracked and followed up.`);
       return;
     }
 
@@ -295,10 +308,10 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
       discount: discountAmount,
       gstAmount,
       grandTotal,
-      paidAmount: grandTotal,
-      balanceAmount: 0,
+      paidAmount: paidNow,
+      balanceAmount: balanceDue,
       paymentMethod,
-      status: 'PAID',
+      status: balanceDue <= 0 ? 'PAID' : paidNow > 0 ? 'PARTIAL' : 'UNPAID',
       notes: billSource?.note ? `${billSource.note} • ${cfg.name}` : `Service POS Billing • ${cfg.name}`
     });
 
@@ -313,6 +326,7 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
     setDiscountAmount(0);
     setGstRateOverride('AUTO');
     setEditingPriceId(null);
+    setReceivedAmount('');
   };
 
   const pg = usePagination(filteredServices, searchQuery + selectedCategory);
@@ -700,6 +714,29 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
               <span className="text-lg font-black text-emerald-400">₹{grandTotal}</span>
             </div>
 
+            {/* Amount Received — leave blank for a fully-paid bill (the usual
+                case); typing in less than the total tracks the rest as a
+                pending balance on this invoice instead of silently ignoring it. */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 mb-1">
+                Amount Received <span className="text-slate-500">(leave blank if paid in full)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                placeholder={`Full amount ₹${grandTotal}`}
+                value={receivedAmount}
+                onChange={e => setReceivedAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                className="w-full px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+              />
+              {balanceDue > 0 && (
+                <div className="flex items-center justify-between text-xs pt-1.5">
+                  <span className="font-bold text-amber-400">Balance Due (pending):</span>
+                  <span className="font-black text-amber-400">₹{balanceDue}</span>
+                </div>
+              )}
+            </div>
+
             {/* Payment Method Selector */}
             <div className="grid grid-cols-4 gap-1.5">
               {(['UPI', 'CASH', 'BANK', 'OTHER'] as PaymentMethod[]).map(pm => (
@@ -765,10 +802,22 @@ export const ServicePosView: React.FC<ServicePosViewProps> = ({ onNavigateTab })
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-black text-sm pt-2 border-t border-slate-700 text-emerald-400">
-                <span>Grand Total Paid:</span>
+              <div className="flex justify-between font-black text-sm pt-2 border-t border-slate-700 text-white">
+                <span>Grand Total:</span>
                 <span>₹{completedInvoice.grandTotal}</span>
               </div>
+              {completedInvoice.status !== 'PAID' && (
+                <>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Amount Received:</span>
+                    <span className="font-bold">₹{completedInvoice.paidAmount}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-amber-400">
+                    <span>Balance Due:</span>
+                    <span>₹{completedInvoice.balanceAmount}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <button
