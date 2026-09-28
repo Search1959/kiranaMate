@@ -26,7 +26,8 @@ import {
   ArrowLeftRight,
   MessageCircle,
   Camera,
-  Megaphone
+  Megaphone,
+  CreditCard
 } from 'lucide-react';
 import { LanguageCode, DailyStats } from '../types';
 import { translations } from '../lib/translations';
@@ -132,6 +133,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     { id: 'purchases', label: t.purchases, icon: Truck, color: 'text-blue-600 bg-blue-50' },
     { id: 'expenses', label: t.expenses, icon: TrendingDown, color: 'text-rose-600 bg-rose-50' },
     { id: 'suppliers', label: t.suppliers, icon: Users, color: 'text-purple-600 bg-purple-50' },
+    { id: 'udhaar_credit', label: 'Udhaar / Credit', icon: CreditCard, color: 'text-amber-600 bg-amber-50' },
   ];
 
   const serviceMoreItems = [
@@ -251,7 +253,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                     key={item.id}
                     onClick={() => {
                       setShowMoreMenu(false);
-                      onTabChange(item.id);
+                      if (item.id === 'udhaar_credit') onOpenQuickAction('whatsapp-udhaar-reminder');
+                      else onTabChange(item.id);
                     }}
                     className="flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all active:scale-95 text-center"
                   >

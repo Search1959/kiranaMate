@@ -81,6 +81,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         { id: 'sales', label: t.sales, icon: ShoppingCart },
         { id: 'orders', label: t.orders, icon: ShoppingBag, badge: stats.pendingOrdersCount > 0 ? `${stats.pendingOrdersCount}` : undefined, badgeColor: 'bg-orange-500 text-white' },
         { id: 'customers', label: t.customers, icon: Users, badge: stats.overdueUdhaar > 0 ? 'Udhaar' : undefined, badgeColor: 'bg-amber-500 text-slate-950 font-bold' },
+        { id: 'udhaar_credit', label: 'Udhaar / Credit', icon: CreditCard, badge: stats.overdueUdhaar > 0 ? 'Due' : undefined, badgeColor: 'bg-amber-500 text-slate-950 font-bold' },
         { id: 'stock', label: t.stock, icon: Package, badge: stats.lowStockCount > 0 ? `${stats.lowStockCount}` : undefined, badgeColor: 'bg-red-500 text-white' },
         { id: 'purchases', label: t.purchases, icon: Truck },
         { id: 'expenses', label: t.expenses, icon: TrendingDown },
@@ -201,7 +202,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => onTabChange(item.id)}
+                    onClick={() => item.id === 'udhaar_credit' ? onOpenQuickAction('whatsapp-udhaar-reminder') : onTabChange(item.id)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                       isActive
                         ? isServiceTab

@@ -109,10 +109,18 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   });
 
   const handleSelectCustomer = async (cust: Customer) => {
+    // Show the list's snapshot immediately so the modal opens instantly, then
+    // replace it with the server's fresh copy once it arrives. Previously this
+    // fetched the ledger but threw away res.customer, so the "Total Udhaar"
+    // card kept showing whatever balance was on the list when it was clicked —
+    // if a payment or sale had landed since (another device, a background
+    // refresh), that stale figure could disagree with the ledger below it,
+    // which was always fetched fresh.
     setSelectedCustomer(cust);
     setIsLoadingLedger(true);
     try {
       const res = await api.getCustomerById(cust.id);
+      if (res.customer) setSelectedCustomer(res.customer);
       setCustomerLedger(res.ledger || []);
     } catch {
       setCustomerLedger([]);
